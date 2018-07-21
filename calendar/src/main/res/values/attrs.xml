@@ -1,5 +1,4 @@
 <resources>
     <declare-styleable name="CalendarView">
-    <declare-styleable name="CalendarView">
     </declare-styleable>
 </resources>
