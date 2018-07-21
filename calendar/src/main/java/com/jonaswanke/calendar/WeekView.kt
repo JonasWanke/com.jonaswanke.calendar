@@ -5,11 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.support.annotation.AttrRes
+import android.support.v4.content.ContextCompat
 import android.text.TextPaint
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.util.Log
-import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -22,7 +24,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     var onEventClickListener: ((String) -> Unit)? = null
     var onEventLongClickListener: ((String) -> Unit)? = null
 
-    var week: Week by Delegates.observable(Calendar.getInstance().toWeek()) { _, old, new ->
+    var week: Week by Delegates.observable(Week()) { _, old, new ->
         if (old == new)
             return@observable
 
@@ -36,7 +38,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         if (old == new)
             return@observable
         if (new.any { event -> event.start < start || event.start >= end })
-            throw IllegalArgumentException("event starts must all be inside the week defined by start")
+            throw IllegalArgumentException("event starts must all be inside the set week")
 
         onEventsChanged(new)
     }
@@ -60,7 +62,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
             return
 
         canvas.drawRect(100f, 100f, 200f, 200f, Paint().apply { color = Color.GREEN })
-        canvas.drawText(week.second.toString(), 100.0f, 100.0f, TextPaint().apply {
+        canvas.drawText(week.week.toString(), 100.0f, 100.0f, TextPaint().apply {
             color = Color.BLUE
             textSize = 100f
         })
