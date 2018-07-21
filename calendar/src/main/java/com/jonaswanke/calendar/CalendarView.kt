@@ -59,6 +59,13 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
         override val previousIndicator: Week
             get() = currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
 
+        override var currentIndicatorString: String
+            get() = "${currentIndicator.year}-${currentIndicator.week}"
+            set(value) {
+                val parts = value.split("-")
+                currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
+            }
+
         override fun instantiateItem(indicator: Week): ViewGroup {
             return FrameLayout(context).apply {
                 addView(WeekView(context).apply { week = indicator })
