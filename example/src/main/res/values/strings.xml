@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Calendar Example</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="drawer_info_creator">Created by Jonas Wanke</string>
+    <string name="drawer_info_contact">contact@jonas-wanke.com</string>
+</resources>
