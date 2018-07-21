@@ -1,7 +1,5 @@
 package com.jonaswanke.calendar
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -38,8 +36,8 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     var onEventLongClickListener: ((String) -> Unit)? = null
 
     var eventProvider: EventProvider = object : EventProvider {
-        override fun provideEvents(year: Int, week: Int): LiveData<List<Event>> {
-            return MutableLiveData<List<Event>>().apply { value = emptyList() }
+        override fun provideEvents(year: Int, week: Int): List<Event> {
+            return emptyList()
         }
     }
 
@@ -108,6 +106,6 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     }
 
     interface EventProvider {
-        fun provideEvents(year: Int, week: Int): LiveData<List<Event>>
+        fun provideEvents(year: Int, week: Int): List<Event>
     }
 }
