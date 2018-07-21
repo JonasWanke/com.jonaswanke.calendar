@@ -5,59 +5,50 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.support.annotation.AttrRes
-import android.support.v4.content.ContextCompat
 import android.text.TextPaint
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import java.util.*
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : LinearLayout(context, attrs, defStyleAttr) {
+class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
+    : ViewGroup(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((String) -> Unit)? = null
     var onEventLongClickListener: ((String) -> Unit)? = null
 
-    var week: Week by Delegates.observable(Week()) { _, old, new ->
+    var day: Day by Delegates.observable(Day()) { _, old, new ->
         if (old == new)
             return@observable
 
         events = emptyList()
     }
     val start: Long
-        get() = week.toCalendar().timeInMillis
+        get() = day.toCalendar().timeInMillis
     val end: Long
-        get() = week.toCalendar().timeInMillis + DateUtils.WEEK_IN_MILLIS
+        get() = day.toCalendar().timeInMillis + DateUtils.DAY_IN_MILLIS
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable
         if (new.any { event -> event.start < start || event.start >= end })
-            throw IllegalArgumentException("event starts must all be inside the set week")
+            throw IllegalArgumentException("event starts must all be inside the set day")
 
         onEventsChanged(new)
     }
 
     init {
         setWillNotDraw(false)
-        orientation = HORIZONTAL
-        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE or SHOW_DIVIDER_END
-
-
-        for (i in 0..6) {
-            addView(DayView(context).apply {
-                day = Day(week, ((i + Calendar.MONDAY - 1) % 7) + 1)
-            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-        }
     }
 
     private fun onEventsChanged(events: List<Event>?) {
+
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
 
     }
 
@@ -75,8 +66,8 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         if (canvas == null)
             return
 
-        canvas.drawRect(100f, 100f, 200f, 200f, Paint().apply { color = Color.GREEN })
-        canvas.drawText(week.week.toString(), 100.0f, 100.0f, TextPaint().apply {
+        canvas.drawRect(100f, 200f, 200f, 300f, Paint().apply { color = Color.GREEN })
+        canvas.drawText(day.day.toString(), 100.0f, 200.0f, TextPaint().apply {
             color = Color.BLUE
             textSize = 100f
         })
