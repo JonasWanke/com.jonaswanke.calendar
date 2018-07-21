@@ -1,4 +1,13 @@
 <resources>
+
     <declare-styleable name="CalendarView">
+        <attr name="range" format="enum">
+            <enum name="day" value="1" />
+            <enum name="days_3" value="3" />
+            <enum name="week" value="7" />
+        </attr>
     </declare-styleable>
+
+    <declare-styleable name="WeekView" />
+
 </resources>
