@@ -7,10 +7,6 @@ import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.util.Log
-import com.jonaswanke.calendar.InfinitePagerAdapter.Companion.PAGE_COUNT
-import com.jonaswanke.calendar.InfinitePagerAdapter.Companion.POSITION_CENTER
-import com.jonaswanke.calendar.InfinitePagerAdapter.Companion.POSITION_LEFT
-import com.jonaswanke.calendar.InfinitePagerAdapter.Companion.POSITION_RIGHT
 
 class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null)
     : ViewPager(context, attrs) {
@@ -32,7 +28,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
             }
 
             override fun onPageSelected(position: Int) {
-                mCurrPosition = position
+                positionCurrent = position
                 if (BuildConfig.DEBUG)
                     Log.d(TAG, "on page $position")
 
@@ -49,28 +45,18 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
                 if (state != ViewPager.SCROLL_STATE_IDLE)
                     return
 
-                if (mCurrPosition == POSITION_LEFT) {
-                    adapter.movePageContents(POSITION_CENTER, POSITION_RIGHT)
-                    adapter.movePageContents(POSITION_LEFT, POSITION_CENTER)
-                    adapter.currentIndicator = adapter.previousIndicator
-                    adapter.fillPage(POSITION_LEFT)
-                } else if (mCurrPosition == POSITION_RIGHT) {
-                    adapter.movePageContents(POSITION_CENTER, POSITION_LEFT)
-                    adapter.movePageContents(POSITION_RIGHT, POSITION_CENTER)
-                    adapter.currentIndicator = adapter.nextIndicator
-                    adapter.fillPage(POSITION_RIGHT)
-                }
-                setCurrentItem(POSITION_CENTER, false)
+                adapter.cycleBack(positionCurrent)
+                setCurrentItem(adapter.center, false)
             }
         })
     }
 
-    private var mCurrPosition = POSITION_CENTER
+    private var positionCurrent = -1
     var listener: OnInfinitePageChangeListener? = null
 
 
     override fun setCurrentItem(item: Int) {
-        if (item != POSITION_CENTER) {
+        if (item != (adapter as? InfinitePagerAdapter<*>)?.center ?: -1) {
             throw RuntimeException("Cannot change page index unless its 1.")
         }
         super.setCurrentItem(item)
@@ -85,23 +71,20 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     override fun setAdapter(adapter: PagerAdapter?) {
         if (adapter is InfinitePagerAdapter<*>) {
             super.setAdapter(adapter)
-            currentItem = POSITION_CENTER
+            positionCurrent = adapter.center
+            currentItem = adapter.center
         } else
             throw IllegalArgumentException("Adapter should be an instance of InfinitePagerAdapter.")
     }
 
     fun <T : Any> setCurrentIndicator(indicator: T) {
-        val adapter = adapter ?: return
-        val infinitePagerAdapter = adapter as InfinitePagerAdapter<*>
-        val currentIndicator = infinitePagerAdapter.currentIndicator
-        if (currentIndicator!!.javaClass != indicator.javaClass) {
+        val adapter = adapter as? InfinitePagerAdapter<*> ?: return
+        val currentIndicator = adapter.currentIndicator
+        if (currentIndicator!!.javaClass != indicator.javaClass)
             return
-        }
-        infinitePagerAdapter.reset()
+
         @Suppress("UNCHECKED_CAST")
-        (infinitePagerAdapter as InfinitePagerAdapter<T>).currentIndicator = indicator
-        for (i in 0 until PAGE_COUNT)
-            infinitePagerAdapter.fillPage(i)
+        (adapter as InfinitePagerAdapter<T>).reset(indicator)
     }
 
     override fun onSaveInstanceState(): Parcelable? {
