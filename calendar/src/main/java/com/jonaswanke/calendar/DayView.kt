@@ -3,12 +3,12 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
+import android.support.v4.content.ContextCompat
 import android.text.TextPaint
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import java.util.*
@@ -47,8 +47,14 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         invalidate()
     }
 
+    private var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
+        dividerHeight = new?.intrinsicWidth ?: 0
+    }
+    private var dividerHeight: Int = 0
+
     init {
         setWillNotDraw(false)
+        divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -57,14 +63,13 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         super.addView(child, index, params)
     }
 
+    private val cal = Calendar.getInstance()
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val left = paddingLeft
         val top = paddingTop
         val right = r - l - paddingRight
-        val bottom =  b - t - paddingBottom
+        val bottom = b - t - paddingBottom
         val height = bottom - top
-
-        val cal = Calendar.getInstance()
 
         fun getPosForTime(time: Long): Int {
             return (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
@@ -83,11 +88,21 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        Log.d("CalendarView", "onDraw")
         if (canvas == null)
             return
 
-        canvas.drawRect(100f, 200f, 200f, 300f, Paint().apply { color = Color.GREEN })
+        val left = paddingLeft
+        val top = paddingTop
+        val right = canvas.width - paddingRight
+        val bottom = canvas.height - paddingBottom
+        val height = bottom - top
+
+        val hourHeight = height / 23
+        for (hour in 0..24) {
+            divider?.setBounds(left, top + hourHeight * hour,
+                    right, top + hourHeight * hour + dividerHeight)
+            divider?.draw(canvas)
+        }
         canvas.drawText(day.day.toString(), 100.0f, 200.0f, TextPaint().apply {
             color = Color.BLUE
             textSize = 100f
