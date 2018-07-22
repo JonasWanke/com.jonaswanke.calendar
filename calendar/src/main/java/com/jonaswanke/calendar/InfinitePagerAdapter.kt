@@ -4,6 +4,7 @@ import android.support.v4.view.PagerAdapter
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 
 
 abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
@@ -40,7 +41,7 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
         if (BuildConfig.DEBUG) Log.i(TAG, String.format("instantiating position %s", position))
         val model = createPageModel(position)
         pageModels[position] = model
-        container.addView(model.parentView)
+        container.addView(model.wrapper)
         return model
     }
 
@@ -56,11 +57,9 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
             return
         }
         // moving the new created views to the page of the viewpager
-        oldModel.removeAllChildren()
-        for (newChild in newModel.children) {
-            newModel.removeViewFromParent(newChild)
-            oldModel.addChild(newChild)
-        }
+        oldModel.wrapper.removeAllViews()
+        newModel.wrapper.removeView(newModel.view)
+        oldModel.wrapper.addView(newModel.view)
 
         pageModels[position]?.indicator = newModel.indicator
     }
@@ -68,8 +67,11 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
     private fun createPageModel(pagePosition: Int): PageModel<T> {
         val indicator = getIndicatorFromPagePosition(pagePosition)
         val view = instantiateItem(indicator)
+        val wrapper = FrameLayout(view.context).apply {
+            addView(view)
+        }
 
-        return PageModel(view, indicator)
+        return PageModel(wrapper, view, indicator)
     }
 
     private fun getIndicatorFromPagePosition(pagePosition: Int): T {
@@ -93,12 +95,9 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
             printPageModels("before")
         }
 
-
-        toModel.removeAllChildren()
-        for (view in fromModel.children) {
-            fromModel.removeViewFromParent(view)
-            toModel.addChild(view)
-        }
+        toModel.wrapper.removeAllViews()
+        fromModel.wrapper.removeView(fromModel.view)
+        toModel.wrapper.addView(fromModel.view)
 
         if (BuildConfig.DEBUG) printPageModels("transfer")
         toModel.indicator = fromModel.indicator
@@ -107,10 +106,10 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
 
     internal fun reset() {
         for (pageModel in pageModels)
-            pageModel?.removeAllChildren()
+            pageModel?.wrapper?.removeAllViews()
     }
 
-    abstract fun instantiateItem(indicator: T): ViewGroup
+    abstract fun instantiateItem(indicator: T): View
 
     override fun getCount(): Int {
         return PAGE_COUNT
@@ -118,11 +117,11 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
 
     override fun destroyItem(container: ViewGroup, position: Int, obj: Any) {
         val model = obj as PageModel<*>
-        container.removeView(model.parentView)
+        container.removeView(model.wrapper)
     }
 
     override fun isViewFromObject(view: View, o: Any): Boolean {
-        return view === (o as PageModel<*>).parentView
+        return view === (o as PageModel<*>).wrapper
     }
 
 
@@ -133,8 +132,6 @@ abstract class InfinitePagerAdapter<T>(initValue: T) : PagerAdapter() {
 
     private fun printPageModel(tag: String, model: PageModel<T>?, modelPos: Int) {
         Log.d(TAG, "$tag: ModelPos $modelPos, indicator ${model?.indicator}, " +
-                "childCount ${model?.children?.size}, " +
-                "viewChildCount ${model?.parentView?.childCount}, " +
-                "tag ${model?.parentView?.tag}")
+                "tag ${model?.wrapper?.tag}")
     }
 }

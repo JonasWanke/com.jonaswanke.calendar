@@ -67,9 +67,10 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
 
         override fun instantiateItem(indicator: Week): ViewGroup {
-            return FrameLayout(context).apply {
-                addView(WeekView(context).apply { week = indicator })
+            val view = WeekView(context).apply {
+                week = indicator
             }
+            return view
         }
     }
 
