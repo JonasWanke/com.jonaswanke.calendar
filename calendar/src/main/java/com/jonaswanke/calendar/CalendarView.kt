@@ -35,11 +35,8 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     var onEventClickListener: ((String) -> Unit)? = null
     var onEventLongClickListener: ((String) -> Unit)? = null
 
-    var eventProvider: EventProvider = object : EventProvider {
-        override fun provideEvents(year: Int, week: Int): List<Event> {
-            return emptyList()
-        }
-    }
+    var eventRequestCallback: (Week) -> Unit = {}
+
 
     @get: Range
     var range: Int by Delegates.observable(RANGE_WEEK) { _, old, new ->
@@ -51,7 +48,10 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
         onRangeUpdated()
     }
 
-    private var currentWeek: Week = Calendar.getInstance().toWeek()
+    private val events: MutableMap<Week, List<Event>> = mutableMapOf()
+    private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
+
+    private var currentWeek: Week = Week()
 
     private val pagerAdapter: InfinitePagerAdapter<Week> = object : InfinitePagerAdapter<Week>(currentWeek) {
         override fun nextIndicator(current: Week): Week {
@@ -72,7 +72,10 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
         override fun instantiateItem(indicator: Week): ViewGroup {
             val view = WeekView(context).apply {
                 week = indicator
+                events = this@CalendarView.events[week] ?: emptyList()
             }
+            weekViews[indicator] = view
+            eventRequestCallback(indicator)
             return view
         }
     }
@@ -103,20 +106,14 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     }
 
 
-    private val _paddingLeft = paddingLeft
-    private val _paddingTop = paddingTop
-    private val _paddingRight = paddingRight
-    private val _paddingBottom = paddingBottom
-
-    private val _contentWidth = width - paddingLeft - paddingRight
-    private val _contentHeight = height - paddingTop - paddingBottom
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.drawRect(0.0f, 0.0f, 200.0f, 200.0f, Paint().apply { color = Color.RED })
     }
 
-    interface EventProvider {
-        fun provideEvents(year: Int, week: Int): List<Event>
+
+    fun setEventsForWeek(week: Week, events: List<Event>) {
+        this.events[week] = events
+        weekViews[week]?.events = events
     }
 }

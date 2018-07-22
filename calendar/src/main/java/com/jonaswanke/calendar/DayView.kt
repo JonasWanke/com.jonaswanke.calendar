@@ -9,7 +9,9 @@ import android.text.TextPaint
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
+import java.util.*
 import kotlin.properties.Delegates
 
 /**
@@ -37,28 +39,47 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         if (new.any { event -> event.start < start || event.start >= end })
             throw IllegalArgumentException("event starts must all be inside the set day")
 
-        onEventsChanged(new)
+        removeAllViews()
+        for (event in new)
+            addView(EventView(context).apply {
+                this.event = event
+            })
+        invalidate()
     }
 
     init {
         setWillNotDraw(false)
     }
 
-    private fun onEventsChanged(events: List<Event>?) {
-
+    override fun addView(child: View?, index: Int, params: LayoutParams?) {
+        if (child !is EventView)
+            throw IllegalArgumentException("Only EventViews may be children of DayView")
+        super.addView(child, index, params)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        val left = paddingLeft
+        val top = paddingTop
+        val right = r - l - paddingRight
+        val bottom =  b - t - paddingBottom
+        val height = bottom - top
 
+        val cal = Calendar.getInstance()
+
+        fun getPosForTime(time: Long): Int {
+            return (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
+        }
+
+        for (viewIndex in 0 until childCount) {
+            val view = getChildAt(viewIndex) as EventView
+            val event = view.event ?: continue
+
+            view.layout(left,
+                    top + getPosForTime(event.start),
+                    right,
+                    bottom + getPosForTime(event.end))
+        }
     }
-
-    private val _paddingLeft = paddingLeft
-    private val _paddingTop = paddingTop
-    private val _paddingRight = paddingRight
-    private val _paddingBottom = paddingBottom
-
-    private val _contentWidth = width - paddingLeft - paddingRight
-    private val _contentHeight = height - paddingTop - paddingBottom
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)

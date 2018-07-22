@@ -28,19 +28,25 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         if (old == new)
             return@observable
 
+        for (i in 0..6)
+            (getChildAt(i) as DayView).day = Day(week, mapBackDay(i))
         events = emptyList()
     }
     val start: Long
-        get() = week.toCalendar().timeInMillis
+        get() = week.start
     val end: Long
-        get() = week.toCalendar().timeInMillis + DateUtils.WEEK_IN_MILLIS
+        get() = week.start + DateUtils.WEEK_IN_MILLIS
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable
         if (new.any { event -> event.start < start || event.start >= end })
             throw IllegalArgumentException("event starts must all be inside the set week")
 
-        onEventsChanged(new)
+        val eventsForDays = (0 until 7).map { mutableListOf<Event>() }
+        for (event in events)
+            eventsForDays[mapDay(event.start.asCalendar().toDay().day)].add(event)
+        for (day in 0 until 7)
+            (getChildAt(day) as DayView).events = eventsForDays[day]
     }
 
     init {
@@ -52,22 +58,11 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
 
         for (i in 0..6) {
             addView(DayView(context).apply {
-                day = Day(week, ((i + Calendar.MONDAY - 1) % 7) + 1)
+                day = Day(week, mapBackDay(i))
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
     }
 
-    private fun onEventsChanged(events: List<Event>?) {
-
-    }
-
-    private val _paddingLeft = paddingLeft
-    private val _paddingTop = paddingTop
-    private val _paddingRight = paddingRight
-    private val _paddingBottom = paddingBottom
-
-    private val _contentWidth = width - paddingLeft - paddingRight
-    private val _contentHeight = height - paddingTop - paddingBottom
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
@@ -81,4 +76,14 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
             textSize = 100f
         })
     }
+
+    /**
+     * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
+     */
+    private fun mapDay(day: Int): Int = (day + 7 - Calendar.MONDAY) % 7
+
+    /**
+     * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
+     */
+    private fun mapBackDay(day: Int): Int = (day + Calendar.MONDAY) % 7
 }
