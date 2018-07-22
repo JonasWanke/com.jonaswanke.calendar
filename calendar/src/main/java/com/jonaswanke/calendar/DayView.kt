@@ -69,7 +69,7 @@ class DayView @JvmOverloads constructor(context: Context,
         divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
 
         val a = context.obtainStyledAttributes(
-                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
+                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
 
         dateSize = a.getDimensionPixelSize(R.styleable.DayView_dateSize, 16)
         dateColor = a.getColor(R.styleable.DayView_dateColor,
@@ -112,9 +112,10 @@ class DayView @JvmOverloads constructor(context: Context,
 
     private val locale: Locale = Locale.getDefault()
     private val cal = Calendar.getInstance()
+    private val headerHeight = (dateSize * 1.75 + weekDaySize * 2).toInt()
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val left = paddingLeft
-        val top = paddingTop
+        val top = paddingTop + headerHeight
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
         val height = bottom - top

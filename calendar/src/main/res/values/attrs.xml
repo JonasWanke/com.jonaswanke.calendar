@@ -26,4 +26,9 @@
         <attr name="currentWeekDayColor" format="color" />
     </declare-styleable>
 
+    <declare-styleable name="EventView">
+        <attr name="backgroundTint" format="color" />
+        <attr name="cornerRadius" format="dimension" />
+    </declare-styleable>
+
 </resources>

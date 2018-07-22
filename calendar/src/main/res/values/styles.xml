@@ -3,13 +3,18 @@
 
     <style name="Calendar" />
 
-    <style name="Calendar.CalendarViewStyle">
+    <style name="Calendar.DayViewStyle">
         <item name="dateSize">32sp</item>
         <item name="dateColor">#9e000000</item>
         <item name="currentDateColor">#4285f4</item>
         <item name="weekDaySize">16sp</item>
         <item name="weekDayColor">?android:attr/textColorSecondary</item>
         <item name="currentWeekDayColor">#4285f4</item>
+    </style>
+
+    <style name="Calendar.EventViewStyle">
+        <item name="backgroundTint">#039BE5</item>
+        <item name="cornerRadius">4dp</item>
     </style>
 
 </resources>
