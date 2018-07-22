@@ -2,7 +2,6 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
@@ -17,7 +16,9 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
+class DayView @JvmOverloads constructor(context: Context,
+                                        attrs: AttributeSet? = null,
+                                        @AttrRes defStyleAttr: Int = R.attr.dayViewStyle)
     : ViewGroup(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((String) -> Unit)? = null
@@ -47,6 +48,17 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         invalidate()
     }
 
+    private val dateSize: Int
+    private val dateColor: Int
+    private val datePaint: TextPaint
+    private val currentDateColor: Int
+    private val currentDatePaint: TextPaint
+    private val weekDaySize: Int
+    private val weekDayColor: Int
+    private val weekDayPaint: TextPaint
+    private val currentWeekDayColor: Int
+    private val currentWeekDayPaint: TextPaint
+
     private var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
         dividerHeight = new?.intrinsicWidth ?: 0
     }
@@ -55,6 +67,41 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     init {
         setWillNotDraw(false)
         divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
+
+        val a = context.obtainStyledAttributes(
+                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
+
+        dateSize = a.getDimensionPixelSize(R.styleable.DayView_dateSize, 16)
+        dateColor = a.getColor(R.styleable.DayView_dateColor,
+                ContextCompat.getColor(context, android.R.color.secondary_text_light))
+        datePaint = TextPaint().apply {
+            color = dateColor
+            isAntiAlias = true
+            textSize = dateSize.toFloat()
+        }
+        currentDateColor = a.getColor(R.styleable.DayView_currentDateColor, dateColor)
+        currentDatePaint = TextPaint().apply {
+            color = currentDateColor
+            isAntiAlias = true
+            textSize = dateSize.toFloat()
+        }
+
+        weekDaySize = a.getDimensionPixelSize(R.styleable.DayView_weekDaySize, 16)
+        weekDayColor = a.getColor(R.styleable.DayView_weekDayColor,
+                ContextCompat.getColor(context, android.R.color.secondary_text_light))
+        weekDayPaint = TextPaint().apply {
+            color = weekDayColor
+            isAntiAlias = true
+            textSize = weekDaySize.toFloat()
+        }
+        currentWeekDayColor = a.getColor(R.styleable.DayView_currentWeekDayColor, weekDayColor)
+        currentWeekDayPaint = TextPaint().apply {
+            color = currentWeekDayColor
+            isAntiAlias = true
+            textSize = weekDaySize.toFloat()
+        }
+
+        a.recycle()
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -63,6 +110,7 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         super.addView(child, index, params)
     }
 
+    private val locale: Locale = Locale.getDefault()
     private val cal = Calendar.getInstance()
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val left = paddingLeft
@@ -79,10 +127,8 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
             val view = getChildAt(viewIndex) as EventView
             val event = view.event ?: continue
 
-            view.layout(left,
-                    top + getPosForTime(event.start),
-                    right,
-                    bottom + getPosForTime(event.end))
+            view.layout(left, top + getPosForTime(event.start),
+                    right, bottom + getPosForTime(event.end))
         }
     }
 
@@ -92,20 +138,28 @@ class DayView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
             return
 
         val left = paddingLeft
-        val top = paddingTop
+        var top = paddingTop
         val right = canvas.width - paddingRight
         val bottom = canvas.height - paddingBottom
-        val height = bottom - top
 
-        val hourHeight = height / 23
+        val isToday = DateUtils.isToday(start)
+        cal.timeInMillis = start
+
+        top += (dateSize * 1.5).toInt()
+        canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
+                .3f * dateSize, top.toFloat(), if (isToday) currentDatePaint else datePaint)
+        top += (dateSize * .25).toInt()
+
+        top += weekDaySize
+        canvas.drawText(cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale),
+                .3f * dateSize, top.toFloat(), if (isToday) currentWeekDayPaint else weekDayPaint)
+        top += weekDaySize
+
+        val hourHeight = (bottom - top) / 23
         for (hour in 0..24) {
             divider?.setBounds(left, top + hourHeight * hour,
                     right, top + hourHeight * hour + dividerHeight)
             divider?.draw(canvas)
         }
-        canvas.drawText(day.day.toString(), 100.0f, 200.0f, TextPaint().apply {
-            color = Color.BLUE
-            textSize = 100f
-        })
     }
 }
