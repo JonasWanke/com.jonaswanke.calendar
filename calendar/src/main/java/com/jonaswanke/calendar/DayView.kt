@@ -26,6 +26,7 @@ class DayView @JvmOverloads constructor(context: Context,
     var onEventLongClickListener: ((String) -> Unit)? = null
 
     var day: Day by Delegates.observable(Day()) { _, old, new ->
+        background = if (DateUtils.isToday(new.toCalendar().timeInMillis)) dateCurrentBackground else null
         if (old == new)
             return@observable
 
@@ -52,13 +53,18 @@ class DayView @JvmOverloads constructor(context: Context,
     private val dateSize: Int
     private val dateColor: Int
     private val datePaint: TextPaint
-    private val currentDateColor: Int
-    private val currentDatePaint: TextPaint
+    private val dateCurrentColor: Int
+    private val dateCurrentPaint: TextPaint
+    private val dateCurrentBackground: Drawable?
+    private val dateFutureColor: Int
+    private val dateFuturePaint: TextPaint
     private val weekDaySize: Int
     private val weekDayColor: Int
     private val weekDayPaint: TextPaint
-    private val currentWeekDayColor: Int
-    private val currentWeekDayPaint: TextPaint
+    private val weekDayCurrentColor: Int
+    private val weekDayCurrentPaint: TextPaint
+    private val weekDayFutureColor: Int
+    private val weekDayFuturePaint: TextPaint
     private val headerHeight: Int
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
@@ -82,9 +88,16 @@ class DayView @JvmOverloads constructor(context: Context,
             isAntiAlias = true
             textSize = dateSize.toFloat()
         }
-        currentDateColor = a.getColor(R.styleable.DayView_currentDateColor, dateColor)
-        currentDatePaint = TextPaint().apply {
-            color = currentDateColor
+        dateCurrentColor = a.getColor(R.styleable.DayView_dateCurrentColor, dateColor)
+        dateCurrentPaint = TextPaint().apply {
+            color = dateCurrentColor
+            isAntiAlias = true
+            textSize = dateSize.toFloat()
+        }
+        dateCurrentBackground = a.getDrawable(R.styleable.DayView_dateCurrentBackground)
+        dateFutureColor = a.getColor(R.styleable.DayView_dateFutureColor, dateColor)
+        dateFuturePaint = TextPaint().apply {
+            color = dateFutureColor
             isAntiAlias = true
             textSize = dateSize.toFloat()
         }
@@ -97,9 +110,15 @@ class DayView @JvmOverloads constructor(context: Context,
             isAntiAlias = true
             textSize = weekDaySize.toFloat()
         }
-        currentWeekDayColor = a.getColor(R.styleable.DayView_currentWeekDayColor, weekDayColor)
-        currentWeekDayPaint = TextPaint().apply {
-            color = currentWeekDayColor
+        weekDayCurrentColor = a.getColor(R.styleable.DayView_weekDayCurrentColor, weekDayColor)
+        weekDayCurrentPaint = TextPaint().apply {
+            color = weekDayCurrentColor
+            isAntiAlias = true
+            textSize = weekDaySize.toFloat()
+        }
+        weekDayFutureColor = a.getColor(R.styleable.DayView_weekDayFutureColor, weekDayColor)
+        weekDayFuturePaint = TextPaint().apply {
+            color = weekDayFutureColor
             isAntiAlias = true
             textSize = weekDaySize.toFloat()
         }
@@ -149,16 +168,27 @@ class DayView @JvmOverloads constructor(context: Context,
         val bottom = canvas.height - paddingBottom
 
         val isToday = DateUtils.isToday(start)
+        val isFuture = start > TODAY.timeInMillis
         cal.timeInMillis = start
 
         top += (dateSize * 1.4).toInt()
+        val datePaintCurrent = when {
+            isToday -> dateCurrentPaint
+            isFuture -> dateFuturePaint
+            else -> datePaint
+        }
         canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
-                .3f * dateSize, top.toFloat(), if (isToday) currentDatePaint else datePaint)
+                .3f * dateSize, top.toFloat(), datePaintCurrent)
         top += (dateSize * .2).toInt()
 
         top += weekDaySize
+        val weekDayPaintCurrent = when {
+            isToday -> weekDayCurrentPaint
+            isFuture -> weekDayFuturePaint
+            else -> weekDayPaint
+        }
         canvas.drawText(cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale),
-                .3f * dateSize, top.toFloat(), if (isToday) currentWeekDayPaint else weekDayPaint)
+                .3f * dateSize, top.toFloat(), weekDayPaintCurrent)
 
         divider?.setBounds(left, paddingTop + headerHeight - dividerHeight,
                 right, paddingTop + headerHeight)

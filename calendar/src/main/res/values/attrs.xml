@@ -21,10 +21,13 @@
     <declare-styleable name="DayView">
         <attr name="dateSize" format="dimension" />
         <attr name="dateColor" format="color" />
-        <attr name="currentDateColor" format="color" />
+        <attr name="dateCurrentColor" format="color" />
+        <attr name="dateCurrentBackground" format="color|reference" />
+        <attr name="dateFutureColor" format="color" />
         <attr name="weekDaySize" format="dimension" />
         <attr name="weekDayColor" format="color" />
-        <attr name="currentWeekDayColor" format="color" />
+        <attr name="weekDayCurrentColor" format="color" />
+        <attr name="weekDayFutureColor" format="color" />
         <attr name="eventMinHeight" format="dimension" />
     </declare-styleable>
 

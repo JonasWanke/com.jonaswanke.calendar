@@ -5,11 +5,14 @@
 
     <style name="Calendar.DayViewStyle">
         <item name="dateSize">32sp</item>
-        <item name="dateColor">#9e000000</item>
-        <item name="currentDateColor">#4285f4</item>
+        <item name="dateColor">?android:attr/textColorHint</item>
+        <item name="dateCurrentColor">#4285f4</item>
+        <item name="dateCurrentBackground">#0A000000</item>
+        <item name="dateFutureColor">?android:attr/textColorPrimary</item>
         <item name="weekDaySize">16sp</item>
-        <item name="weekDayColor">?android:attr/textColorSecondary</item>
-        <item name="currentWeekDayColor">#4285f4</item>
+        <item name="weekDayColor">?android:attr/textColorHint</item>
+        <item name="weekDayCurrentColor">#4285f4</item>
+        <item name="weekDayFutureColor">?android:attr/textColorPrimary</item>
     </style>
 
     <style name="Calendar.EventViewStyle">

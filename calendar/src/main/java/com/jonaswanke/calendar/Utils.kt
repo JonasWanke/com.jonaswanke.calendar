@@ -3,7 +3,7 @@ package com.jonaswanke.calendar
 import android.text.format.DateUtils
 import java.util.*
 
-private val TODAY: Calendar = Calendar.getInstance()
+internal val TODAY: Calendar = Calendar.getInstance()
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
