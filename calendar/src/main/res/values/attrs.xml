@@ -24,6 +24,7 @@
         <attr name="weekDaySize" format="dimension" />
         <attr name="weekDayColor" format="color" />
         <attr name="currentWeekDayColor" format="color" />
+        <attr name="eventMinHeight" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="EventView">

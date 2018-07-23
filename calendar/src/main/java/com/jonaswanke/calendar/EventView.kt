@@ -10,7 +10,6 @@ import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.view.ContextThemeWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.text.TextUtils
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.Gravity
@@ -37,7 +36,6 @@ class EventView @JvmOverloads constructor(context: Context,
 
     init {
         gravity = Gravity.START or Gravity.TOP
-        ellipsize = TextUtils.TruncateAt.END
 
         backgroundDrawable = ResourcesCompat.getDrawable(context.resources,
                 R.drawable.event_background, ContextThemeWrapper(context, R.style.Calendar_EventViewStyle).theme)

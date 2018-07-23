@@ -11,6 +11,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import java.util.*
+import kotlin.math.max
 import kotlin.properties.Delegates
 
 /**
@@ -127,9 +128,10 @@ class DayView @JvmOverloads constructor(context: Context,
         for (viewIndex in 0 until childCount) {
             val view = getChildAt(viewIndex) as EventView
             val event = view.event ?: continue
+            val startHeight = top + getPosForTime(event.start)
+            val endHeight = max(top + getPosForTime(event.end), startHeight + view.minHeight)
 
-            view.layout(left, top + getPosForTime(event.start),
-                    right, bottom + getPosForTime(event.end))
+            view.layout(left, startHeight, right, endHeight)
         }
     }
 
