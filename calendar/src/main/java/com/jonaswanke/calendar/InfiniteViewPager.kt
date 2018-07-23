@@ -7,6 +7,8 @@ import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.util.Log
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 
 class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null)
     : ViewPager(context, attrs) {
@@ -81,8 +83,11 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         if (currentIndicator!!.javaClass != indicator.javaClass)
             return
 
-        @Suppress("UNCHECKED_CAST")
-        (adapter as InfinitePagerAdapter<T>).reset(indicator)
+        launch(UI) {
+            @Suppress("UNCHECKED_CAST")
+            (adapter as InfinitePagerAdapter<T>).reset(indicator)
+            listener?.onPageScrollStateChanged(SCROLL_STATE_IDLE)
+        }
     }
 
     override fun onSaveInstanceState(): Parcelable? {

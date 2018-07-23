@@ -1,6 +1,7 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
@@ -21,10 +22,11 @@ import kotlin.properties.Delegates
  */
 class EventView @JvmOverloads constructor(context: Context,
                                           attrs: AttributeSet? = null,
-                                          @AttrRes defStyleAttr: Int = R.attr.eventViewStyle)
+                                          @AttrRes defStyleAttr: Int = R.attr.eventViewStyle,
+                                          _event: Event? = null)
     : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
 
-    var event by Delegates.observable<Event?>(null) { _, old, new ->
+    var event by Delegates.observable<Event?>(_event) { _, old, new ->
         if (old == new)
             return@observable
 
@@ -39,15 +41,9 @@ class EventView @JvmOverloads constructor(context: Context,
 
         backgroundDrawable = ResourcesCompat.getDrawable(context.resources,
                 R.drawable.event_background, ContextThemeWrapper(context, R.style.Calendar_EventViewStyle).theme)
+        backgroundColorDefault = 0xFF039BE5.toInt()
 
-        var a = context.obtainStyledAttributes(
-                attrs, R.styleable.EventView, defStyleAttr, R.style.Calendar_DayViewStyle)
-        backgroundColorDefault = a.getColor(R.styleable.EventView_backgroundTint,
-                ContextCompat.getColor(context, android.R.color.holo_blue_light))
-        a.recycle()
-
-
-        a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+        val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
         foreground = a.getDrawable(0)
         a.recycle()
 

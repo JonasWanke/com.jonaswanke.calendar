@@ -77,6 +77,7 @@ class DayView @JvmOverloads constructor(context: Context,
     private val cal: Calendar
 
     init {
+        setWillNotDraw(false)
         divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
 
         val a = context.obtainStyledAttributes(
@@ -136,6 +137,7 @@ class DayView @JvmOverloads constructor(context: Context,
         cal = day.start.asCalendar()
         launch(UI) {
             weekDayString = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+            invalidate()
         }
     }
 
@@ -188,13 +190,15 @@ class DayView @JvmOverloads constructor(context: Context,
                 .3f * dateSize, top.toFloat(), datePaintCurrent)
         top += (dateSize * .2).toInt()
 
-        top += weekDaySize
-        val weekDayPaintCurrent = when {
-            day.isToday -> weekDayCurrentPaint
-            day.isFuture -> weekDayFuturePaint
-            else -> weekDayPaint
+        if (this::weekDayString.isInitialized) {
+            top += weekDaySize
+            val weekDayPaintCurrent = when {
+                day.isToday -> weekDayCurrentPaint
+                day.isFuture -> weekDayFuturePaint
+                else -> weekDayPaint
+            }
+            canvas.drawText(weekDayString, .3f * dateSize, top.toFloat(), weekDayPaintCurrent)
         }
-        canvas.drawText(weekDayString, .3f * dateSize, top.toFloat(), weekDayPaintCurrent)
 
         divider?.setBounds(left, paddingTop + headerHeight - dividerHeight,
                 right, paddingTop + headerHeight)
@@ -250,10 +254,13 @@ class DayView @JvmOverloads constructor(context: Context,
 
         async(UI) {
             removeAllViews()
-            for (event in events)
-                addView(EventView(this@DayView.context).also {
-                    it.event = event
-                })
+            events.map { event ->
+                async(UI) {
+                    addView(EventView(this@DayView.context).also {
+                        it.event = event
+                    })
+                }
+            }.forEach { it.await() }
             updateListeners(onEventClickListener, onEventLongClickListener)
         }
     }
