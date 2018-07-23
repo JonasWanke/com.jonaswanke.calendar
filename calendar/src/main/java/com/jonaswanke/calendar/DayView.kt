@@ -134,7 +134,7 @@ class DayView @JvmOverloads constructor(context: Context,
 
         if (day.isToday) {
             val time = Calendar.getInstance().timeOfDay
-            val posY = (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
+            val posY = top + (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
             canvas.drawCircle(left.toFloat(), posY, timeCircleRadius.toFloat(), timePaint)
             canvas.drawRect(left.toFloat(), posY - timeLineSize / 2,
                     right.toFloat(), posY + timeLineSize / 2, timePaint)

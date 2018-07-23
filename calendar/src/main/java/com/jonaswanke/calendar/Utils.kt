@@ -3,7 +3,7 @@ package com.jonaswanke.calendar
 import android.text.format.DateUtils
 import java.util.*
 
-internal val TODAY: Calendar = Calendar.getInstance().apply {
+private val TODAY: Calendar = Calendar.getInstance().apply {
     timeOfDay = 0
 }
 
