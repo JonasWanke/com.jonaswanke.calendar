@@ -12,6 +12,7 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import com.jonaswanke.calendar.R.attr.timeColor
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
@@ -23,8 +24,8 @@ import kotlin.properties.Delegates
  * TODO: document your custom view class.
  */
 class DayView @JvmOverloads constructor(context: Context,
-                                        attrs: AttributeSet? = null,
-                                        @AttrRes defStyleAttr: Int = R.attr.dayViewStyle,
+                                        private val attrs: AttributeSet? = null,
+                                        @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
                                         _day: Day? = null)
     : ViewGroup(context, attrs, defStyleAttr) {
 
@@ -38,7 +39,7 @@ class DayView @JvmOverloads constructor(context: Context,
             }
 
     var day: Day by Delegates.observable(_day ?: Day()) { _, old, new ->
-        background = if (new.isToday) dateCurrentBackground else null
+        onUpdateDay(new)
         if (old == new)
             return@observable
 
@@ -46,26 +47,14 @@ class DayView @JvmOverloads constructor(context: Context,
     }
     private var events: List<Event> = emptyList()
 
-    private val dateSize: Int
-    private val dateColor: Int
-    private val datePaint: TextPaint
-    private val dateCurrentColor: Int
-    private val dateCurrentPaint: TextPaint
-    private val dateCurrentBackground: Drawable?
-    private val dateFutureColor: Int
-    private val dateFuturePaint: TextPaint
-    private val weekDaySize: Int
-    private val weekDayColor: Int
-    private val weekDayPaint: TextPaint
-    private val weekDayCurrentColor: Int
-    private val weekDayCurrentPaint: TextPaint
-    private val weekDayFutureColor: Int
-    private val weekDayFuturePaint: TextPaint
+    private var dateSize: Int = 0
+    private var datePaint: TextPaint? = null
+    private var weekDaySize: Int = 0
+    private var weekDayPaint: TextPaint? = null
     private lateinit var weekDayString: String
-    private val timeCircleRadius: Int
-    private val timeLineSize: Int
-    private val timeColor: Int
-    private val timePaint: Paint
+    private var timeCircleRadius: Int = 0
+    private var timeLineSize: Int = 0
+    private var timePaint: Paint? = null
     private val headerHeight: Int
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
@@ -78,64 +67,12 @@ class DayView @JvmOverloads constructor(context: Context,
 
     init {
         setWillNotDraw(false)
-        divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
 
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
-
-        dateSize = a.getDimensionPixelSize(R.styleable.DayView_dateSize, 16)
-        dateColor = a.getColor(R.styleable.DayView_dateColor, Color.BLACK)
-        datePaint = TextPaint().apply {
-            color = dateColor
-            isAntiAlias = true
-            textSize = dateSize.toFloat()
-        }
-        dateCurrentColor = a.getColor(R.styleable.DayView_dateCurrentColor, dateColor)
-        dateCurrentPaint = TextPaint().apply {
-            color = dateCurrentColor
-            isAntiAlias = true
-            textSize = dateSize.toFloat()
-        }
-        dateCurrentBackground = a.getDrawable(R.styleable.DayView_dateCurrentBackground)
-        dateFutureColor = a.getColor(R.styleable.DayView_dateFutureColor, dateColor)
-        dateFuturePaint = TextPaint().apply {
-            color = dateFutureColor
-            isAntiAlias = true
-            textSize = dateSize.toFloat()
-        }
-
-        weekDaySize = a.getDimensionPixelSize(R.styleable.DayView_weekDaySize, 16)
-        weekDayColor = a.getColor(R.styleable.DayView_weekDayColor, Color.BLACK)
-        weekDayPaint = TextPaint().apply {
-            color = weekDayColor
-            isAntiAlias = true
-            textSize = weekDaySize.toFloat()
-        }
-        weekDayCurrentColor = a.getColor(R.styleable.DayView_weekDayCurrentColor, weekDayColor)
-        weekDayCurrentPaint = TextPaint().apply {
-            color = weekDayCurrentColor
-            isAntiAlias = true
-            textSize = weekDaySize.toFloat()
-        }
-        weekDayFutureColor = a.getColor(R.styleable.DayView_weekDayFutureColor, weekDayColor)
-        weekDayFuturePaint = TextPaint().apply {
-            color = weekDayFutureColor
-            isAntiAlias = true
-            textSize = weekDaySize.toFloat()
-        }
-
-        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
-        timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
-        timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
-        timePaint = Paint().apply {
-            color = timeColor
-        }
-
-        a.recycle()
-
+        onUpdateDay(day)
         headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
         cal = day.start.asCalendar()
         launch(UI) {
+            divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
             weekDayString = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
             invalidate()
         }
@@ -181,23 +118,13 @@ class DayView @JvmOverloads constructor(context: Context,
         cal.timeInMillis = day.start
 
         top += (dateSize * 1.4).toInt()
-        val datePaintCurrent = when {
-            day.isToday -> dateCurrentPaint
-            day.isFuture -> dateFuturePaint
-            else -> datePaint
-        }
         canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
-                .3f * dateSize, top.toFloat(), datePaintCurrent)
+                .3f * dateSize, top.toFloat(), datePaint)
         top += (dateSize * .2).toInt()
 
         if (this::weekDayString.isInitialized) {
             top += weekDaySize
-            val weekDayPaintCurrent = when {
-                day.isToday -> weekDayCurrentPaint
-                day.isFuture -> weekDayFuturePaint
-                else -> weekDayPaint
-            }
-            canvas.drawText(weekDayString, .3f * dateSize, top.toFloat(), weekDayPaintCurrent)
+            canvas.drawText(weekDayString, .3f * dateSize, top.toFloat(), weekDayPaint)
         }
 
         divider?.setBounds(left, paddingTop + headerHeight - dividerHeight,
@@ -244,6 +171,49 @@ class DayView @JvmOverloads constructor(context: Context,
                 }
             } ?: view.setOnLongClickListener(null)
         }
+    }
+
+    private fun onUpdateDay(day: Day) {
+        val a = context.obtainStyledAttributes(
+                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
+
+        dateSize = a.getDimensionPixelSize(R.styleable.DayView_dateSize, 16)
+        val dateColorAttr = when {
+            day.isToday -> R.styleable.DayView_dateCurrentColor
+            day.isFuture -> R.styleable.DayView_dateFutureColor
+            else -> R.styleable.DayView_dateColor
+        }
+        datePaint = TextPaint().apply {
+            color = a.getColor(dateColorAttr, Color.BLACK)
+            isAntiAlias = true
+            textSize = dateSize.toFloat()
+        }
+        background = if (day.isToday)
+            a.getDrawable(R.styleable.DayView_dateCurrentBackground)
+        else
+            null
+
+        weekDaySize = a.getDimensionPixelSize(R.styleable.DayView_weekDaySize, 16)
+        val weekDayColorAttr = when {
+            day.isToday -> R.styleable.DayView_weekDayCurrentColor
+            day.isFuture -> R.styleable.DayView_weekDayFutureColor
+            else -> R.styleable.DayView_weekDayColor
+        }
+        weekDayPaint = TextPaint().apply {
+            color = a.getColor(weekDayColorAttr, Color.BLACK)
+            isAntiAlias = true
+            textSize = weekDaySize.toFloat()
+        }
+
+        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+        timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
+        val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
+        timePaint = Paint().apply {
+            color = timeColor
+        }
+
+        a.recycle()
+
     }
 
 
