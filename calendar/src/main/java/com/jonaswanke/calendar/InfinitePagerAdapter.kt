@@ -13,7 +13,7 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
         private val TAG: String = InfinitePagerAdapter::class.java.simpleName
     }
 
-    private val pageCount: Int = 2 * offscreenPages + 1
+    internal val pageCount: Int = 2 * offscreenPages + 1
     private val pageModels: Array<PageModel<T>?>
 
     var currentIndicator: T
@@ -70,7 +70,6 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
                 printPageModels("before")
             }
 
-            toModel.wrapper.removeAllViews()
             fromModel.wrapper.removeView(fromModel.view)
             toModel.wrapper.addView(fromModel.view)
 
@@ -128,7 +127,6 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
             return
         }
         // moving the new created views to the page of the viewpager
-        oldModel.wrapper.removeAllViews()
         newModel.wrapper.removeView(newModel.view)
         oldModel.wrapper.addView(newModel.view)
 

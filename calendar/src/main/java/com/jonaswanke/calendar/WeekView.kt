@@ -31,12 +31,14 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
 
         for (i in 0..6)
             (getChildAt(i) as DayView).day = Day(week, mapBackDay(i))
+        start = week.start
+        end = week.start + DateUtils.WEEK_IN_MILLIS
         events = emptyList()
     }
-    val start: Long
-        get() = week.start
-    val end: Long
-        get() = week.start + DateUtils.WEEK_IN_MILLIS
+    var start: Long = week.start
+        private set
+    var end: Long = week.start + DateUtils.WEEK_IN_MILLIS
+        private set
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable

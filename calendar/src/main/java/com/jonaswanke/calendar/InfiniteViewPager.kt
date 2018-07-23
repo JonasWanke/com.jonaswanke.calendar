@@ -68,6 +68,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     override fun setAdapter(adapter: PagerAdapter?) {
         if (adapter is InfinitePagerAdapter<*>) {
             super.setAdapter(adapter)
+            super.setOffscreenPageLimit(adapter.pageCount)
             positionCurrent = adapter.center
             currentItem = adapter.center
         } else

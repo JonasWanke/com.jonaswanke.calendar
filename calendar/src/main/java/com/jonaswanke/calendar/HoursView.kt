@@ -106,7 +106,7 @@ class HoursView @JvmOverloads constructor(context: Context,
 
         val hourHeight = (bottom.toFloat() - top) / 24
         for (hour in 1..23) {
-            val hourText = String.format("%1\$02d:00", hour)
+            val hourText = hour.toString().padStart(2, '0') + ":00"
             hourPaint.getTextBounds(hourText, 0, hourText.length, hourBounds)
             canvas.drawText(hourText,
                     getStartForCentered(hourBounds.width().toFloat()),
