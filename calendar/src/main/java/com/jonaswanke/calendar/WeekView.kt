@@ -1,15 +1,10 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
-import android.text.TextPaint
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import java.util.*
@@ -50,7 +45,6 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     }
 
     init {
-        setWillNotDraw(false)
         orientation = HORIZONTAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         showDividers = SHOW_DIVIDER_MIDDLE or SHOW_DIVIDER_END
@@ -61,20 +55,6 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
                 day = Day(week, mapBackDay(i))
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
-    }
-
-
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        Log.d("CalendarView", "onDraw")
-        if (canvas == null)
-            return
-
-        canvas.drawRect(100f, 100f, 200f, 200f, Paint().apply { color = Color.GREEN })
-        canvas.drawText(week.week.toString(), 100.0f, 100.0f, TextPaint().apply {
-            color = Color.BLUE
-            textSize = 100f
-        })
     }
 
     /**

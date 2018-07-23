@@ -16,10 +16,18 @@
         <item name="android:paddingLeft">4dp</item>
         <item name="android:paddingRight">4dp</item>
         <item name="android:minHeight">14dp</item>
-        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
         <item name="backgroundTint">#039BE5</item>
         <item name="cornerRadius">2dp</item>
+    </style>
+
+    <style name="Calendar.HoursViewStyle">
+        <item name="weekMarginTop">40dp</item>
+        <item name="weekSize">12sp</item>
+        <item name="weekColor">?android:attr/textColorHint</item>
+        <item name="hourSize">12sp</item>
+        <item name="hourColor">?android:attr/textColorHint</item>
     </style>
 
 </resources>

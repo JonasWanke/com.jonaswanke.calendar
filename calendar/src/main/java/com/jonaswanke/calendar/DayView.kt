@@ -59,10 +59,12 @@ class DayView @JvmOverloads constructor(context: Context,
     private val weekDayPaint: TextPaint
     private val currentWeekDayColor: Int
     private val currentWeekDayPaint: TextPaint
+    private val headerHeight: Int
 
-    private var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
+    internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
         dividerHeight = new?.intrinsicWidth ?: 0
     }
+        private set
     private var dividerHeight: Int = 0
 
     init {
@@ -103,6 +105,8 @@ class DayView @JvmOverloads constructor(context: Context,
         }
 
         a.recycle()
+
+        headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -113,7 +117,6 @@ class DayView @JvmOverloads constructor(context: Context,
 
     private val locale: Locale = Locale.getDefault()
     private val cal = Calendar.getInstance()
-    private val headerHeight = (dateSize * 1.75 + weekDaySize * 2).toInt()
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val left = paddingLeft
         val top = paddingTop + headerHeight
@@ -148,20 +151,24 @@ class DayView @JvmOverloads constructor(context: Context,
         val isToday = DateUtils.isToday(start)
         cal.timeInMillis = start
 
-        top += (dateSize * 1.5).toInt()
+        top += (dateSize * 1.4).toInt()
         canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
                 .3f * dateSize, top.toFloat(), if (isToday) currentDatePaint else datePaint)
-        top += (dateSize * .25).toInt()
+        top += (dateSize * .2).toInt()
 
         top += weekDaySize
         canvas.drawText(cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale),
                 .3f * dateSize, top.toFloat(), if (isToday) currentWeekDayPaint else weekDayPaint)
-        top += weekDaySize
 
-        val hourHeight = (bottom - top) / 23
-        for (hour in 0..24) {
-            divider?.setBounds(left, top + hourHeight * hour,
-                    right, top + hourHeight * hour + dividerHeight)
+        divider?.setBounds(left, paddingTop + headerHeight - dividerHeight,
+                right, paddingTop + headerHeight)
+        divider?.draw(canvas)
+        top = paddingTop + headerHeight
+
+        val hourHeight = (bottom.toFloat() - top) / 24
+        for (hour in 1..23) {
+            divider?.setBounds(left, (top + hourHeight * hour).toInt(),
+                    right, (top + hourHeight * hour + dividerHeight).toInt())
             divider?.draw(canvas)
         }
     }

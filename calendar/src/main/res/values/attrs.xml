@@ -5,6 +5,7 @@
         <attr name="weekViewStyle" format="reference" />
         <attr name="dayViewStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
+        <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="CalendarView">
@@ -30,6 +31,14 @@
     <declare-styleable name="EventView">
         <attr name="backgroundTint" format="color" />
         <attr name="cornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="HoursView">
+        <attr name="weekMarginTop" format="dimension" />
+        <attr name="weekSize" format="dimension" />
+        <attr name="weekColor" format="color" />
+        <attr name="hourSize" format="dimension" />
+        <attr name="hourColor" format="color" />
     </declare-styleable>
 
 </resources>

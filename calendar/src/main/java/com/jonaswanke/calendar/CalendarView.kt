@@ -1,15 +1,14 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
+import android.support.v4.content.ContextCompat
+import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
 import java.util.*
 import kotlin.properties.Delegates
@@ -18,7 +17,7 @@ import kotlin.properties.Delegates
  * TODO: document your custom view class.
  */
 class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : FrameLayout(context, attrs, defStyleAttr) {
+    : LinearLayout(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -53,34 +52,13 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
     private var currentWeek: Week = Week()
 
-    private val pagerAdapter: InfinitePagerAdapter<Week> = object : InfinitePagerAdapter<Week>(currentWeek) {
-        override fun nextIndicator(current: Week): Week {
-            return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
-        }
-
-        override fun previousIndicator(current: Week): Week {
-            return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
-        }
-
-        override var currentIndicatorString: String
-            get() = "${currentIndicator.year}-${currentIndicator.week}"
-            set(value) {
-                val parts = value.split("-")
-                currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
-            }
-
-        override fun instantiateItem(indicator: Week): ViewGroup {
-            val view = WeekView(context).apply {
-                week = indicator
-                events = this@CalendarView.events[week] ?: emptyList()
-            }
-            weekViews[indicator] = view
-            eventRequestCallback(indicator)
-            return view
-        }
-    }
+    private val pagerAdapter: InfinitePagerAdapter<Week>
 
     init {
+        orientation = HORIZONTAL
+        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
+        showDividers = SHOW_DIVIDER_MIDDLE or SHOW_DIVIDER_END
+
         View.inflate(context, R.layout.view_calendar, this)
 
         // Load attributes
@@ -91,7 +69,48 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         a.recycle()
 
+        pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek) {
+            override fun nextIndicator(current: Week): Week {
+                return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
+            }
+
+            override fun previousIndicator(current: Week): Week {
+                return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
+            }
+
+            override var currentIndicatorString: String
+                get() = "${currentIndicator.year}-${currentIndicator.week}"
+                set(value) {
+                    val parts = value.split("-")
+                    currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
+                }
+
+            override fun instantiateItem(indicator: Week): ViewGroup {
+                val view = WeekView(context).apply {
+                    week = indicator
+                    events = this@CalendarView.events[week] ?: emptyList()
+                }
+                weekViews[indicator] = view
+                eventRequestCallback(indicator)
+                return view
+            }
+        }
+
+        hours.week = pagerAdapter.currentIndicator
+
         pager.adapter = pagerAdapter
+        pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
+            override fun onPageScrolled(indicator: Any?, positionOffset: Float, positionOffsetPixels: Int) {
+            }
+
+            override fun onPageSelected(indicator: Any?) {
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                if (state == ViewPager.SCROLL_STATE_IDLE)
+                    hours.week = pagerAdapter.currentIndicator
+            }
+        }
     }
 
     private fun onRangeUpdated() {
@@ -103,12 +122,6 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
             else -> throw UnsupportedOperationException()
         }
-    }
-
-
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        canvas?.drawRect(0.0f, 0.0f, 200.0f, 200.0f, Paint().apply { color = Color.RED })
     }
 
 

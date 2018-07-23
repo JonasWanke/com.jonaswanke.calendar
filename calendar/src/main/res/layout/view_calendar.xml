@@ -4,11 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:parentTag="android.widget.FrameLayout">
+    tools:parentTag="android.widget.LinearLayout">
+
+    <com.jonaswanke.calendar.HoursView
+        android:id="@+id/hours"
+        android:layout_width="40dp"
+        android:layout_height="match_parent" />
 
     <com.jonaswanke.calendar.InfiniteViewPager
         android:id="@+id/pager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
 </merge>
