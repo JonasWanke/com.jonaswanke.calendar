@@ -150,7 +150,7 @@ class DayView @JvmOverloads constructor(context: Context,
     private val locale: Locale = Locale.getDefault()
     private val cal = Calendar.getInstance()
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val left = paddingLeft
+        val left = paddingLeft + timeCircleRadius
         val top = paddingTop + headerHeight
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom

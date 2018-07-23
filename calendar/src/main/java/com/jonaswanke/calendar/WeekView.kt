@@ -47,7 +47,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     init {
         orientation = HORIZONTAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE or SHOW_DIVIDER_END
+        showDividers = SHOW_DIVIDER_BEGINNING or SHOW_DIVIDER_MIDDLE
 
 
         for (i in 0..6) {

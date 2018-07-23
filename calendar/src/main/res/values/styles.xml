@@ -20,7 +20,6 @@
 
     <style name="Calendar.EventViewStyle">
         <item name="android:paddingLeft">4dp</item>
-        <item name="android:paddingRight">4dp</item>
         <item name="android:minHeight">14dp</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
