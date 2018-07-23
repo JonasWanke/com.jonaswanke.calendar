@@ -47,7 +47,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         for (event in events)
             eventsForDays[mapDay(event.start.asCalendar().toDay().day)].add(event)
         for (day in 0 until 7)
-            (getChildAt(day) as DayView).events = eventsForDays[day]
+            (getChildAt(day) as DayView).setEvents_(eventsForDays[day])
     }
 
     init {

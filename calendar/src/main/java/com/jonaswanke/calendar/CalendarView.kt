@@ -75,7 +75,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         a.recycle()
 
-        pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek) {
+        pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek, 2) {
             override fun nextIndicator(current: Week): Week {
                 return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
             }
@@ -144,5 +144,9 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     fun setEventsForWeek(week: Week, events: List<Event>) {
         this.events[week] = events
         weekViews[week]?.events = events
+    }
+
+    fun jumpToToday() {
+        pager.setCurrentIndicator(Week())
     }
 }
