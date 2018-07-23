@@ -23,7 +23,8 @@ import kotlin.properties.Delegates
  */
 class DayView @JvmOverloads constructor(context: Context,
                                         attrs: AttributeSet? = null,
-                                        @AttrRes defStyleAttr: Int = R.attr.dayViewStyle)
+                                        @AttrRes defStyleAttr: Int = R.attr.dayViewStyle,
+                                        _day: Day? = null)
     : ViewGroup(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
@@ -35,7 +36,7 @@ class DayView @JvmOverloads constructor(context: Context,
                 updateListeners(onEventClickListener, new)
             }
 
-    var day: Day by Delegates.observable(Day()) { _, old, new ->
+    var day: Day by Delegates.observable(_day ?: Day()) { _, old, new ->
         start = day.toCalendar().timeInMillis
         end = day.toCalendar().timeInMillis + DateUtils.DAY_IN_MILLIS
         background = if (DateUtils.isToday(new.toCalendar().timeInMillis)) dateCurrentBackground else null
@@ -51,8 +52,7 @@ class DayView @JvmOverloads constructor(context: Context,
         private set
     var end: Long = 0
         private set
-    var events: List<Event> = emptyList()
-        private set
+    private var events: List<Event> = emptyList()
 
     private var isToday: Boolean = false
     private var isFuture: Boolean = false
@@ -254,7 +254,7 @@ class DayView @JvmOverloads constructor(context: Context,
         }
     }
 
-    fun setEvents_(events: List<Event>) {
+    fun setEvents(events: List<Event>) {
         if (events.any { event -> event.start < start || event.start >= end })
             throw IllegalArgumentException("event starts must all be inside the set day")
         this.events = events

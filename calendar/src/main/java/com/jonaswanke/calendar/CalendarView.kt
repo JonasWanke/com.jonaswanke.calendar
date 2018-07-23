@@ -92,8 +92,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                 }
 
             override fun instantiateItem(indicator: Week): ViewGroup {
-                val view = WeekView(context).also {
-                    it.week = indicator
+                val view = WeekView(context, _week = indicator).also {
                     it.events = events[indicator] ?: emptyList()
                     it.onEventClickListener = onEventClickListener
                     it.onEventLongClickListener = onEventLongClickListener

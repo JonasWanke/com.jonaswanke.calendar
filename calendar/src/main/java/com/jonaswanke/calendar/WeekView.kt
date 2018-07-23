@@ -13,7 +13,10 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
+class WeekView @JvmOverloads constructor(context: Context,
+                                         attrs: AttributeSet? = null,
+                                         @AttrRes defStyleAttr: Int = 0,
+                                         _week: Week? = null)
     : LinearLayout(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
@@ -25,7 +28,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
                 updateListeners(onEventClickListener, new)
             }
 
-    var week: Week by Delegates.observable(Week()) { _, old, new ->
+    private var week: Week by Delegates.observable(_week ?: Week()) { _, old, new ->
         if (old == new)
             return@observable
 
@@ -49,7 +52,7 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         for (event in events)
             eventsForDays[mapDay(event.start.asCalendar().toDay().day)].add(event)
         for (day in 0 until 7)
-            (getChildAt(day) as DayView).setEvents_(eventsForDays[day])
+            (getChildAt(day) as DayView).setEvents(eventsForDays[day])
     }
 
     init {
@@ -58,13 +61,11 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
         showDividers = SHOW_DIVIDER_BEGINNING or SHOW_DIVIDER_MIDDLE
 
 
-        for (i in 0..6) {
-            addView(DayView(context).also {
-                it.day = Day(week, mapBackDay(i))
+        for (i in 0..6)
+            addView(DayView(context, _day = Day(week, mapBackDay(i))).also {
                 it.onEventClickListener = onEventClickListener
                 it.onEventLongClickListener = onEventLongClickListener
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-        }
     }
 
     /**
