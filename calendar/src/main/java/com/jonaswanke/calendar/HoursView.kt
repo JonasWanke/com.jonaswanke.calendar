@@ -95,7 +95,7 @@ class HoursView @JvmOverloads constructor(context: Context,
         }
 
         top += weekMarginTop + weekSize
-        val weekText = week.toCalendar().get(Calendar.WEEK_OF_YEAR).toString()
+        val weekText = week.week.toString()
         val weekWidth = weekPaint.measureText(weekText)
         canvas.drawText(weekText, getStartForCentered(weekWidth), top.toFloat(), weekPaint)
 

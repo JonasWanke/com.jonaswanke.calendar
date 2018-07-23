@@ -3,18 +3,21 @@ package com.jonaswanke.calendar
 import android.text.format.DateUtils
 import java.util.*
 
-internal val TODAY: Calendar = Calendar.getInstance()
+internal val TODAY: Calendar = Calendar.getInstance().apply {
+    timeOfDay = 0
+}
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
 }
 
 data class Week(
-        var year: Int = TODAY.get(Calendar.YEAR),
-        var week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
+        val year: Int = TODAY.get(Calendar.YEAR),
+        val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
 ) {
-    val start: Long
-        get() = toCalendar().timeInMillis
+    private val cal: Calendar = toCalendar()
+    val start = cal.timeInMillis
+    val end = cal.timeInMillis + DateUtils.WEEK_IN_MILLIS
 }
 
 fun Calendar.toWeek(): Week {
@@ -32,14 +35,19 @@ fun Week.toCalendar(): Calendar =
         }
 
 data class Day(
-        var year: Int = TODAY.get(Calendar.YEAR),
-        var week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
-        var day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
+        val year: Int = TODAY.get(Calendar.YEAR),
+        val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
+        val day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
 ) {
     constructor(week: Week, day: Int) : this(week.year, week.week, day)
 
-    val start: Long
-        get() = toCalendar().timeInMillis
+    private val cal: Calendar = toCalendar()
+
+    val start = cal.timeInMillis
+    val end = cal.timeInMillis + DateUtils.DAY_IN_MILLIS
+
+    val isToday = TODAY.timeInMillis <= start && start < TODAY.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val isFuture = start > TODAY.timeInMillis
 }
 
 fun Calendar.toDay(): Day {
@@ -71,3 +79,7 @@ var Calendar.timeOfDay: Long
         time /= 60
         set(Calendar.HOUR_OF_DAY, (time % 24).toInt())
     }
+
+var Calendar.dayOfWeek: Int
+    get() = get(Calendar.DAY_OF_WEEK)
+    set(value) = set(Calendar.DAY_OF_WEEK, value)

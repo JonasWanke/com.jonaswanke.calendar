@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.math.max
 import kotlin.properties.Delegates
@@ -37,24 +38,13 @@ class DayView @JvmOverloads constructor(context: Context,
             }
 
     var day: Day by Delegates.observable(_day ?: Day()) { _, old, new ->
-        onUpdateDay(new)
-        background = if (DateUtils.isToday(new.toCalendar().timeInMillis)) dateCurrentBackground else null
+        background = if (new.isToday) dateCurrentBackground else null
         if (old == new)
             return@observable
 
         events = emptyList()
-
-        isToday = DateUtils.isToday(start)
-        isFuture = start > TODAY.timeInMillis
     }
-    var start: Long = 0
-        private set
-    var end: Long = 0
-        private set
     private var events: List<Event> = emptyList()
-
-    private var isToday: Boolean = false
-    private var isFuture: Boolean = false
 
     private val dateSize: Int
     private val dateColor: Int
@@ -71,7 +61,7 @@ class DayView @JvmOverloads constructor(context: Context,
     private val weekDayCurrentPaint: TextPaint
     private val weekDayFutureColor: Int
     private val weekDayFuturePaint: TextPaint
-    private val weekDayString: String
+    private lateinit var weekDayString: String
     private val timeCircleRadius: Int
     private val timeLineSize: Int
     private val timeColor: Int
@@ -84,10 +74,9 @@ class DayView @JvmOverloads constructor(context: Context,
         private set
     private var dividerHeight: Int = 0
 
-    private val cal = Calendar.getInstance()
+    private val cal: Calendar
 
     init {
-        setWillNotDraw(false)
         divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
 
         val a = context.obtainStyledAttributes(
@@ -115,8 +104,7 @@ class DayView @JvmOverloads constructor(context: Context,
         }
 
         weekDaySize = a.getDimensionPixelSize(R.styleable.DayView_weekDaySize, 16)
-        weekDayColor = a.getColor(R.styleable.DayView_weekDayColor,
-                ContextCompat.getColor(context, android.R.color.secondary_text_light))
+        weekDayColor = a.getColor(R.styleable.DayView_weekDayColor, Color.BLACK)
         weekDayPaint = TextPaint().apply {
             color = weekDayColor
             isAntiAlias = true
@@ -145,10 +133,10 @@ class DayView @JvmOverloads constructor(context: Context,
         a.recycle()
 
         headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
-        cal.timeInMillis = start
-        weekDayString = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
-
-        onUpdateDay(day)
+        cal = day.start.asCalendar()
+        launch(UI) {
+            weekDayString = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -188,12 +176,12 @@ class DayView @JvmOverloads constructor(context: Context,
         val right = canvas.width - paddingRight
         val bottom = canvas.height - paddingBottom
 
-        cal.timeInMillis = start
+        cal.timeInMillis = day.start
 
         top += (dateSize * 1.4).toInt()
         val datePaintCurrent = when {
-            isToday -> dateCurrentPaint
-            isFuture -> dateFuturePaint
+            day.isToday -> dateCurrentPaint
+            day.isFuture -> dateFuturePaint
             else -> datePaint
         }
         canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
@@ -202,8 +190,8 @@ class DayView @JvmOverloads constructor(context: Context,
 
         top += weekDaySize
         val weekDayPaintCurrent = when {
-            isToday -> weekDayCurrentPaint
-            isFuture -> weekDayFuturePaint
+            day.isToday -> weekDayCurrentPaint
+            day.isFuture -> weekDayFuturePaint
             else -> weekDayPaint
         }
         canvas.drawText(weekDayString, .3f * dateSize, top.toFloat(), weekDayPaintCurrent)
@@ -213,7 +201,7 @@ class DayView @JvmOverloads constructor(context: Context,
         divider?.draw(canvas)
         top = paddingTop + headerHeight
 
-        if (isToday) {
+        if (day.isToday) {
             val time = Calendar.getInstance().timeOfDay
             val posY = (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
             canvas.drawCircle(left.toFloat(), posY, timeCircleRadius.toFloat(), timePaint)
@@ -254,13 +242,9 @@ class DayView @JvmOverloads constructor(context: Context,
         }
     }
 
-    private fun onUpdateDay(day: Day) {
-        start = day.toCalendar().timeInMillis
-        end = day.toCalendar().timeInMillis + DateUtils.DAY_IN_MILLIS
-    }
 
     fun setEvents(events: List<Event>) {
-        if (events.any { event -> event.start < start || event.start >= end })
+        if (events.any { event -> event.start < day.start || event.start >= day.end })
             throw IllegalArgumentException("event starts must all be inside the set day")
         this.events = events
 

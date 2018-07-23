@@ -29,7 +29,6 @@ class WeekView @JvmOverloads constructor(context: Context,
             }
 
     private var week: Week by Delegates.observable(_week ?: Week()) { _, old, new ->
-        onUpdateWeek(new)
         if (old == new)
             return@observable
 
@@ -37,19 +36,16 @@ class WeekView @JvmOverloads constructor(context: Context,
             (getChildAt(i) as DayView).day = Day(week, mapBackDay(i))
         events = emptyList()
     }
-    var start: Long = week.start
-        private set
-    var end: Long = week.start + DateUtils.WEEK_IN_MILLIS
-        private set
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable
-        if (new.any { event -> event.start < start || event.start >= end })
+        if (new.any { event -> event.start < week.start || event.start >= week.end })
             throw IllegalArgumentException("event starts must all be inside the set week")
 
         val eventsForDays = (0 until 7).map { mutableListOf<Event>() }
         for (event in events)
-            eventsForDays[mapDay(event.start.asCalendar().toDay().day)].add(event)
+            eventsForDays[((event.start - week.start) / DateUtils.DAY_IN_MILLIS).toInt()]
+                    .add(event)
         for (day in 0 until 7)
             (getChildAt(day) as DayView).setEvents(eventsForDays[day])
     }
@@ -64,8 +60,6 @@ class WeekView @JvmOverloads constructor(context: Context,
                 it.onEventClickListener = onEventClickListener
                 it.onEventLongClickListener = onEventLongClickListener
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-
-        onUpdateWeek(week)
     }
 
     /**
@@ -86,10 +80,5 @@ class WeekView @JvmOverloads constructor(context: Context,
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
         }
-    }
-
-    private fun onUpdateWeek(week: Week) {
-        start = week.start
-        end = week.start + DateUtils.WEEK_IN_MILLIS
     }
 }
