@@ -37,8 +37,7 @@ class DayView @JvmOverloads constructor(context: Context,
             }
 
     var day: Day by Delegates.observable(_day ?: Day()) { _, old, new ->
-        start = day.toCalendar().timeInMillis
-        end = day.toCalendar().timeInMillis + DateUtils.DAY_IN_MILLIS
+        onUpdateDay(new)
         background = if (DateUtils.isToday(new.toCalendar().timeInMillis)) dateCurrentBackground else null
         if (old == new)
             return@observable
@@ -138,8 +137,7 @@ class DayView @JvmOverloads constructor(context: Context,
 
         timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
         timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
-        timeColor = a.getColor(R.styleable.DayView_timeColor,
-                ContextCompat.getColor(context, android.R.color.secondary_text_light))
+        timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
         timePaint = Paint().apply {
             color = timeColor
         }
@@ -149,6 +147,8 @@ class DayView @JvmOverloads constructor(context: Context,
         headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
         cal.timeInMillis = start
         weekDayString = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+
+        onUpdateDay(day)
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -252,6 +252,11 @@ class DayView @JvmOverloads constructor(context: Context,
                 }
             } ?: view.setOnLongClickListener(null)
         }
+    }
+
+    private fun onUpdateDay(day: Day) {
+        start = day.toCalendar().timeInMillis
+        end = day.toCalendar().timeInMillis + DateUtils.DAY_IN_MILLIS
     }
 
     fun setEvents(events: List<Event>) {

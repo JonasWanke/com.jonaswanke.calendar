@@ -29,13 +29,12 @@ class WeekView @JvmOverloads constructor(context: Context,
             }
 
     private var week: Week by Delegates.observable(_week ?: Week()) { _, old, new ->
+        onUpdateWeek(new)
         if (old == new)
             return@observable
 
         for (i in 0..6)
             (getChildAt(i) as DayView).day = Day(week, mapBackDay(i))
-        start = week.start
-        end = week.start + DateUtils.WEEK_IN_MILLIS
         events = emptyList()
     }
     var start: Long = week.start
@@ -60,12 +59,13 @@ class WeekView @JvmOverloads constructor(context: Context,
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         showDividers = SHOW_DIVIDER_BEGINNING or SHOW_DIVIDER_MIDDLE
 
-
         for (i in 0..6)
             addView(DayView(context, _day = Day(week, mapBackDay(i))).also {
                 it.onEventClickListener = onEventClickListener
                 it.onEventLongClickListener = onEventLongClickListener
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+
+        onUpdateWeek(week)
     }
 
     /**
@@ -86,5 +86,10 @@ class WeekView @JvmOverloads constructor(context: Context,
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
         }
+    }
+
+    private fun onUpdateWeek(week: Week) {
+        start = week.start
+        end = week.start + DateUtils.WEEK_IN_MILLIS
     }
 }
