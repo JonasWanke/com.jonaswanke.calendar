@@ -20,8 +20,10 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class EventView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : TextView(context, attrs, defStyleAttr) {
+class EventView @JvmOverloads constructor(context: Context,
+                                          attrs: AttributeSet? = null,
+                                          @AttrRes defStyleAttr: Int = R.attr.eventViewStyle)
+    : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
 
     var event by Delegates.observable<Event?>(null) { _, old, new ->
         if (old == new)
