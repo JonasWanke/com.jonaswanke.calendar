@@ -65,18 +65,14 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
                 Log.w(TAG, "cycleBack.move no model found $fromModel $toModel")
                 return
             }
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG)
                 Log.d(TAG, "Moving page $from to $to, indicator from ${fromModel.indicator} to ${toModel.indicator}")
-                printPageModels("before")
-            }
 
             fromModel.wrapper.removeView(fromModel.view)
             toModel.wrapper.addView(fromModel.view)
 
-            if (BuildConfig.DEBUG) printPageModels("transfer")
             toModel.indicator = fromModel.indicator
             toModel.view = fromModel.view
-            if (BuildConfig.DEBUG) printPageModels("after")
         }
 
         var current = from
@@ -116,10 +112,8 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
     }
 
     private fun fillPage(position: Int) {
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG)
             Log.d(TAG, "setup Page $position")
-            printPageModels("before newPage")
-        }
         val oldModel = pageModels[position]
         val newModel = createPageModel(position, false)
         if (oldModel == null) {
@@ -147,15 +141,5 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
 
     override fun isViewFromObject(view: View, o: Any): Boolean {
         return view === (o as PageModel<*>).wrapper
-    }
-
-
-    private fun printPageModels(tag: String) {
-        for (i in 0 until pageCount)
-            printPageModel(tag, pageModels[i], i)
-    }
-
-    private fun printPageModel(tag: String, model: PageModel<T>?, modelPos: Int) {
-        Log.d(TAG, "$tag: ModelPos $modelPos, indicator ${model?.indicator}")
     }
 }
