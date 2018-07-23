@@ -2,6 +2,7 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
@@ -65,6 +66,10 @@ class DayView @JvmOverloads constructor(context: Context,
     private val weekDayCurrentPaint: TextPaint
     private val weekDayFutureColor: Int
     private val weekDayFuturePaint: TextPaint
+    private val timeCircleRadius: Int
+    private val timeLineSize: Int
+    private val timeColor: Int
+    private val timePaint: Paint
     private val headerHeight: Int
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
@@ -121,6 +126,14 @@ class DayView @JvmOverloads constructor(context: Context,
             color = weekDayFutureColor
             isAntiAlias = true
             textSize = weekDaySize.toFloat()
+        }
+
+        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+        timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
+        timeColor = a.getColor(R.styleable.DayView_timeColor,
+                ContextCompat.getColor(context, android.R.color.secondary_text_light))
+        timePaint = Paint().apply {
+            color = timeColor
         }
 
         a.recycle()
@@ -194,6 +207,14 @@ class DayView @JvmOverloads constructor(context: Context,
                 right, paddingTop + headerHeight)
         divider?.draw(canvas)
         top = paddingTop + headerHeight
+
+        if (isToday) {
+            val time = Calendar.getInstance().timeOfDay
+            val posY = (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
+            canvas.drawCircle(left.toFloat(), posY, timeCircleRadius.toFloat(), timePaint)
+            canvas.drawRect(left.toFloat(), posY - timeLineSize / 2,
+                    right.toFloat(), posY + timeLineSize / 2, timePaint)
+        }
 
         val hourHeight = (bottom.toFloat() - top) / 24
         for (hour in 1..23) {

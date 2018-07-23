@@ -28,6 +28,9 @@
         <attr name="weekDayColor" format="color" />
         <attr name="weekDayCurrentColor" format="color" />
         <attr name="weekDayFutureColor" format="color" />
+        <attr name="timeCircleRadius" format="dimension" />
+        <attr name="timeLineSize" format="dimension" />
+        <attr name="timeColor" format="color" />
         <attr name="eventMinHeight" format="dimension" />
     </declare-styleable>
 

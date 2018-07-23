@@ -13,6 +13,9 @@
         <item name="weekDayColor">?android:attr/textColorHint</item>
         <item name="weekDayCurrentColor">#4285f4</item>
         <item name="weekDayFutureColor">?android:attr/textColorPrimary</item>
+        <item name="timeCircleRadius">4dp</item>
+        <item name="timeLineSize">2dp</item>
+        <item name="timeColor">#5f89d5</item>
     </style>
 
     <style name="Calendar.EventViewStyle">
