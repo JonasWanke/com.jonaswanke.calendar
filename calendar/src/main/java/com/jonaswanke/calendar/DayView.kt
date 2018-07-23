@@ -23,8 +23,14 @@ class DayView @JvmOverloads constructor(context: Context,
                                         @AttrRes defStyleAttr: Int = R.attr.dayViewStyle)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-    var onEventClickListener: ((String) -> Unit)? = null
-    var onEventLongClickListener: ((String) -> Unit)? = null
+    var onEventClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(new, onEventLongClickListener)
+            }
+    var onEventLongClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, new)
+            }
 
     var day: Day by Delegates.observable(Day()) { _, old, new ->
         background = if (DateUtils.isToday(new.toCalendar().timeInMillis)) dateCurrentBackground else null
@@ -45,9 +51,10 @@ class DayView @JvmOverloads constructor(context: Context,
 
         removeAllViews()
         for (event in new)
-            addView(EventView(context).apply {
-                this.event = event
+            addView(EventView(context).also {
+                it.event = event
             })
+        updateListeners(onEventClickListener, onEventLongClickListener)
         invalidate()
     }
 
@@ -221,6 +228,31 @@ class DayView @JvmOverloads constructor(context: Context,
             divider?.setBounds(left, (top + hourHeight * hour).toInt(),
                     right, (top + hourHeight * hour + dividerHeight).toInt())
             divider?.draw(canvas)
+        }
+    }
+
+    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
+                                onEventLongClickListener: ((Event) -> Unit)?) {
+        for (i in 0 until childCount) {
+            val view = getChildAt(i) as EventView
+            val event = view.event
+            if (event == null) {
+                view.setOnClickListener(null)
+                view.setOnLongClickListener(null)
+                continue
+            }
+
+            onEventClickListener?.let { listener ->
+                view.setOnClickListener {
+                    listener(event)
+                }
+            } ?: view.setOnClickListener(null)
+            onEventLongClickListener?.let { listener ->
+                view.setOnLongClickListener {
+                    listener(event)
+                    true
+                }
+            } ?: view.setOnLongClickListener(null)
         }
     }
 }

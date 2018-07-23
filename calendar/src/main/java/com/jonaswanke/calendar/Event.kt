@@ -2,8 +2,7 @@ package com.jonaswanke.calendar
 
 import android.support.annotation.ColorInt
 
-class Event(
-        val id: String,
+open class Event(
         val title: String,
         val description: String,
         @get:ColorInt

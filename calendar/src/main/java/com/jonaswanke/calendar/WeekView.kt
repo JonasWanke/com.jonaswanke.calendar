@@ -16,8 +16,14 @@ import kotlin.properties.Delegates
 class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
     : LinearLayout(context, attrs, defStyleAttr) {
 
-    var onEventClickListener: ((String) -> Unit)? = null
-    var onEventLongClickListener: ((String) -> Unit)? = null
+    var onEventClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(new, onEventLongClickListener)
+            }
+    var onEventLongClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, new)
+            }
 
     var week: Week by Delegates.observable(Week()) { _, old, new ->
         if (old == new)
@@ -51,8 +57,10 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
 
 
         for (i in 0..6) {
-            addView(DayView(context).apply {
-                day = Day(week, mapBackDay(i))
+            addView(DayView(context).also {
+                it.day = Day(week, mapBackDay(i))
+                it.onEventClickListener = onEventClickListener
+                it.onEventLongClickListener = onEventLongClickListener
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
     }
@@ -66,4 +74,14 @@ class WeekView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
     private fun mapBackDay(day: Int): Int = (day + Calendar.MONDAY) % 7
+
+    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
+                                onEventLongClickListener: ((Event) -> Unit)?) {
+        for (i in 0 until childCount) {
+            val view = getChildAt(i) as DayView
+
+            view.onEventClickListener = onEventClickListener
+            view.onEventLongClickListener = onEventLongClickListener
+        }
+    }
 }

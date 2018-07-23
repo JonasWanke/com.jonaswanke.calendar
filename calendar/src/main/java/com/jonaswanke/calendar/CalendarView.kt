@@ -31,8 +31,14 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     annotation class Range
 
 
-    var onEventClickListener: ((String) -> Unit)? = null
-    var onEventLongClickListener: ((String) -> Unit)? = null
+    var onEventClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(new, onEventLongClickListener)
+            }
+    var onEventLongClickListener: ((Event) -> Unit)?
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, new)
+            }
 
     var eventRequestCallback: (Week) -> Unit = {}
 
@@ -86,9 +92,11 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                 }
 
             override fun instantiateItem(indicator: Week): ViewGroup {
-                val view = WeekView(context).apply {
-                    week = indicator
-                    events = this@CalendarView.events[week] ?: emptyList()
+                val view = WeekView(context).also {
+                    it.week = indicator
+                    it.events = events[indicator] ?: emptyList()
+                    it.onEventClickListener = onEventClickListener
+                    it.onEventLongClickListener = onEventLongClickListener
                 }
                 weekViews[indicator] = view
                 eventRequestCallback(indicator)
@@ -121,6 +129,14 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
             }
             else -> throw UnsupportedOperationException()
+        }
+    }
+
+    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
+                                onEventLongClickListener: ((Event) -> Unit)?) {
+        for (view in weekViews.values) {
+            view.onEventClickListener = onEventClickListener
+            view.onEventLongClickListener = onEventLongClickListener
         }
     }
 
