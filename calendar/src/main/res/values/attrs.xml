@@ -1,4 +1,49 @@
 <resources>
-    <declare-styleable name="CalendarView">
+
+    <declare-styleable name="AppTheme">
+        <attr name="calendarViewStyle" format="reference" />
+        <attr name="weekViewStyle" format="reference" />
+        <attr name="dayViewStyle" format="reference" />
+        <attr name="eventViewStyle" format="reference" />
+        <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
+
+    <declare-styleable name="CalendarView">
+        <attr name="range" format="enum">
+            <enum name="day" value="1" />
+            <enum name="days_3" value="3" />
+            <enum name="week" value="7" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="WeekView" />
+
+    <declare-styleable name="DayView">
+        <attr name="dateSize" format="dimension" />
+        <attr name="dateColor" format="color" />
+        <attr name="dateCurrentColor" format="color" />
+        <attr name="dateCurrentBackground" format="color|reference" />
+        <attr name="dateFutureColor" format="color" />
+        <attr name="weekDaySize" format="dimension" />
+        <attr name="weekDayColor" format="color" />
+        <attr name="weekDayCurrentColor" format="color" />
+        <attr name="weekDayFutureColor" format="color" />
+        <attr name="timeCircleRadius" format="dimension" />
+        <attr name="timeLineSize" format="dimension" />
+        <attr name="timeColor" format="color" />
+        <attr name="eventMinHeight" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="EventView">
+        <attr name="cornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="HoursView">
+        <attr name="weekMarginTop" format="dimension" />
+        <attr name="weekSize" format="dimension" />
+        <attr name="weekColor" format="color" />
+        <attr name="hourSize" format="dimension" />
+        <attr name="hourColor" format="color" />
+    </declare-styleable>
+
 </resources>
