@@ -1,0 +1,70 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+kotlin.experimental.coroutines "enable"
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "0.0.1"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.3"
+
+    // Android Support
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation "android.arch.lifecycle:livedata:1.1.1"
+
+    // Testing
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'calendar'
+
+    publishedGroupId = 'com.jonaswanke.calendar'
+    libraryName = 'Calendar'
+    artifact = 'calendar'
+
+    libraryDescription = 'Material Design CalendarView for Android'
+
+    siteUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar'
+    gitUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar.git'
+    githubRepository= 'JonasWanke/com.jonaswanke.calendar'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'JonasWanke'
+    developerName = 'Jonas Wanke'
+    developerEmail = 'contact@jonas-wanke.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+apply from: rootProject.file('gradle-bintray-push.gradle')

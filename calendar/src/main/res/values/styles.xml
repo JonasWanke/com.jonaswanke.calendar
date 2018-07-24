@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Calendar" />
+
+    <style name="Calendar.DayViewStyle">
+        <item name="dateSize">32sp</item>
+        <item name="dateColor">?android:attr/textColorHint</item>
+        <item name="dateCurrentColor">#4285f4</item>
+        <item name="dateCurrentBackground">#0A000000</item>
+        <item name="dateFutureColor">?android:attr/textColorPrimary</item>
+        <item name="weekDaySize">16sp</item>
+        <item name="weekDayColor">?android:attr/textColorHint</item>
+        <item name="weekDayCurrentColor">#4285f4</item>
+        <item name="weekDayFutureColor">?android:attr/textColorPrimary</item>
+        <item name="timeCircleRadius">4dp</item>
+        <item name="timeLineSize">2dp</item>
+        <item name="timeColor">#5f89d5</item>
+    </style>
+
+    <style name="Calendar.EventViewStyle">
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:minHeight">14dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="cornerRadius">2dp</item>
+    </style>
+
+    <style name="Calendar.HoursViewStyle">
+        <item name="weekMarginTop">40dp</item>
+        <item name="weekSize">12sp</item>
+        <item name="weekColor">?android:attr/textColorHint</item>
+        <item name="hourSize">12sp</item>
+        <item name="hourColor">?android:attr/textColorHint</item>
+    </style>
+
+</resources>
