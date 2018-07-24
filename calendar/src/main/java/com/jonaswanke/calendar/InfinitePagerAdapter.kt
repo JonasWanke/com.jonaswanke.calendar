@@ -33,7 +33,8 @@ abstract class InfinitePagerAdapter<T>(initValue: T, offscreenPages: Int = 1) : 
     }
 
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
-        if (BuildConfig.DEBUG) Log.i(TAG, String.format("instantiating position %s", position))
+        if (BuildConfig.DEBUG)
+            Log.i(TAG, String.format("instantiating position %s", position))
         val model = createPageModel(position, true)
         pageModels[position] = model
         container.addView(model.wrapper)

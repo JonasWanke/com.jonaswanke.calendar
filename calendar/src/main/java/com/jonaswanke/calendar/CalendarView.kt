@@ -77,11 +77,11 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek, 2) {
             override fun nextIndicator(current: Week): Week {
-                return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
+                return current.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
             }
 
             override fun previousIndicator(current: Week): Week {
-                return currentIndicator.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
+                return current.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
             }
 
             override var currentIndicatorString: String
