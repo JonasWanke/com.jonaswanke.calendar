@@ -10,7 +10,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -54,7 +54,7 @@ ext {
     gitUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar.git'
     githubRepository= 'JonasWanke/com.jonaswanke.calendar'
 
-    libraryVersion = '1.0'
+    libraryVersion = '0.0.1'
 
     developerId = 'JonasWanke'
     developerName = 'Jonas Wanke'
