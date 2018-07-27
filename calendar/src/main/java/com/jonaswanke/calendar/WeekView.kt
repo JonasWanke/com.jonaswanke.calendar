@@ -56,6 +56,7 @@ class WeekView @JvmOverloads constructor(context: Context,
 
     fun setWeek(week: Week, events: List<Event> = emptyList()) {
         this.week = week
+        this.cal = week.toCalendar()
         for (day in 0 until 7)
             (getChildAt(day) as DayView).setDay(Day(week, mapBackDay(day)),
                     getEventsForDay(day, events))
@@ -66,12 +67,12 @@ class WeekView @JvmOverloads constructor(context: Context,
     /**
      * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
      */
-    private fun mapDay(day: Int): Int = (day + 7 - Calendar.MONDAY) % 7
+    private fun mapDay(day: Int): Int = (day + 7 - CAL_START_OF_WEEK) % 7
 
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
-    private fun mapBackDay(day: Int): Int = (day + Calendar.MONDAY) % 7
+    private fun mapBackDay(day: Int): Int = (day + CAL_START_OF_WEEK) % 7
 
     private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
                                 onEventLongClickListener: ((Event) -> Unit)?) {
@@ -83,10 +84,15 @@ class WeekView @JvmOverloads constructor(context: Context,
         }
     }
 
+    var cal = week.toCalendar()
     private fun getEventsForDay(day: Int, events: List<Event>): List<Event> {
+        val start = cal.apply { add(Calendar.DAY_OF_WEEK, day) }.timeInMillis
+        val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, -(day + 1))
+
         val forDay = mutableListOf<Event>()
         for (event in events)
-            if (((event.start - week.start) / DateUtils.DAY_IN_MILLIS).toInt() == day)
+            if (event.start in start until end - 1)
                 forDay.add(event)
         return forDay
     }

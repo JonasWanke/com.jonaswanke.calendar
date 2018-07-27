@@ -132,6 +132,9 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: I
 
         // moving the new created views to the page of the viewpager
         val oldView = oldModel.view
+        val parent = oldView.parent
+        if (parent != null && parent is ViewGroup)
+            parent.removeView(oldView)
         oldModel.wrapper.removeView(oldView)
 
         val indicator = getIndicatorFromPagePosition(position)

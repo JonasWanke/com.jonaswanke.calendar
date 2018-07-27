@@ -6,6 +6,10 @@ import java.util.*
 private val TODAY: Calendar = Calendar.getInstance().apply {
     timeOfDay = 0
 }
+private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
+    add(Calendar.DAY_OF_WEEK, 1)
+}
+internal val CAL_START_OF_WEEK = TODAY.firstDayOfWeek
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
@@ -17,17 +21,27 @@ data class Week(
 ) {
     private val cal: Calendar = toCalendar()
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.WEEK_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.timeInMillis
+        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        end
+    }
 
     val nextWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
         cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }
-        week
+        if (week.year > year || week.week > this.week)
+            week
+        else
+            Week(year + 1, week.week)
     }
     val prevWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
         cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }
-        week
+        if (week.year >= year || week.week > this.week)
+            week
+        else
+            Week(year, week.week)
     }
 }
 
@@ -41,7 +55,7 @@ fun Week.toCalendar(): Calendar =
         Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.WEEK_OF_YEAR, week)
-            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.DAY_OF_WEEK, CAL_START_OF_WEEK)
             timeOfDay = 0
         }
 
@@ -55,9 +69,13 @@ data class Day(
     private val cal: Calendar = toCalendar()
 
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, -1)
+        end
+    }
 
-    val isToday = TODAY.timeInMillis <= start && start < TODAY.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
     val isFuture = start > TODAY.timeInMillis
 }
 
