@@ -56,6 +56,7 @@ class WeekView @JvmOverloads constructor(context: Context,
 
     fun setWeek(week: Week, events: List<Event> = emptyList()) {
         this.week = week
+        this.cal = week.toCalendar()
         for (day in 0 until 7)
             (getChildAt(day) as DayView).setDay(Day(week, mapBackDay(day)),
                     getEventsForDay(day, events))
@@ -83,10 +84,15 @@ class WeekView @JvmOverloads constructor(context: Context,
         }
     }
 
+    var cal = week.toCalendar()
     private fun getEventsForDay(day: Int, events: List<Event>): List<Event> {
+        val start = cal.apply { add(Calendar.DAY_OF_WEEK, day) }.timeInMillis
+        val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, -(day + 1))
+
         val forDay = mutableListOf<Event>()
         for (event in events)
-            if (((event.start - week.start) / DateUtils.DAY_IN_MILLIS).toInt() == day)
+            if (event.start in start until end - 1)
                 forDay.add(event)
         return forDay
     }

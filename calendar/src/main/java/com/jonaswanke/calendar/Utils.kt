@@ -6,6 +6,9 @@ import java.util.*
 private val TODAY: Calendar = Calendar.getInstance().apply {
     timeOfDay = 0
 }
+private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
+    add(Calendar.DAY_OF_WEEK, 1)
+}
 internal val CAL_START_OF_WEEK = TODAY.firstDayOfWeek
 
 fun Long.asCalendar(): Calendar {
@@ -18,7 +21,11 @@ data class Week(
 ) {
     private val cal: Calendar = toCalendar()
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.WEEK_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.timeInMillis
+        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        end
+    }
 
     val nextWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
@@ -56,9 +63,13 @@ data class Day(
     private val cal: Calendar = toCalendar()
 
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, -1)
+        end
+    }
 
-    val isToday = TODAY.timeInMillis <= start && start < TODAY.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
     val isFuture = start > TODAY.timeInMillis
 }
 
