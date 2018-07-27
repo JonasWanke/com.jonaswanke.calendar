@@ -18,6 +18,17 @@ data class Week(
     private val cal: Calendar = toCalendar()
     val start = cal.timeInMillis
     val end = cal.timeInMillis + DateUtils.WEEK_IN_MILLIS
+
+    val nextWeek: Week by lazy {
+        val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
+        cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }
+        week
+    }
+    val prevWeek: Week by lazy {
+        val week = cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
+        cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }
+        week
+    }
 }
 
 fun Calendar.toWeek(): Week {
