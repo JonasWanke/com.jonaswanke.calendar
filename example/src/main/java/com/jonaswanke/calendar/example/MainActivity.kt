@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         val random = Random()
         calendar.eventRequestCallback = { week ->
             val events = mutableListOf<Event>()
-            for (i in 0..63) {
+            for (i in 0..15) {
                 val id = nextId++.toString()
                 val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
                 events.add(Event(

@@ -66,12 +66,12 @@ class WeekView @JvmOverloads constructor(context: Context,
     /**
      * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
      */
-    private fun mapDay(day: Int): Int = (day + 7 - Calendar.MONDAY) % 7
+    private fun mapDay(day: Int): Int = (day + 7 - CAL_START_OF_WEEK) % 7
 
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
-    private fun mapBackDay(day: Int): Int = (day + Calendar.MONDAY) % 7
+    private fun mapBackDay(day: Int): Int = (day + CAL_START_OF_WEEK) % 7
 
     private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
                                 onEventLongClickListener: ((Event) -> Unit)?) {

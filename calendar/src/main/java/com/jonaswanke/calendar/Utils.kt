@@ -6,6 +6,7 @@ import java.util.*
 private val TODAY: Calendar = Calendar.getInstance().apply {
     timeOfDay = 0
 }
+internal val CAL_START_OF_WEEK = TODAY.firstDayOfWeek
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
@@ -41,7 +42,7 @@ fun Week.toCalendar(): Calendar =
         Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.WEEK_OF_YEAR, week)
-            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.DAY_OF_WEEK, CAL_START_OF_WEEK)
             timeOfDay = 0
         }
 
