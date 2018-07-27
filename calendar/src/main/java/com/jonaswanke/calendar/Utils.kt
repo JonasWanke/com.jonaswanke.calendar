@@ -30,12 +30,18 @@ data class Week(
     val nextWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
         cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }
-        week
+        if (week.year > year || week.week > this.week)
+            week
+        else
+            Week(year + 1, week.week)
     }
     val prevWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
         cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }
-        week
+        if (week.year >= year || week.week > this.week)
+            week
+        else
+            Week(year, week.week)
     }
 }
 
