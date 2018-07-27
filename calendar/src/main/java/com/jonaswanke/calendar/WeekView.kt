@@ -7,6 +7,7 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import com.jonaswanke.calendar.R.id.week
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -28,26 +29,16 @@ class WeekView @JvmOverloads constructor(context: Context,
                 updateListeners(onEventClickListener, new)
             }
 
-    private var week: Week by Delegates.observable(_week ?: Week()) { _, old, new ->
-        if (old == new)
-            return@observable
-
-        for (i in 0..6)
-            (getChildAt(i) as DayView).day = Day(week, mapBackDay(i))
-        events = emptyList()
-    }
+    var week: Week = _week ?: Week()
+        private set
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable
         if (new.any { event -> event.start < week.start || event.start >= week.end })
             throw IllegalArgumentException("event starts must all be inside the set week")
 
-        val eventsForDays = (0 until 7).map { mutableListOf<Event>() }
-        for (event in events)
-            eventsForDays[((event.start - week.start) / DateUtils.DAY_IN_MILLIS).toInt()]
-                    .add(event)
         for (day in 0 until 7)
-            (getChildAt(day) as DayView).setEvents(eventsForDays[day])
+            (getChildAt(day) as DayView).setEvents(getEventsForDay(day, new))
     }
 
     init {
@@ -61,6 +52,16 @@ class WeekView @JvmOverloads constructor(context: Context,
                 it.onEventLongClickListener = onEventLongClickListener
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
     }
+
+
+    fun setWeek(week: Week, events: List<Event> = emptyList()) {
+        this.week = week
+        for (day in 0 until 7)
+            (getChildAt(day) as DayView).setDay(Day(week, mapBackDay(day)),
+                    getEventsForDay(day, events))
+        this.events = events
+    }
+
 
     /**
      * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
@@ -80,5 +81,13 @@ class WeekView @JvmOverloads constructor(context: Context,
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
         }
+    }
+
+    private fun getEventsForDay(day: Int, events: List<Event>): List<Event> {
+        val forDay = mutableListOf<Event>()
+        for (event in events)
+            if (((event.start - week.start) / DateUtils.DAY_IN_MILLIS).toInt() == day)
+                forDay.add(event)
+        return forDay
     }
 }
