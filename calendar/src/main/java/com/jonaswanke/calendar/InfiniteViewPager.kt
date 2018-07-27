@@ -7,6 +7,7 @@ import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
@@ -23,7 +24,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     init {
         addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                val adapter = adapter as InfinitePagerAdapter<*>? ?: return
+                val adapter = adapter as InfinitePagerAdapter<*, *>? ?: return
                 listener?.onPageScrolled(adapter.currentIndicator, positionOffset, positionOffsetPixels)
             }
 
@@ -32,13 +33,13 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
                 if (BuildConfig.DEBUG)
                     Log.d(TAG, "on page $position")
 
-                val adapter = adapter as InfinitePagerAdapter<*>? ?: return
+                val adapter = adapter as InfinitePagerAdapter<*, *>? ?: return
                 listener?.onPageSelected(adapter.currentIndicator)
             }
 
             override fun onPageScrollStateChanged(state: Int) {
                 @Suppress("UNCHECKED_CAST")
-                val adapter = adapter as InfinitePagerAdapter<Any>? ?: return
+                val adapter = adapter as InfinitePagerAdapter<Any, View>? ?: return
 
                 if (state != ViewPager.SCROLL_STATE_IDLE)
                     return
@@ -55,7 +56,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
 
 
     override fun setCurrentItem(item: Int) {
-        if (item != (adapter as? InfinitePagerAdapter<*>)?.center ?: -1) {
+        if (item != (adapter as? InfinitePagerAdapter<*, *>)?.center ?: -1) {
             throw RuntimeException("Cannot change page index unless its 1.")
         }
         super.setCurrentItem(item)
@@ -68,7 +69,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     }
 
     override fun setAdapter(adapter: PagerAdapter?) {
-        if (adapter is InfinitePagerAdapter<*>) {
+        if (adapter is InfinitePagerAdapter<*, *>) {
             super.setAdapter(adapter)
             super.setOffscreenPageLimit(adapter.pageCount)
             positionCurrent = adapter.center
@@ -77,21 +78,21 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
             throw IllegalArgumentException("Adapter should be an instance of InfinitePagerAdapter.")
     }
 
-    fun <T : Any> setCurrentIndicator(indicator: T) {
-        val adapter = adapter as? InfinitePagerAdapter<*> ?: return
+    fun <T : Any, V : View> setCurrentIndicator(indicator: T) {
+        val adapter = adapter as? InfinitePagerAdapter<*, *> ?: return
         val currentIndicator = adapter.currentIndicator
         if (currentIndicator!!.javaClass != indicator.javaClass)
             return
 
         launch(UI) {
             @Suppress("UNCHECKED_CAST")
-            (adapter as InfinitePagerAdapter<T>).reset(indicator)
+            (adapter as InfinitePagerAdapter<T, V>).reset(indicator)
             listener?.onPageScrollStateChanged(SCROLL_STATE_IDLE)
         }
     }
 
     override fun onSaveInstanceState(): Parcelable? {
-        val adapter = adapter as InfinitePagerAdapter<*>?
+        val adapter = adapter as InfinitePagerAdapter<*, *>?
         if (adapter == null) {
             Log.d(TAG, "onSaveInstanceState adapter == null")
             return super.onSaveInstanceState()
@@ -105,7 +106,7 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     }
 
     override fun onRestoreInstanceState(state: Parcelable) {
-        val adapter = adapter as InfinitePagerAdapter<*>?
+        val adapter = adapter as InfinitePagerAdapter<*, *>?
         if (adapter == null) {
             if (BuildConfig.DEBUG)
                 Log.w(TAG, "onRestoreInstanceState adapter == null")

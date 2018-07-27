@@ -58,7 +58,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
     private var currentWeek: Week = Week()
 
-    private val pagerAdapter: InfinitePagerAdapter<Week>
+    private val pagerAdapter: InfinitePagerAdapter<Week, WeekView>
 
     init {
         orientation = HORIZONTAL
@@ -75,7 +75,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         a.recycle()
 
-        pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek, 2) {
+        pagerAdapter = object : InfinitePagerAdapter<Week, WeekView>(currentWeek, 2) {
             override fun nextIndicator(current: Week): Week {
                 return current.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
             }
@@ -91,11 +91,18 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                     currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
                 }
 
-            override fun instantiateItem(indicator: Week): ViewGroup {
-                val view = WeekView(context, _week = indicator).also {
-                    it.events = events[indicator] ?: emptyList()
-                    it.onEventClickListener = onEventClickListener
-                    it.onEventLongClickListener = onEventLongClickListener
+            override fun instantiateItem(indicator: Week, oldView: WeekView?): WeekView {
+                val view = if (oldView == null)
+                    WeekView(context, _week = indicator).also {
+                        it.events = events[indicator] ?: emptyList()
+                        it.onEventClickListener = onEventClickListener
+                        it.onEventLongClickListener = onEventLongClickListener
+                    }
+                else {
+                    weekViews.remove(oldView.week)
+                    oldView.also {
+                        it.setWeek(indicator, events[indicator] ?: emptyList())
+                    }
                 }
                 weekViews[indicator] = view
                 eventRequestCallback(indicator)
@@ -146,6 +153,6 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     }
 
     fun jumpToToday() {
-        pager.setCurrentIndicator(Week())
+        pager.setCurrentIndicator<Week, WeekView>(Week())
     }
 }
