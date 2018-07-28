@@ -92,6 +92,8 @@ class WeekView @JvmOverloads constructor(context: Context,
     fun setWeek(week: Week, events: List<Event> = emptyList()) {
         this.week = week
         this.cal = week.toCalendar()
+
+        this.headerView.week = week
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), getEventsForDay(day, events))
         this.events = events
