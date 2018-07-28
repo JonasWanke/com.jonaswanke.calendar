@@ -6,10 +6,17 @@
     android:layout_height="match_parent"
     tools:parentTag="android.widget.LinearLayout">
 
-    <com.jonaswanke.calendar.HoursView
-        android:id="@+id/hours"
-        android:layout_width="40dp"
-        android:layout_height="match_parent" />
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
+
+        <com.jonaswanke.calendar.HoursView
+            android:id="@+id/hours"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content" />
+
+    </ScrollView>
 
     <com.jonaswanke.calendar.InfiniteViewPager
         android:id="@+id/pager"

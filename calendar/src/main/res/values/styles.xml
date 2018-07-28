@@ -19,6 +19,7 @@
         <item name="timeCircleRadius">4dp</item>
         <item name="timeLineSize">2dp</item>
         <item name="timeColor">#5f89d5</item>
+        <item name="hourHeight">32dp</item>
         <item name="eventMinHeight">24dp</item>
     </style>
 
@@ -34,6 +35,7 @@
         <item name="weekMarginTop">40dp</item>
         <item name="weekSize">12sp</item>
         <item name="weekColor">?android:attr/textColorHint</item>
+        <item name="hourHeight">32dp</item>
         <item name="hourSize">12sp</item>
         <item name="hourColor">?android:attr/textColorHint</item>
     </style>

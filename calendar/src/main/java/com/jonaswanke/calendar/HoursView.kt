@@ -33,6 +33,7 @@ class HoursView @JvmOverloads constructor(context: Context,
     private val weekSize: Int
     private val weekColor: Int
     private val weekPaint: TextPaint
+    private val hourHeight: Int
     private val hourSize: Int
     private val hourColor: Int
     private val hourPaint: TextPaint
@@ -61,6 +62,7 @@ class HoursView @JvmOverloads constructor(context: Context,
             textSize = weekSize.toFloat()
         }
 
+        hourHeight = a.getDimensionPixelSize(R.styleable.HoursView_hourHeight, 16)
         hourSize = a.getDimensionPixelSize(R.styleable.HoursView_hourSize, 16)
         hourColor = a.getColor(R.styleable.HoursView_hourColor,
                 ContextCompat.getColor(context, android.R.color.secondary_text_light))
@@ -73,6 +75,12 @@ class HoursView @JvmOverloads constructor(context: Context,
         a.recycle()
 
         headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, headerHeight + hourHeight * 24)
+        setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
+                height)
     }
 
     private val hourBounds = Rect()

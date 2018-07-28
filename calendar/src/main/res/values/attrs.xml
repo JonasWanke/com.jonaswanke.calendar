@@ -34,6 +34,7 @@
 
     <declare-styleable name="DayView">
         <attr name="dateCurrentBackground" format="color|reference" />
+        <attr name="hourHeight" />
         <attr name="timeCircleRadius" format="dimension" />
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
@@ -48,6 +49,7 @@
         <attr name="weekMarginTop" format="dimension" />
         <attr name="weekSize" format="dimension" />
         <attr name="weekColor" format="color" />
+        <attr name="hourHeight" />
         <attr name="hourSize" format="dimension" />
         <attr name="hourColor" format="color" />
     </declare-styleable>
