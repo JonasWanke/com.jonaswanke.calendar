@@ -53,13 +53,33 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
         onRangeUpdated()
     }
-    var hourHeight: Float by Delegates.observable(0f) { _, old, new ->
+    var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
+        if ((hourHeightMin > 0 && new < hourHeightMin)
+                || (hourHeightMax > 0 && new > hourHeightMax))
+            return@vetoable false
         if (old == new)
-            return@observable
+            return@vetoable true
 
         hours.hourHeight = new
         for (week in weekViews.values)
             week.hourHeight = new
+        return@vetoable true
+    }
+    var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight < new)
+            hourHeight = new
+
+        hours.hourHeightMin = new
+        for (week in weekViews.values)
+            week.hourHeightMin = new
+    }
+    var hourHeightMax: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight > new)
+            hourHeight = new
+
+        hours.hourHeightMax = new
+        for (week in weekViews.values)
+            week.hourHeightMax = new
     }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
@@ -78,6 +98,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
         range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
         hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
+        hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
+        hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
 
         a.recycle()
 

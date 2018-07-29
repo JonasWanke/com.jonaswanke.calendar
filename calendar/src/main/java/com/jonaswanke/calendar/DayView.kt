@@ -11,6 +11,8 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import com.jonaswanke.calendar.R.attr.hourHeightMax
+import com.jonaswanke.calendar.R.attr.hourHeightMin
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
@@ -46,12 +48,22 @@ class DayView @JvmOverloads constructor(context: Context,
     var hourHeight: Float
         get() = _hourHeight
         set(value) {
-            if (_hourHeight == value)
+            val v = value.coerceIn(if (hourHeightMin > 0) hourHeightMin else null,
+                    if (hourHeightMax > 0) hourHeightMax else null)
+            if (_hourHeight == v)
                 return
 
-            _hourHeight = value
+            _hourHeight = v
             requestLayout()
         }
+    var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight < new)
+            hourHeight = new
+    }
+    var hourHeightMax: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight > new)
+            hourHeight = new
+    }
 
     private var timeCircleRadius: Int = 0
     private var timeLineSize: Int = 0
@@ -72,6 +84,8 @@ class DayView @JvmOverloads constructor(context: Context,
                 attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
 
         _hourHeight = a.getDimension(R.styleable.DayView_hourHeight, 16f)
+        hourHeightMin = a.getDimension(R.styleable.DayView_hourHeightMin, 0f)
+        hourHeightMax = a.getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
         a.recycle()
 

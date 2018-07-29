@@ -1,6 +1,8 @@
 <resources>
 
     <attr name="hourHeight" format="dimension" />
+    <attr name="hourHeightMin" format="dimension" />
+    <attr name="hourHeightMax" format="dimension" />
 
     <declare-styleable name="AppTheme">
         <attr name="calendarViewStyle" format="reference" />
@@ -19,6 +21,8 @@
             <enum name="week" value="7" />
         </attr>
         <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
     </declare-styleable>
 
     <declare-styleable name="WeekView" />
@@ -37,6 +41,8 @@
     <declare-styleable name="DayView">
         <attr name="dateCurrentBackground" format="color|reference" />
         <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
         <attr name="timeCircleRadius" format="dimension" />
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
@@ -55,6 +61,8 @@
 
     <declare-styleable name="HoursView">
         <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
         <attr name="hourSize" format="dimension" />
         <attr name="hourColor" format="color" />
     </declare-styleable>

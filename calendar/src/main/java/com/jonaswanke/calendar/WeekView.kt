@@ -9,7 +9,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import com.jonaswanke.calendar.R.attr.hourHeight
+import com.jonaswanke.calendar.R.attr.*
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -53,6 +53,18 @@ class WeekView @JvmOverloads constructor(context: Context,
         set(value) {
             for (day in dayViews)
                 day.hourHeight = value
+        }
+    var hourHeightMin: Float
+        get() = dayViews[0].hourHeightMin
+        set(value) {
+            for (day in dayViews)
+                day.hourHeightMin = value
+        }
+    var hourHeightMax: Float
+        get() = dayViews[0].hourHeightMax
+        set(value) {
+            for (day in dayViews)
+                day.hourHeightMax = value
         }
 
     private val headerView: WeekHeaderView

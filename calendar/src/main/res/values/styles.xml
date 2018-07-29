@@ -6,6 +6,8 @@
     <style name="Calendar.CalendarViewStyle">
         <item name="range">week</item>
         <item name="hourHeight">32dp</item>
+        <item name="hourHeightMin">24dp</item>
+        <item name="hourHeightMax">100dp</item>
     </style>
 
     <style name="Calendar.WeekHeaderViewStyle">
@@ -25,6 +27,8 @@
         <item name="timeLineSize">2dp</item>
         <item name="timeColor">#5f89d5</item>
         <item name="hourHeight">32dp</item>
+        <item name="hourHeightMin">24dp</item>
+        <item name="hourHeightMax">100dp</item>
         <item name="eventMinHeight">24dp</item>
     </style>
 
@@ -44,6 +48,8 @@
 
     <style name="Calendar.HoursViewStyle">
         <item name="hourHeight">32dp</item>
+        <item name="hourHeightMin">24dp</item>
+        <item name="hourHeightMax">100dp</item>
         <item name="hourSize">12sp</item>
         <item name="hourColor">?android:attr/textColorHint</item>
     </style>
