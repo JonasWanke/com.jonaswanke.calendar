@@ -8,6 +8,7 @@ import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import com.jonaswanke.calendar.R.attr.hourHeight
 import java.util.*
 import kotlin.properties.Delegates
@@ -61,11 +62,15 @@ class WeekView @JvmOverloads constructor(context: Context,
 
         val headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
         addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, headerHeight))
+
         val daysWrapper = LinearLayout(context).apply {
             for (day in dayViews)
                 addView(day, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
-        addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+        val scrollView = ScrollView(context).apply {
+            addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        }
+        addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
     }
 
     override fun onDraw(canvas: Canvas?) {

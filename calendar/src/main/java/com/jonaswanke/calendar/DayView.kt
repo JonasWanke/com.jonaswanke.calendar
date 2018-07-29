@@ -11,6 +11,7 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import com.jonaswanke.calendar.R.attr.hourHeight
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
@@ -41,6 +42,7 @@ class DayView @JvmOverloads constructor(context: Context,
     private var events: List<Event> = emptyList()
     private val eventViewCache = mutableListOf<EventView>()
 
+    private val hourHeight: Int
     private var timeCircleRadius: Int = 0
     private var timeLineSize: Int = 0
     private var timePaint: Paint? = null
@@ -56,6 +58,13 @@ class DayView @JvmOverloads constructor(context: Context,
     init {
         setWillNotDraw(false)
 
+        val a = context.obtainStyledAttributes(
+                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
+
+        hourHeight = a.getDimensionPixelSize(R.styleable.DayView_hourHeight, 16)
+
+        a.recycle()
+
         onUpdateDay(day)
         cal = day.start.asCalendar()
         launch(UI) {
@@ -68,6 +77,12 @@ class DayView @JvmOverloads constructor(context: Context,
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of DayView")
         super.addView(child, index, params)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, hourHeight * 24)
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
+                height)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -197,14 +212,15 @@ class DayView @JvmOverloads constructor(context: Context,
         else
             null
 
-        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
-        timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
-        val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
-        timePaint = Paint().apply {
-            color = timeColor
+        if (day.isToday && timePaint == null) {
+            timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+            timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
+            val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
+            timePaint = Paint().apply {
+                color = timeColor
+            }
         }
 
         a.recycle()
-
     }
 }
