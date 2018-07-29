@@ -31,10 +31,13 @@
         <item name="cornerRadius">2dp</item>
     </style>
 
-    <style name="Calendar.HoursViewStyle">
-        <item name="weekMarginTop">40dp</item>
+    <style name="Calendar.HoursHeaderViewStyle">
+        <item name="weekOffsetTop">50dp</item>
         <item name="weekSize">12sp</item>
         <item name="weekColor">?android:attr/textColorHint</item>
+    </style>
+
+    <style name="Calendar.HoursViewStyle">
         <item name="hourHeight">32dp</item>
         <item name="hourSize">12sp</item>
         <item name="hourColor">?android:attr/textColorHint</item>

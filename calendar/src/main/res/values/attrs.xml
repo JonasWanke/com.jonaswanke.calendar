@@ -8,6 +8,7 @@
         <attr name="weekHeaderViewStyle" format="reference" />
         <attr name="dayViewStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
+        <attr name="hoursHeaderViewStyle" format="reference" />
         <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
 
@@ -45,10 +46,13 @@
         <attr name="cornerRadius" format="dimension" />
     </declare-styleable>
 
-    <declare-styleable name="HoursView">
-        <attr name="weekMarginTop" format="dimension" />
+    <declare-styleable name="HoursHeaderView">
+        <attr name="weekOffsetTop" format="dimension" />
         <attr name="weekSize" format="dimension" />
         <attr name="weekColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="HoursView">
         <attr name="hourHeight" />
         <attr name="hourSize" format="dimension" />
         <attr name="hourColor" format="color" />

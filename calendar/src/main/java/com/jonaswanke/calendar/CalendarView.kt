@@ -7,10 +7,8 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
-import java.util.*
 import kotlin.properties.Delegates
 
 /**
@@ -105,7 +103,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
         }
 
-        hours.week = pagerAdapter.currentIndicator
+        hoursHeader.week = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
@@ -117,7 +115,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == ViewPager.SCROLL_STATE_IDLE)
-                    hours.week = pagerAdapter.currentIndicator
+                    hoursHeader.week = pagerAdapter.currentIndicator
             }
         }
     }

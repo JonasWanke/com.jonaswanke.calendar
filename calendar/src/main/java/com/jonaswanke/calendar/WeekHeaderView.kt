@@ -58,8 +58,8 @@ class WeekHeaderView @JvmOverloads constructor(context: Context,
         cal.timeInMillis = week.start
 
 
-        val dateBottom = top + dateSize * 1.4f
-        val weekDayBottom = top + dateSize * 1.6f + weekDaySize
+        val dateBottom = top + dateSize * 1.3f
+        val weekDayBottom = top + dateSize * 1.4f + weekDaySize
 
         for (day in 0 until 7) {
             val (datePaint, weekDayPaint) = when {
