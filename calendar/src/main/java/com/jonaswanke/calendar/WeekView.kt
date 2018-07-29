@@ -70,6 +70,7 @@ class WeekView @JvmOverloads constructor(context: Context,
         addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, headerHeight))
 
         val daysWrapper = LinearLayout(context).apply {
+            clipChildren = false
             for (day in dayViews)
                 addView(day, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
