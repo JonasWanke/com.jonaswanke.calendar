@@ -83,6 +83,11 @@ class CalendarView @JvmOverloads constructor(context: Context,
         for (week in weekViews.values)
             week.hourHeightMax = new
     }
+    var scrollPosition: Int by Delegates.observable(0) { _, _, new ->
+        hoursScroll.scrollY = new
+        for (week in weekViews.values)
+            week.scrollTo(new)
+    }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
     private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
@@ -109,9 +114,9 @@ class CalendarView @JvmOverloads constructor(context: Context,
                 attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
 
         range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
-        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
         hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
         hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
+        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
 
         a.recycle()
 
@@ -135,7 +140,7 @@ class CalendarView @JvmOverloads constructor(context: Context,
                     return false
 
                 hourHeight *= detector.scaleFactor
-                updateScrollPosition(-(detector.focusY - beginFocus * hourHeight).toInt())
+                scrollPosition = (beginFocus * hourHeight - detector.focusY).toInt()
                 return true
             }
         })
@@ -156,7 +161,11 @@ class CalendarView @JvmOverloads constructor(context: Context,
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
-                        it.onScrollChangeListener = this@CalendarView::updateScrollPosition
+                        it.onScrollChangeListener = { scrollPosition = it }
+                        it.hourHeightMin = hourHeightMin
+                        it.hourHeightMax = hourHeightMax
+                        it.hourHeight = hourHeight
+                        doOnLayout { _ -> it.scrollTo(scrollPosition) }
                     }
                 else {
                     weekViews.remove(oldView.week)
@@ -170,7 +179,7 @@ class CalendarView @JvmOverloads constructor(context: Context,
             }
         }
 
-        hoursScroll.onScrollChangeListener = this::updateScrollPosition
+        hoursScroll.onScrollChangeListener = { scrollPosition = it }
         hoursHeader.week = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
@@ -221,16 +230,15 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
     }
 
-    private fun updateScrollPosition(pos: Int) {
-        hoursScroll.scrollY = pos
-        for (week in weekViews.values)
-            week.scrollTo(pos)
-    }
-
 
     override fun onSaveInstanceState(): Parcelable {
         return SavedState(super.onSaveInstanceState()).also {
             it.week = currentWeek
+            it.range = range
+            it.hourHeight = hourHeight
+            it.hourHeightMin = hourHeightMin
+            it.hourHeightMax = hourHeightMax
+            it.scrollPosition = scrollPosition
         }
     }
 
@@ -238,6 +246,11 @@ class CalendarView @JvmOverloads constructor(context: Context,
         if (state is SavedState) {
             super.onRestoreInstanceState(state.superState)
             state.week?.also { currentWeek = it }
+            state.range?.also { range = it }
+            state.hourHeightMin?.also { hourHeightMin = it }
+            state.hourHeightMax?.also { hourHeightMax = it }
+            state.hourHeight?.also { hourHeight = it }
+            state.scrollPosition?.also { scrollPosition = it }
         } else
             super.onRestoreInstanceState(state)
     }
@@ -253,9 +266,39 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
 
         var week: Week? = null
+        @get: Range
+        var range: Int? = null
+        var hourHeight: Float? = null
+        var hourHeightMin: Float? = null
+        var hourHeightMax: Float? = null
+        var scrollPosition: Int? = null
 
         constructor(source: Parcel?) : super(source) {
-            week = source?.readString()?.toWeek()
+            if (source == null)
+                return
+
+            fun readInt(): Int? {
+                val value = source.readInt()
+                return if (value == Int.MIN_VALUE)
+                    null
+                else
+                    value
+            }
+
+            fun readFloat(): Float? {
+                val value = source.readFloat()
+                return if (value == Float.NaN)
+                    null
+                else
+                    value
+            }
+
+            week = source.readString()?.toWeek()
+            range = readInt()
+            hourHeight = readFloat()
+            hourHeightMin = readFloat()
+            hourHeightMax = readFloat()
+            scrollPosition = readInt()
         }
 
         constructor(superState: Parcelable) : super(superState)
@@ -263,6 +306,11 @@ class CalendarView @JvmOverloads constructor(context: Context,
         override fun writeToParcel(out: Parcel?, flags: Int) {
             super.writeToParcel(out, flags)
             out?.writeString(week?.toString())
+            out?.writeInt(range ?: Int.MIN_VALUE)
+            out?.writeFloat(hourHeight ?: Float.NaN)
+            out?.writeFloat(hourHeightMin ?: Float.NaN)
+            out?.writeFloat(hourHeightMax ?: Float.NaN)
+            out?.writeInt(scrollPosition ?: Int.MIN_VALUE)
         }
     }
 }
