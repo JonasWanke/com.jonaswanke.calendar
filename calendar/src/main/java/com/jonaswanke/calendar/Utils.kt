@@ -1,6 +1,8 @@
 package com.jonaswanke.calendar
 
+import android.support.v4.view.ViewCompat
 import android.text.format.DateUtils
+import android.view.View
 import java.util.*
 
 private val TODAY: Calendar = Calendar.getInstance().apply {
@@ -52,12 +54,21 @@ data class Week(
         else
             Week(year, week.week)
     }
+
+    override fun toString(): String {
+        return "$year-$week"
+    }
 }
 
 fun Calendar.toWeek(): Week {
     return Week(
             get(Calendar.YEAR),
             get(Calendar.WEEK_OF_YEAR))
+}
+
+fun String.toWeek(): Week? {
+    val parts = split("-")
+    return Week(parts[0].toInt(), parts[1].toInt())
 }
 
 fun Week.toCalendar(): Calendar =
@@ -122,3 +133,24 @@ var Calendar.timeOfDay: Long
 var Calendar.dayOfWeek: Int
     get() = get(Calendar.DAY_OF_WEEK)
     set(value) = set(Calendar.DAY_OF_WEEK, value)
+
+
+inline fun View.doOnNextLayout(crossinline action: (view: View) -> Unit) {
+    addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+        override fun onLayoutChange(view: View,
+                                    left: Int, top: Int, right: Int, bottom: Int,
+                                    oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
+            view.removeOnLayoutChangeListener(this)
+            action(view)
+        }
+    })
+}
+
+inline fun View.doOnLayout(crossinline action: (view: View) -> Unit) {
+    if (ViewCompat.isLaidOut(this) && !isLayoutRequested)
+        action(this)
+    else
+        doOnNextLayout {
+            action(it)
+        }
+}
