@@ -1,13 +1,15 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
-import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import com.jonaswanke.calendar.R.id.week
+import android.widget.ScrollView
+import com.jonaswanke.calendar.R.attr.*
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -28,6 +30,11 @@ class WeekView @JvmOverloads constructor(context: Context,
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new)
             }
+    var onScrollChangeListener: ((Int) -> Unit)?
+        get() = scrollView.onScrollChangeListener
+        set(value) {
+            scrollView.onScrollChangeListener = value
+        }
 
     var week: Week = _week ?: Week()
         private set
@@ -38,29 +45,94 @@ class WeekView @JvmOverloads constructor(context: Context,
             throw IllegalArgumentException("event starts must all be inside the set week")
 
         for (day in 0 until 7)
-            (getChildAt(day) as DayView).setEvents(getEventsForDay(day, new))
+            dayViews[day].setEvents(getEventsForDay(day, new))
     }
 
-    init {
-        orientation = HORIZONTAL
-        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_BEGINNING or SHOW_DIVIDER_MIDDLE
+    var hourHeight: Float
+        get() = dayViews[0].hourHeight
+        set(value) {
+            for (day in dayViews)
+                day.hourHeight = value
+        }
+    var hourHeightMin: Float
+        get() = dayViews[0].hourHeightMin
+        set(value) {
+            for (day in dayViews)
+                day.hourHeightMin = value
+        }
+    var hourHeightMax: Float
+        get() = dayViews[0].hourHeightMax
+        set(value) {
+            for (day in dayViews)
+                day.hourHeightMax = value
+        }
 
-        for (i in 0..6)
-            addView(DayView(context, _day = Day(week, mapBackDay(i))).also {
+    private val headerView: WeekHeaderView
+    private val scrollView: ReportingScrollView
+    private val dayViews: List<DayView>
+
+    init {
+        orientation = VERTICAL
+        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
+        showDividers = SHOW_DIVIDER_MIDDLE
+
+        headerView = WeekHeaderView(context, _week = week)
+
+        dayViews = (0 until 7).map {
+            DayView(context, _day = Day(week, mapBackDay(it))).also {
                 it.onEventClickListener = onEventClickListener
                 it.onEventLongClickListener = onEventLongClickListener
-            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+            }
+        }
+
+        val headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
+        addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, headerHeight))
+
+        val daysWrapper = LinearLayout(context).apply {
+            clipChildren = false
+            for (day in dayViews)
+                addView(day, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+        }
+        scrollView = ReportingScrollView(context).apply {
+            isVerticalScrollBarEnabled = false
+            addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        }
+        addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        if (canvas == null)
+            return
+
+        val left = paddingLeft
+        val top = paddingTop
+        val right = canvas.width - paddingRight
+        val bottom = canvas.height - paddingBottom
+
+        val dayWidth = (right.toFloat() - left) / 7
+        dividerDrawable?.also { divider ->
+            for (day in 0 until 7) {
+                divider.setBounds((left + dayWidth * day).toInt(), top,
+                        (left + dayWidth * day + divider.intrinsicWidth).toInt(), bottom)
+                divider.draw(canvas)
+            }
+        }
     }
 
 
     fun setWeek(week: Week, events: List<Event> = emptyList()) {
         this.week = week
         this.cal = week.toCalendar()
+
+        this.headerView.week = week
         for (day in 0 until 7)
-            (getChildAt(day) as DayView).setDay(Day(week, mapBackDay(day)),
-                    getEventsForDay(day, events))
+            dayViews[day].setDay(Day(week, mapBackDay(day)), getEventsForDay(day, events))
         this.events = events
+    }
+
+    fun scrollTo(pos: Int) {
+        scrollView.scrollY = pos
     }
 
 
@@ -76,11 +148,9 @@ class WeekView @JvmOverloads constructor(context: Context,
 
     private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
                                 onEventLongClickListener: ((Event) -> Unit)?) {
-        for (i in 0 until childCount) {
-            val view = getChildAt(i) as DayView
-
-            view.onEventClickListener = onEventClickListener
-            view.onEventLongClickListener = onEventLongClickListener
+        for (day in dayViews) {
+            day.onEventClickListener = onEventClickListener
+            day.onEventLongClickListener = onEventLongClickListener
         }
     }
 

@@ -1,23 +1,24 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
+import android.gesture.GestureOverlayView
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
-import java.util.*
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : LinearLayout(context, attrs, defStyleAttr) {
+class CalendarView @JvmOverloads constructor(context: Context,
+                                             attrs: AttributeSet? = null,
+                                             @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle)
+    : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -52,28 +53,80 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         onRangeUpdated()
     }
+    var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
+        if ((hourHeightMin > 0 && new < hourHeightMin)
+                || (hourHeightMax > 0 && new > hourHeightMax))
+            return@vetoable false
+        if (old == new)
+            return@vetoable true
+
+        hours.hourHeight = new
+        for (week in weekViews.values)
+            week.hourHeight = new
+        return@vetoable true
+    }
+    var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight < new)
+            hourHeight = new
+
+        hours.hourHeightMin = new
+        for (week in weekViews.values)
+            week.hourHeightMin = new
+    }
+    var hourHeightMax: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight > new)
+            hourHeight = new
+
+        hours.hourHeightMax = new
+        for (week in weekViews.values)
+            week.hourHeightMax = new
+    }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
     private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
+    private val scaleDetector: ScaleGestureDetector
 
     private var currentWeek: Week = Week()
 
     private val pagerAdapter: InfinitePagerAdapter<Week, WeekView>
 
     init {
-        orientation = HORIZONTAL
-        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE
-
         View.inflate(context, R.layout.view_calendar, this)
 
-        // Load attributes
         val a = context.obtainStyledAttributes(
-                attrs, R.styleable.CalendarView, defStyleAttr, 0)
+                attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
 
         range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
+        hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
+        hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
 
         a.recycle()
+
+        isGestureVisible = false
+
+        scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            var beginFocus: Float = 0f
+            var beginHeight: Float = 0f
+
+            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+                if (detector == null)
+                    return false
+
+                beginHeight = hourHeight
+                beginFocus = detector.focusY / hourHeight
+                return super.onScaleBegin(detector)
+            }
+
+            override fun onScale(detector: ScaleGestureDetector?): Boolean {
+                if (detector == null)
+                    return false
+
+                hourHeight *= detector.scaleFactor
+                updateScrollPosition(-(detector.focusY - beginFocus * hourHeight).toInt())
+                return true
+            }
+        })
 
         pagerAdapter = object : InfinitePagerAdapter<Week, WeekView>(currentWeek, 2) {
             override fun nextIndicator(current: Week) = current.nextWeek
@@ -92,6 +145,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
+                        it.onScrollChangeListener = this@CalendarView::updateScrollPosition
                     }
                 else {
                     weekViews.remove(oldView.week)
@@ -105,7 +159,8 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
         }
 
-        hours.week = pagerAdapter.currentIndicator
+        hoursScroll.onScrollChangeListener = this::updateScrollPosition
+        hoursHeader.week = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
@@ -117,9 +172,14 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == ViewPager.SCROLL_STATE_IDLE)
-                    hours.week = pagerAdapter.currentIndicator
+                    hoursHeader.week = pagerAdapter.currentIndicator
             }
         }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+        scaleDetector.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
     }
 
     private fun onRangeUpdated() {
@@ -139,6 +199,12 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
         }
+    }
+
+    private fun updateScrollPosition(pos: Int) {
+        hoursScroll.scrollY = pos
+        for (week in weekViews.values)
+            week.scrollTo(pos)
     }
 
 

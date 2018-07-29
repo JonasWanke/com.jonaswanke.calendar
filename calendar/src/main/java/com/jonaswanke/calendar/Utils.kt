@@ -15,6 +15,12 @@ fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
 }
 
+val Calendar.isToday: Boolean
+    get() = TODAY.timeInMillis <= timeInMillis && timeInMillis < TOMORROW.timeInMillis
+val Calendar.isFuture: Boolean
+    get() = TODAY.timeInMillis < timeInMillis
+
+
 data class Week(
         val year: Int = TODAY.get(Calendar.YEAR),
         val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
@@ -26,6 +32,9 @@ data class Week(
         cal.add(Calendar.WEEK_OF_YEAR, -1)
         end
     }
+
+    val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
+    val isFuture = TODAY.timeInMillis < start
 
     val nextWeek: Week by lazy {
         val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
@@ -59,6 +68,7 @@ fun Week.toCalendar(): Calendar =
             timeOfDay = 0
         }
 
+
 data class Day(
         val year: Int = TODAY.get(Calendar.YEAR),
         val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
@@ -76,7 +86,7 @@ data class Day(
     }
 
     val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
-    val isFuture = start > TODAY.timeInMillis
+    val isFuture = TODAY.timeInMillis < start
 }
 
 fun Calendar.toDay(): Day {
