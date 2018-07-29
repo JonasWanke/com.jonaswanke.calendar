@@ -42,8 +42,8 @@ class DayView @JvmOverloads constructor(context: Context,
     private val eventViewCache = mutableListOf<EventView>()
 
 
-    private var _hourHeight: Int
-    var hourHeight: Int
+    private var _hourHeight: Float
+    var hourHeight: Float
         get() = _hourHeight
         set(value) {
             if (_hourHeight == value)
@@ -71,7 +71,7 @@ class DayView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(
                 attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
 
-        _hourHeight = a.getDimensionPixelSize(R.styleable.DayView_hourHeight, 16)
+        _hourHeight = a.getDimension(R.styleable.DayView_hourHeight, 16f)
 
         a.recycle()
 
@@ -90,7 +90,7 @@ class DayView @JvmOverloads constructor(context: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, _hourHeight * 24)
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -142,7 +142,7 @@ class DayView @JvmOverloads constructor(context: Context,
     }
 
 
-    public fun setDay(day: Day, events: List<Event> = emptyList()) {
+    fun setDay(day: Day, events: List<Event> = emptyList()) {
         this.day = day
         onUpdateDay(day)
         checkEvents(events)
@@ -164,7 +164,7 @@ class DayView @JvmOverloads constructor(context: Context,
         }
     }
 
-    public fun setEvents(events: List<Event>) {
+    fun setEvents(events: List<Event>) {
         checkEvents(events)
         this.events = events
 

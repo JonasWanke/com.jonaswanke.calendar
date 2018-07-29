@@ -48,7 +48,7 @@ class WeekView @JvmOverloads constructor(context: Context,
             dayViews[day].setEvents(getEventsForDay(day, new))
     }
 
-    var hourHeight: Int
+    var hourHeight: Float
         get() = dayViews[0].hourHeight
         set(value) {
             for (day in dayViews)

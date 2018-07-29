@@ -18,8 +18,8 @@ class HoursView @JvmOverloads constructor(context: Context,
                                           @AttrRes defStyleAttr: Int = R.attr.hoursViewStyle)
     : View(context, attrs, defStyleAttr) {
 
-    private var _hourHeight: Int
-    var hourHeight: Int
+    private var _hourHeight: Float
+    var hourHeight: Float
         get() = _hourHeight
         set(value) {
             if (_hourHeight == value)
@@ -37,7 +37,7 @@ class HoursView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(
                 attrs, R.styleable.HoursView, defStyleAttr, R.style.Calendar_HoursViewStyle)
 
-        _hourHeight = a.getDimensionPixelSize(R.styleable.HoursView_hourHeight, 16)
+        _hourHeight = a.getDimension(R.styleable.HoursView_hourHeight, 16f)
         hourSize = a.getDimensionPixelSize(R.styleable.HoursView_hourSize, 16)
         hourColor = a.getColor(R.styleable.HoursView_hourColor,
                 ContextCompat.getColor(context, android.R.color.secondary_text_light))
@@ -51,7 +51,7 @@ class HoursView @JvmOverloads constructor(context: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, _hourHeight * 24)
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
         setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -79,7 +79,7 @@ class HoursView @JvmOverloads constructor(context: Context,
             hourPaint.getTextBounds(hourText, 0, hourText.length, hourBounds)
             canvas.drawText(hourText,
                     getStartForCentered(hourBounds.width().toFloat()),
-                    getBottomForCentered((top + _hourHeight * hour).toFloat(), hourBounds.height()),
+                    getBottomForCentered(top + _hourHeight * hour, hourBounds.height()),
                     hourPaint)
         }
     }

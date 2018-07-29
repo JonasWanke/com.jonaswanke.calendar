@@ -4,16 +4,12 @@ import android.content.Context
 import android.gesture.GestureOverlayView
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
-import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
 /**
@@ -61,9 +57,9 @@ class CalendarView @JvmOverloads constructor(context: Context,
         if (old == new)
             return@observable
 
-        hours.hourHeight = new.toInt()
+        hours.hourHeight = new
         for (week in weekViews.values)
-            week.hourHeight = new.toInt()
+            week.hourHeight = new
     }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
@@ -77,7 +73,6 @@ class CalendarView @JvmOverloads constructor(context: Context,
     init {
         View.inflate(context, R.layout.view_calendar, this)
 
-        // Load attributes
         val a = context.obtainStyledAttributes(
                 attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
 
@@ -88,9 +83,6 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
         scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector?): Boolean {
-                if (((detector?.scaleFactor ?: 1f) - 1).absoluteValue < 0.1)
-                    return false
-
                 hourHeight *= detector?.scaleFactor ?: 1f
                 return true
             }
@@ -145,9 +137,9 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
     }
 
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        scaleDetector.onTouchEvent(ev)
-        return super.onInterceptTouchEvent(ev)
+    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+        scaleDetector.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
     }
 
     private fun onRangeUpdated() {
