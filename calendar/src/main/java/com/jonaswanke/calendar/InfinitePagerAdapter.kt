@@ -117,8 +117,11 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: I
 
     internal fun reset(newIndicator: T) {
         currentIndicator = newIndicator
+
+        val center = pageCount / 2
         for (i in 0 until pageCount)
-            fillPage(i)
+            // Start at the center and move outwards
+            fillPage(center + if (i % 2 == 0) i / 2 else -(i / 2 + 1))
     }
 
     private fun fillPage(position: Int) {
