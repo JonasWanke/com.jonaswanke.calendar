@@ -2,6 +2,8 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.gesture.GestureOverlayView
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
 import android.support.v4.view.ViewPager
@@ -86,7 +88,17 @@ class CalendarView @JvmOverloads constructor(context: Context,
     private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
     private val scaleDetector: ScaleGestureDetector
 
-    private var currentWeek: Week = Week()
+    private var _currentWeek: Week = Week()
+    var currentWeek: Week
+        get() = _currentWeek
+        set(value) {
+            if (_currentWeek == value)
+                return
+
+            _currentWeek = value
+            hoursHeader.week = value
+            pager.setCurrentIndicator<Week, WeekView>(value)
+        }
 
     private val pagerAdapter: InfinitePagerAdapter<Week, WeekView>
 
@@ -133,10 +145,9 @@ class CalendarView @JvmOverloads constructor(context: Context,
             override fun previousIndicator(current: Week) = current.prevWeek
 
             override var currentIndicatorString: String
-                get() = "${currentIndicator.year}-${currentIndicator.week}"
+                get() = currentIndicator.toString()
                 set(value) {
-                    val parts = value.split("-")
-                    currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
+                    currentIndicator = value.toWeek()!!
                 }
 
             override fun instantiateItem(indicator: Week, oldView: WeekView?): WeekView {
@@ -171,8 +182,10 @@ class CalendarView @JvmOverloads constructor(context: Context,
             }
 
             override fun onPageScrollStateChanged(state: Int) {
-                if (state == ViewPager.SCROLL_STATE_IDLE)
-                    hoursHeader.week = pagerAdapter.currentIndicator
+                if (state == ViewPager.SCROLL_STATE_IDLE) {
+                    _currentWeek = pagerAdapter.currentIndicator
+                    hoursHeader.week = _currentWeek
+                }
             }
         }
     }
@@ -181,6 +194,13 @@ class CalendarView @JvmOverloads constructor(context: Context,
         scaleDetector.onTouchEvent(event)
         return super.dispatchTouchEvent(event)
     }
+
+
+    fun setEventsForWeek(week: Week, events: List<Event>) {
+        this.events[week] = events
+        weekViews[week]?.events = events
+    }
+
 
     private fun onRangeUpdated() {
         when (range) {
@@ -208,12 +228,41 @@ class CalendarView @JvmOverloads constructor(context: Context,
     }
 
 
-    fun setEventsForWeek(week: Week, events: List<Event>) {
-        this.events[week] = events
-        weekViews[week]?.events = events
+    override fun onSaveInstanceState(): Parcelable {
+        return SavedState(super.onSaveInstanceState()).also {
+            it.week = currentWeek
+        }
     }
 
-    fun jumpToToday() {
-        pager.setCurrentIndicator<Week, WeekView>(Week())
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state is SavedState) {
+            super.onRestoreInstanceState(state.superState)
+            state.week?.also { currentWeek = it }
+        } else
+            super.onRestoreInstanceState(state)
+    }
+
+    internal class SavedState : View.BaseSavedState {
+        companion object {
+            @Suppress("unused")
+            @JvmField
+            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel?) = SavedState(source)
+                override fun newArray(size: Int) = arrayOfNulls<SavedState>(size)
+            }
+        }
+
+        var week: Week? = null
+
+        constructor(source: Parcel?) : super(source) {
+            week = source?.readString()?.toWeek()
+        }
+
+        constructor(superState: Parcelable) : super(superState)
+
+        override fun writeToParcel(out: Parcel?, flags: Int) {
+            super.writeToParcel(out, flags)
+            out?.writeString(week?.toString())
+        }
     }
 }

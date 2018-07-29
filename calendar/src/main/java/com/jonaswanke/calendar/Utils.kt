@@ -52,12 +52,21 @@ data class Week(
         else
             Week(year, week.week)
     }
+
+    override fun toString(): String {
+        return "$year-$week"
+    }
 }
 
 fun Calendar.toWeek(): Week {
     return Week(
             get(Calendar.YEAR),
             get(Calendar.WEEK_OF_YEAR))
+}
+
+fun String.toWeek(): Week? {
+    val parts = split("-")
+    return Week(parts[0].toInt(), parts[1].toInt())
 }
 
 fun Week.toCalendar(): Calendar =
