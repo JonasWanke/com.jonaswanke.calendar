@@ -106,8 +106,24 @@ class CalendarView @JvmOverloads constructor(context: Context,
         isGestureVisible = false
 
         scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            var beginFocus: Float = 0f
+            var beginHeight: Float = 0f
+
+            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+                if (detector == null)
+                    return false
+
+                beginHeight = hourHeight
+                beginFocus = detector.focusY / hourHeight
+                return super.onScaleBegin(detector)
+            }
+
             override fun onScale(detector: ScaleGestureDetector?): Boolean {
-                hourHeight *= detector?.scaleFactor ?: 1f
+                if (detector == null)
+                    return false
+
+                hourHeight *= detector.scaleFactor
+                updateScrollPosition(-(detector.focusY - beginFocus * hourHeight).toInt())
                 return true
             }
         })
