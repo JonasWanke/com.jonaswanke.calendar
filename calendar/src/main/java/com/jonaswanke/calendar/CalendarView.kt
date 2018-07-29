@@ -90,6 +90,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
+                        it.onScrollChangeListener = this@CalendarView::updateScrollPosition
                     }
                 else {
                     weekViews.remove(oldView.week)
@@ -103,6 +104,7 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
         }
 
+        hoursScroll.onScrollChangeListener = this::updateScrollPosition
         hoursHeader.week = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
@@ -137,6 +139,12 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
         }
+    }
+
+    private fun updateScrollPosition(pos: Int) {
+        hoursScroll.scrollY = pos
+        for (week in weekViews.values)
+            week.scrollTo(pos)
     }
 
 

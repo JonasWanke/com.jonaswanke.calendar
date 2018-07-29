@@ -30,6 +30,11 @@ class WeekView @JvmOverloads constructor(context: Context,
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new)
             }
+    var onScrollChangeListener: ((Int) -> Unit)?
+        get() = scrollView.onScrollChangeListener
+        set(value) {
+            scrollView.onScrollChangeListener = value
+        }
 
     var week: Week = _week ?: Week()
         private set
@@ -44,6 +49,7 @@ class WeekView @JvmOverloads constructor(context: Context,
     }
 
     private val headerView: WeekHeaderView
+    private val scrollView: ReportingScrollView
     private val dayViews: List<DayView>
 
     init {
@@ -67,7 +73,8 @@ class WeekView @JvmOverloads constructor(context: Context,
             for (day in dayViews)
                 addView(day, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
-        val scrollView = ScrollView(context).apply {
+        scrollView = ReportingScrollView(context).apply {
+            isVerticalScrollBarEnabled = false
             addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         }
         addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
@@ -102,6 +109,10 @@ class WeekView @JvmOverloads constructor(context: Context,
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), getEventsForDay(day, events))
         this.events = events
+    }
+
+    fun scrollTo(pos: Int) {
+        scrollView.scrollY = pos
     }
 
 
