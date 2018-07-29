@@ -81,6 +81,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
         a.recycle()
 
+        isGestureVisible = false
+
         scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector?): Boolean {
                 hourHeight *= detector?.scaleFactor ?: 1f
