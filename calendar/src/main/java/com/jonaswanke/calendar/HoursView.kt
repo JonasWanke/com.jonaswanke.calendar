@@ -18,7 +18,17 @@ class HoursView @JvmOverloads constructor(context: Context,
                                           @AttrRes defStyleAttr: Int = R.attr.hoursViewStyle)
     : View(context, attrs, defStyleAttr) {
 
-    private val hourHeight: Int
+    private var _hourHeight: Int
+    var hourHeight: Int
+        get() = _hourHeight
+        set(value) {
+            if (_hourHeight == value)
+                return
+
+            _hourHeight = value
+            requestLayout()
+        }
+
     private val hourSize: Int
     private val hourColor: Int
     private val hourPaint: TextPaint
@@ -27,7 +37,7 @@ class HoursView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(
                 attrs, R.styleable.HoursView, defStyleAttr, R.style.Calendar_HoursViewStyle)
 
-        hourHeight = a.getDimensionPixelSize(R.styleable.HoursView_hourHeight, 16)
+        _hourHeight = a.getDimensionPixelSize(R.styleable.HoursView_hourHeight, 16)
         hourSize = a.getDimensionPixelSize(R.styleable.HoursView_hourSize, 16)
         hourColor = a.getColor(R.styleable.HoursView_hourColor,
                 ContextCompat.getColor(context, android.R.color.secondary_text_light))
@@ -41,7 +51,7 @@ class HoursView @JvmOverloads constructor(context: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, hourHeight * 24)
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, _hourHeight * 24)
         setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -55,7 +65,6 @@ class HoursView @JvmOverloads constructor(context: Context,
         val left = paddingLeft
         val top = paddingTop
         val right = canvas.width - paddingRight
-        val bottom = canvas.height - paddingBottom
 
         fun getStartForCentered(width: Float): Float {
             return left.toFloat() + (right - left - width) / 2
@@ -65,13 +74,13 @@ class HoursView @JvmOverloads constructor(context: Context,
             return center + height / 2
         }
 
-        val hourHeight = (bottom.toFloat() - top) / 24
         for (hour in 1..23) {
             val hourText = if (hour < 10) "0$hour:00" else "$hour:00"
             hourPaint.getTextBounds(hourText, 0, hourText.length, hourBounds)
             canvas.drawText(hourText,
                     getStartForCentered(hourBounds.width().toFloat()),
-                    getBottomForCentered(top + hourHeight * hour, hourBounds.height()), hourPaint)
+                    getBottomForCentered((top + _hourHeight * hour).toFloat(), hourBounds.height()),
+                    hourPaint)
         }
     }
 }

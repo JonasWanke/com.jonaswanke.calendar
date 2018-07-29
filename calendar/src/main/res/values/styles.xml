@@ -3,6 +3,11 @@
 
     <style name="Calendar" />
 
+    <style name="Calendar.CalendarViewStyle">
+        <item name="range">week</item>
+        <item name="hourHeight">32dp</item>
+    </style>
+
     <style name="Calendar.WeekHeaderViewStyle">
         <item name="dateSize">32sp</item>
         <item name="dateColor">?android:attr/textColorHint</item>

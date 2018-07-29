@@ -11,7 +11,6 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import com.jonaswanke.calendar.R.attr.hourHeight
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
@@ -42,7 +41,18 @@ class DayView @JvmOverloads constructor(context: Context,
     private var events: List<Event> = emptyList()
     private val eventViewCache = mutableListOf<EventView>()
 
-    private val hourHeight: Int
+
+    private var _hourHeight: Int
+    var hourHeight: Int
+        get() = _hourHeight
+        set(value) {
+            if (_hourHeight == value)
+                return
+
+            _hourHeight = value
+            requestLayout()
+        }
+
     private var timeCircleRadius: Int = 0
     private var timeLineSize: Int = 0
     private var timePaint: Paint? = null
@@ -61,7 +71,7 @@ class DayView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(
                 attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
 
-        hourHeight = a.getDimensionPixelSize(R.styleable.DayView_hourHeight, 16)
+        _hourHeight = a.getDimensionPixelSize(R.styleable.DayView_hourHeight, 16)
 
         a.recycle()
 
@@ -80,7 +90,7 @@ class DayView @JvmOverloads constructor(context: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, hourHeight * 24)
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, _hourHeight * 24)
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -124,10 +134,9 @@ class DayView @JvmOverloads constructor(context: Context,
                     right.toFloat(), posY + timeLineSize / 2, timePaint)
         }
 
-        val hourHeight = (bottom.toFloat() - top) / 24
         for (hour in 1..23) {
-            divider?.setBounds(left, (top + hourHeight * hour).toInt(),
-                    right, (top + hourHeight * hour + dividerHeight).toInt())
+            divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
+                    right, (top + _hourHeight * hour + dividerHeight).toInt())
             divider?.draw(canvas)
         }
     }

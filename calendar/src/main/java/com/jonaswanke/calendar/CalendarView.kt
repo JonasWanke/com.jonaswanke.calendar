@@ -1,21 +1,28 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
+import android.gesture.GestureOverlayView
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
+import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : LinearLayout(context, attrs, defStyleAttr) {
+class CalendarView @JvmOverloads constructor(context: Context,
+                                             attrs: AttributeSet? = null,
+                                             @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle)
+    : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -50,28 +57,44 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         onRangeUpdated()
     }
+    var hourHeight: Float by Delegates.observable(0f) { _, old, new ->
+        if (old == new)
+            return@observable
+
+        hours.hourHeight = new.toInt()
+        for (week in weekViews.values)
+            week.hourHeight = new.toInt()
+    }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
     private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
+    private val scaleDetector: ScaleGestureDetector
 
     private var currentWeek: Week = Week()
 
     private val pagerAdapter: InfinitePagerAdapter<Week, WeekView>
 
     init {
-        orientation = HORIZONTAL
-        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE
-
         View.inflate(context, R.layout.view_calendar, this)
 
         // Load attributes
         val a = context.obtainStyledAttributes(
-                attrs, R.styleable.CalendarView, defStyleAttr, 0)
+                attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
 
         range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
 
         a.recycle()
+
+        scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector?): Boolean {
+                if (((detector?.scaleFactor ?: 1f) - 1).absoluteValue < 0.1)
+                    return false
+
+                hourHeight *= detector?.scaleFactor ?: 1f
+                return true
+            }
+        })
 
         pagerAdapter = object : InfinitePagerAdapter<Week, WeekView>(currentWeek, 2) {
             override fun nextIndicator(current: Week) = current.nextWeek
@@ -120,6 +143,11 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
                     hoursHeader.week = pagerAdapter.currentIndicator
             }
         }
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        scaleDetector.onTouchEvent(ev)
+        return super.onInterceptTouchEvent(ev)
     }
 
     private fun onRangeUpdated() {

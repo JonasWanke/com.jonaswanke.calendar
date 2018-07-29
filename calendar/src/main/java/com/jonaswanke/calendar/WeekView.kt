@@ -48,6 +48,13 @@ class WeekView @JvmOverloads constructor(context: Context,
             dayViews[day].setEvents(getEventsForDay(day, new))
     }
 
+    var hourHeight: Int
+        get() = dayViews[0].hourHeight
+        set(value) {
+            for (day in dayViews)
+                day.hourHeight = value
+        }
+
     private val headerView: WeekHeaderView
     private val scrollView: ReportingScrollView
     private val dayViews: List<DayView>
