@@ -2,14 +2,12 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.ScrollView
-import com.jonaswanke.calendar.R.attr.*
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -41,12 +39,13 @@ class WeekView @JvmOverloads constructor(context: Context,
     var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
         if (old == new)
             return@observable
-        if (new.any { event -> event.start < week.start || event.start >= week.end })
-            throw IllegalArgumentException("event starts must all be inside the set week")
+        checkEvents(new)
 
         for (day in 0 until 7)
             dayViews[day].setEvents(getEventsForDay(day, new))
     }
+
+    private var cal: Calendar
 
     var hourHeight: Float
         get() = dayViews[0].hourHeight
@@ -75,6 +74,8 @@ class WeekView @JvmOverloads constructor(context: Context,
         orientation = VERTICAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         showDividers = SHOW_DIVIDER_MIDDLE
+
+        cal = week.toCalendar()
 
         headerView = WeekHeaderView(context, _week = week)
 
@@ -126,6 +127,7 @@ class WeekView @JvmOverloads constructor(context: Context,
         this.cal = week.toCalendar()
 
         this.headerView.week = week
+        checkEvents(events)
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), getEventsForDay(day, events))
         this.events = events
@@ -136,15 +138,23 @@ class WeekView @JvmOverloads constructor(context: Context,
     }
 
 
+    private fun checkEvents(events: List<Event>) {
+        if (events.any { event -> event.start < week.start || event.start >= week.end }) {
+            Log.w("WeekView", "Week: $week (${week.start} - ${week.end})")
+            Log.w("WeekView", events.filter { event -> event.start < week.start || event.start >= week.end }[0].start.toString())
+            throw IllegalArgumentException("event starts must all be inside the set week")
+        }
+    }
+
     /**
      * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
      */
-    private fun mapDay(day: Int): Int = (day + 7 - CAL_START_OF_WEEK) % 7
+    private fun mapDay(day: Int): Int = (day + 7 - cal.firstDayOfWeek) % 7
 
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
-    private fun mapBackDay(day: Int): Int = (day + CAL_START_OF_WEEK) % 7
+    private fun mapBackDay(day: Int): Int = (day + cal.firstDayOfWeek) % 7
 
     private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
                                 onEventLongClickListener: ((Event) -> Unit)?) {
@@ -154,7 +164,6 @@ class WeekView @JvmOverloads constructor(context: Context,
         }
     }
 
-    var cal = week.toCalendar()
     private fun getEventsForDay(day: Int, events: List<Event>): List<Event> {
         val start = cal.apply { add(Calendar.DAY_OF_WEEK, day) }.timeInMillis
         val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis

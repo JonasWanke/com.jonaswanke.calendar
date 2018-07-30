@@ -11,7 +11,6 @@ private val TODAY: Calendar = Calendar.getInstance().apply {
 private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
     add(Calendar.DAY_OF_WEEK, 1)
 }
-internal val CAL_START_OF_WEEK = TODAY.firstDayOfWeek
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
@@ -75,7 +74,7 @@ fun Week.toCalendar(): Calendar =
         Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.WEEK_OF_YEAR, week)
-            set(Calendar.DAY_OF_WEEK, CAL_START_OF_WEEK)
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
             timeOfDay = 0
         }
 

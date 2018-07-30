@@ -11,8 +11,6 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import com.jonaswanke.calendar.R.attr.hourHeightMax
-import com.jonaswanke.calendar.R.attr.hourHeightMin
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
