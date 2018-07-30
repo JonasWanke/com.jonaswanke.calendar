@@ -20,7 +20,11 @@ Optional intro comment.
 
  -->
 
+
 ## [Unreleased] - 2018-xx-xx
+
+
+## [0.0.2] - 2018-xx-xx
 
 - Added: support support scroll and zoom for days ([#15](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/15)), closes [#6](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/6)
 - Added: add readme and changelog ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/5)), closes [#](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/5)
@@ -34,7 +38,5 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/schul-cloud/schulcloud-mobile-android/compare/v0.2.0...dev
-[0.2.0]: https://github.com/schul-cloud/schulcloud-mobile-android/compare/v0.1.2...v0.2.0
-[0.1.2]: https://github.com/schul-cloud/schulcloud-mobile-android/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/schul-cloud/schulcloud-mobile-android/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...dev
+[0.0.2]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.1...v0.0.2
