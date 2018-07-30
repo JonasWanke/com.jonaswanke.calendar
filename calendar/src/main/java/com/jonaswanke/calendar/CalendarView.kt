@@ -169,7 +169,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
                         doOnLayout { _ -> it.scrollTo(scrollPosition) }
                     }
                 else {
-                    weekViews.remove(oldView.week)
+                    if (weekViews[oldView.week] == oldView)
+                        weekViews.remove(oldView.week)
                     oldView.also {
                         it.setWeek(indicator, events[indicator] ?: emptyList())
                     }
@@ -290,18 +291,12 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
             fun readInt(): Int? {
                 val value = source.readInt()
-                return if (value == Int.MIN_VALUE)
-                    null
-                else
-                    value
+                return if (value == Int.MIN_VALUE) null else value
             }
 
             fun readFloat(): Float? {
                 val value = source.readFloat()
-                return if (value == Float.NaN)
-                    null
-                else
-                    value
+                return if (value == Float.NaN) null else value
             }
 
             week = source.readString()?.toWeek()
