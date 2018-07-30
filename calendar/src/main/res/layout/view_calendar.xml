@@ -4,17 +4,49 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:parentTag="android.widget.LinearLayout">
+    tools:parentTag="android.gesture.GestureOverlayView">
 
-    <com.jonaswanke.calendar.HoursView
-        android:id="@+id/hours"
-        android:layout_width="40dp"
-        android:layout_height="match_parent" />
-
-    <com.jonaswanke.calendar.InfiniteViewPager
-        android:id="@+id/pager"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:divider="@android:drawable/divider_horizontal_bright"
+        android:orientation="horizontal"
+        android:showDividers="middle">
+
+        <LinearLayout
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:divider="@android:drawable/divider_horizontal_bright"
+            android:orientation="vertical"
+            android:showDividers="middle">
+
+            <com.jonaswanke.calendar.HoursHeaderView
+                android:id="@+id/hoursHeader"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/calendar_headerHeight" />
+
+            <com.jonaswanke.calendar.ReportingScrollView
+                android:id="@+id/hoursScroll"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scrollbars="none">
+
+                <com.jonaswanke.calendar.HoursView
+                    android:id="@+id/hours"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </com.jonaswanke.calendar.ReportingScrollView>
+
+        </LinearLayout>
+
+        <com.jonaswanke.calendar.InfiniteViewPager
+            android:id="@+id/pager"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+    </LinearLayout>
 
 </merge>

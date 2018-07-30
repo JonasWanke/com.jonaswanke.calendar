@@ -1,23 +1,27 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
+import android.gesture.GestureOverlayView
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.util.SparseArray
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
-import java.util.*
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0)
-    : LinearLayout(context, attrs, defStyleAttr) {
+class CalendarView @JvmOverloads constructor(context: Context,
+                                             attrs: AttributeSet? = null,
+                                             @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle)
+    : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -52,50 +56,123 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         onRangeUpdated()
     }
+    var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
+        if ((hourHeightMin > 0 && new < hourHeightMin)
+                || (hourHeightMax > 0 && new > hourHeightMax))
+            return@vetoable false
+        if (old == new)
+            return@vetoable true
+
+        hours.hourHeight = new
+        for (week in weekViews.values)
+            week.hourHeight = new
+        return@vetoable true
+    }
+    var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight < new)
+            hourHeight = new
+
+        hours.hourHeightMin = new
+        for (week in weekViews.values)
+            week.hourHeightMin = new
+    }
+    var hourHeightMax: Float by Delegates.observable(0f) { _, _, new ->
+        if (new > 0 && hourHeight > new)
+            hourHeight = new
+
+        hours.hourHeightMax = new
+        for (week in weekViews.values)
+            week.hourHeightMax = new
+    }
+    var scrollPosition: Int by Delegates.observable(0) { _, _, new ->
+        hoursScroll.scrollY = new
+        for (week in weekViews.values)
+            week.scrollTo(new)
+    }
 
     private val events: MutableMap<Week, List<Event>> = mutableMapOf()
     private val weekViews: MutableMap<Week, WeekView> = mutableMapOf()
+    private val scaleDetector: ScaleGestureDetector
 
-    private var currentWeek: Week = Week()
+    private var _currentWeek: Week = Week()
+    var currentWeek: Week
+        get() = _currentWeek
+        set(value) {
+            if (_currentWeek == value)
+                return
 
-    private val pagerAdapter: InfinitePagerAdapter<Week>
+            _currentWeek = value
+            hoursHeader.week = value
+            pager.setCurrentIndicator<Week, WeekView>(value)
+        }
+
+    private val pagerAdapter: InfinitePagerAdapter<Week, WeekView>
 
     init {
-        orientation = HORIZONTAL
-        dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE
-
         View.inflate(context, R.layout.view_calendar, this)
 
-        // Load attributes
         val a = context.obtainStyledAttributes(
-                attrs, R.styleable.CalendarView, defStyleAttr, 0)
+                attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
 
         range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+        hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
+        hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
+        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
 
         a.recycle()
 
-        pagerAdapter = object : InfinitePagerAdapter<Week>(currentWeek, 2) {
-            override fun nextIndicator(current: Week): Week {
-                return current.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
+        isGestureVisible = false
+
+        scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            var beginFocus: Float = 0f
+            var beginHeight: Float = 0f
+
+            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+                if (detector == null)
+                    return false
+
+                beginHeight = hourHeight
+                beginFocus = detector.focusY / hourHeight
+                return super.onScaleBegin(detector)
             }
 
-            override fun previousIndicator(current: Week): Week {
-                return current.toCalendar().apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
+            override fun onScale(detector: ScaleGestureDetector?): Boolean {
+                if (detector == null)
+                    return false
+
+                hourHeight *= detector.scaleFactor
+                scrollPosition = (beginFocus * hourHeight - detector.focusY).toInt()
+                return true
             }
+        })
+
+        pagerAdapter = object : InfinitePagerAdapter<Week, WeekView>(currentWeek, 2) {
+            override fun nextIndicator(current: Week) = current.nextWeek
+            override fun previousIndicator(current: Week) = current.prevWeek
 
             override var currentIndicatorString: String
-                get() = "${currentIndicator.year}-${currentIndicator.week}"
+                get() = currentIndicator.toString()
                 set(value) {
-                    val parts = value.split("-")
-                    currentIndicator = Week(parts[0].toInt(), parts[1].toInt())
+                    currentIndicator = value.toWeek()!!
                 }
 
-            override fun instantiateItem(indicator: Week): ViewGroup {
-                val view = WeekView(context, _week = indicator).also {
-                    it.events = events[indicator] ?: emptyList()
-                    it.onEventClickListener = onEventClickListener
-                    it.onEventLongClickListener = onEventLongClickListener
+            override fun instantiateItem(indicator: Week, oldView: WeekView?): WeekView {
+                val view = if (oldView == null)
+                    WeekView(context, _week = indicator).also {
+                        it.events = events[indicator] ?: emptyList()
+                        it.onEventClickListener = onEventClickListener
+                        it.onEventLongClickListener = onEventLongClickListener
+                        it.onScrollChangeListener = { scrollPosition = it }
+                        it.hourHeightMin = hourHeightMin
+                        it.hourHeightMax = hourHeightMax
+                        it.hourHeight = hourHeight
+                        doOnLayout { _ -> it.scrollTo(scrollPosition) }
+                    }
+                else {
+                    weekViews.remove(oldView.week)
+                    oldView.also {
+                        it.setWeek(indicator, events[indicator] ?: emptyList())
+                    }
                 }
                 weekViews[indicator] = view
                 eventRequestCallback(indicator)
@@ -103,7 +180,8 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
         }
 
-        hours.week = pagerAdapter.currentIndicator
+        hoursScroll.onScrollChangeListener = { scrollPosition = it }
+        hoursHeader.week = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
@@ -114,11 +192,25 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
             }
 
             override fun onPageScrollStateChanged(state: Int) {
-                if (state == ViewPager.SCROLL_STATE_IDLE)
-                    hours.week = pagerAdapter.currentIndicator
+                if (state == ViewPager.SCROLL_STATE_IDLE) {
+                    _currentWeek = pagerAdapter.currentIndicator
+                    hoursHeader.week = _currentWeek
+                }
             }
         }
     }
+
+    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+        scaleDetector.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
+    }
+
+
+    fun setEventsForWeek(week: Week, events: List<Event>) {
+        this.events[week] = events
+        weekViews[week]?.events = events
+    }
+
 
     private fun onRangeUpdated() {
         when (range) {
@@ -140,12 +232,96 @@ class CalendarView @JvmOverloads constructor(context: Context, attrs: AttributeS
     }
 
 
-    fun setEventsForWeek(week: Week, events: List<Event>) {
-        this.events[week] = events
-        weekViews[week]?.events = events
+    override fun dispatchSaveInstanceState(container: SparseArray<Parcelable>?) {
+        dispatchFreezeSelfOnly(container)
     }
 
-    fun jumpToToday() {
-        pager.setCurrentIndicator(Week())
+    override fun onSaveInstanceState(): Parcelable {
+        return SavedState(super.onSaveInstanceState()).also {
+            it.week = currentWeek
+            it.range = range
+            it.hourHeight = hourHeight
+            it.hourHeightMin = hourHeightMin
+            it.hourHeightMax = hourHeightMax
+            it.scrollPosition = scrollPosition
+        }
+    }
+
+    override fun dispatchRestoreInstanceState(container: SparseArray<Parcelable>?) {
+        dispatchThawSelfOnly(container)
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state !is SavedState) {
+            super.onRestoreInstanceState(state)
+            return
+        }
+        super.onRestoreInstanceState(state.superState)
+        // firstDayOfWeek not updated on restore automatically
+        state.week?.also { currentWeek = Week(it.year, it.week) }
+        state.range?.also { range = it }
+        state.hourHeightMin?.also { hourHeightMin = it }
+        state.hourHeightMax?.also { hourHeightMax = it }
+        state.hourHeight?.also { hourHeight = it }
+        state.scrollPosition?.also { scrollPosition = it }
+    }
+
+    internal class SavedState : View.BaseSavedState {
+        companion object {
+            @Suppress("unused")
+            @JvmField
+            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel?) = SavedState(source)
+                override fun newArray(size: Int) = arrayOfNulls<SavedState>(size)
+            }
+        }
+
+        var week: Week? = null
+        @get: Range
+        var range: Int? = null
+        var hourHeight: Float? = null
+        var hourHeightMin: Float? = null
+        var hourHeightMax: Float? = null
+        var scrollPosition: Int? = null
+
+        constructor(source: Parcel?) : super(source) {
+            if (source == null)
+                return
+
+            fun readInt(): Int? {
+                val value = source.readInt()
+                return if (value == Int.MIN_VALUE)
+                    null
+                else
+                    value
+            }
+
+            fun readFloat(): Float? {
+                val value = source.readFloat()
+                return if (value == Float.NaN)
+                    null
+                else
+                    value
+            }
+
+            week = source.readString()?.toWeek()
+            range = readInt()
+            hourHeight = readFloat()
+            hourHeightMin = readFloat()
+            hourHeightMax = readFloat()
+            scrollPosition = readInt()
+        }
+
+        constructor(superState: Parcelable) : super(superState)
+
+        override fun writeToParcel(out: Parcel?, flags: Int) {
+            super.writeToParcel(out, flags)
+            out?.writeString(week?.toString())
+            out?.writeInt(range ?: Int.MIN_VALUE)
+            out?.writeFloat(hourHeight ?: Float.NaN)
+            out?.writeFloat(hourHeightMin ?: Float.NaN)
+            out?.writeFloat(hourHeightMax ?: Float.NaN)
+            out?.writeInt(scrollPosition ?: Int.MIN_VALUE)
+        }
     }
 }

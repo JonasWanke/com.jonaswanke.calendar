@@ -1,11 +1,9 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
-import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.view.ContextThemeWrapper
@@ -46,8 +44,6 @@ class EventView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
         foreground = a.getDrawable(0)
         a.recycle()
-
-        setOnClickListener {  }
     }
 
     private fun onEventChanged(event: Event?) {

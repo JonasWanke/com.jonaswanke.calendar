@@ -12,6 +12,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.jonaswanke.calendar.Event
+import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         val random = Random()
         calendar.eventRequestCallback = { week ->
             val events = mutableListOf<Event>()
-            for (i in 0..63) {
+            for (i in 0..15) {
                 val id = nextId++.toString()
                 val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
                 events.add(Event(
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.main_action_today -> calendar.jumpToToday()
+            R.id.main_action_today -> calendar.currentWeek = Week()
             else ->
                 return super.onOptionsItemSelected(item)
         }

@@ -1,10 +1,16 @@
 <resources>
 
+    <attr name="hourHeight" format="dimension" />
+    <attr name="hourHeightMin" format="dimension" />
+    <attr name="hourHeightMax" format="dimension" />
+
     <declare-styleable name="AppTheme">
         <attr name="calendarViewStyle" format="reference" />
         <attr name="weekViewStyle" format="reference" />
+        <attr name="weekHeaderViewStyle" format="reference" />
         <attr name="dayViewStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
+        <attr name="hoursHeaderViewStyle" format="reference" />
         <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
 
@@ -14,20 +20,29 @@
             <enum name="days_3" value="3" />
             <enum name="week" value="7" />
         </attr>
+        <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
     </declare-styleable>
 
     <declare-styleable name="WeekView" />
 
-    <declare-styleable name="DayView">
+    <declare-styleable name="WeekHeaderView">
         <attr name="dateSize" format="dimension" />
         <attr name="dateColor" format="color" />
         <attr name="dateCurrentColor" format="color" />
-        <attr name="dateCurrentBackground" format="color|reference" />
         <attr name="dateFutureColor" format="color" />
         <attr name="weekDaySize" format="dimension" />
         <attr name="weekDayColor" format="color" />
         <attr name="weekDayCurrentColor" format="color" />
         <attr name="weekDayFutureColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="DayView">
+        <attr name="dateCurrentBackground" format="color|reference" />
+        <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
         <attr name="timeCircleRadius" format="dimension" />
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
@@ -38,10 +53,16 @@
         <attr name="cornerRadius" format="dimension" />
     </declare-styleable>
 
-    <declare-styleable name="HoursView">
-        <attr name="weekMarginTop" format="dimension" />
+    <declare-styleable name="HoursHeaderView">
+        <attr name="weekOffsetTop" format="dimension" />
         <attr name="weekSize" format="dimension" />
         <attr name="weekColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="HoursView">
+        <attr name="hourHeight" />
+        <attr name="hourHeightMin" />
+        <attr name="hourHeightMax" />
         <attr name="hourSize" format="dimension" />
         <attr name="hourColor" format="color" />
     </declare-styleable>

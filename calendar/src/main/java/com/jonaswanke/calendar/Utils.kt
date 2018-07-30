@@ -1,15 +1,26 @@
 package com.jonaswanke.calendar
 
+import android.support.v4.view.ViewCompat
 import android.text.format.DateUtils
+import android.view.View
 import java.util.*
 
 private val TODAY: Calendar = Calendar.getInstance().apply {
     timeOfDay = 0
 }
+private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
+    add(Calendar.DAY_OF_WEEK, 1)
+}
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
 }
+
+val Calendar.isToday: Boolean
+    get() = TODAY.timeInMillis <= timeInMillis && timeInMillis < TOMORROW.timeInMillis
+val Calendar.isFuture: Boolean
+    get() = TODAY.timeInMillis < timeInMillis
+
 
 data class Week(
         val year: Int = TODAY.get(Calendar.YEAR),
@@ -17,7 +28,35 @@ data class Week(
 ) {
     private val cal: Calendar = toCalendar()
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.WEEK_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.timeInMillis
+        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        end
+    }
+
+    val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
+    val isFuture = TODAY.timeInMillis < start
+
+    val nextWeek: Week by lazy {
+        val week = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.toWeek()
+        cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }
+        if (week.year > year || week.week > this.week)
+            week
+        else
+            Week(year + 1, week.week)
+    }
+    val prevWeek: Week by lazy {
+        val week = cal.apply { add(Calendar.WEEK_OF_YEAR, -1) }.toWeek()
+        cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }
+        if (week.year >= year || week.week > this.week)
+            week
+        else
+            Week(year, week.week)
+    }
+
+    override fun toString(): String {
+        return "$year-$week"
+    }
 }
 
 fun Calendar.toWeek(): Week {
@@ -26,13 +65,19 @@ fun Calendar.toWeek(): Week {
             get(Calendar.WEEK_OF_YEAR))
 }
 
+fun String.toWeek(): Week? {
+    val parts = split("-")
+    return Week(parts[0].toInt(), parts[1].toInt())
+}
+
 fun Week.toCalendar(): Calendar =
         Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.WEEK_OF_YEAR, week)
-            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
             timeOfDay = 0
         }
+
 
 data class Day(
         val year: Int = TODAY.get(Calendar.YEAR),
@@ -44,10 +89,14 @@ data class Day(
     private val cal: Calendar = toCalendar()
 
     val start = cal.timeInMillis
-    val end = cal.timeInMillis + DateUtils.DAY_IN_MILLIS
+    val end: Long by lazy {
+        val end = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, -1)
+        end
+    }
 
-    val isToday = TODAY.timeInMillis <= start && start < TODAY.timeInMillis + DateUtils.DAY_IN_MILLIS
-    val isFuture = start > TODAY.timeInMillis
+    val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
+    val isFuture = TODAY.timeInMillis < start
 }
 
 fun Calendar.toDay(): Day {
@@ -83,3 +132,24 @@ var Calendar.timeOfDay: Long
 var Calendar.dayOfWeek: Int
     get() = get(Calendar.DAY_OF_WEEK)
     set(value) = set(Calendar.DAY_OF_WEEK, value)
+
+
+inline fun View.doOnNextLayout(crossinline action: (view: View) -> Unit) {
+    addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+        override fun onLayoutChange(view: View,
+                                    left: Int, top: Int, right: Int, bottom: Int,
+                                    oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
+            view.removeOnLayoutChangeListener(this)
+            action(view)
+        }
+    })
+}
+
+inline fun View.doOnLayout(crossinline action: (view: View) -> Unit) {
+    if (ViewCompat.isLaidOut(this) && !isLayoutRequested)
+        action(this)
+    else
+        doOnNextLayout {
+            action(it)
+        }
+}
