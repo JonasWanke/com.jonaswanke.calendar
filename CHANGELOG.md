@@ -23,11 +23,14 @@ Optional intro comment.
 
 ## [Unreleased] - 2018-xx-xx
 
+- Fixed: event spacing on left side missing ([#21](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/21)), fixes [#20](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/20)
+- Fixed: PR template doesn't close issue ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/))
+
 
 ## [0.0.2] - 2018-xx-xx
 
 - Added: support support scroll and zoom for days ([#15](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/15)), closes [#6](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/6)
-- Added: add readme and changelog ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/5)), closes [#](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/5)
+- Added: add readme and changelog ([#18](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/18)), closes [#5](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/5)
 - Fixed: adapt week start to device's locale ([#11](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/11)), closes [#1](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/1)
 - Fixed: handle config changes correctly in CalendarView ([#16](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/16)), closes [#3](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/3)
 - Performance: speed up horizontal scrolling ([#10](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/10)), closes [#7](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/7)
