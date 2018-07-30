@@ -25,6 +25,7 @@ Optional intro comment.
 
 - Fixed: event spacing on left side missing ([#21](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/21)), fixes [#20](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/20)
 - Fixed: day zoom not working after reset ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/)), fixes [#23](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/23)
+- Fixed: day zoom sometimes jumps ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/)), fixes [#24](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/24)
 - Fixed: PR template doesn't close issue ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/))
 
 
