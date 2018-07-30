@@ -8,6 +8,7 @@ import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -231,6 +232,10 @@ class CalendarView @JvmOverloads constructor(context: Context,
     }
 
 
+    override fun dispatchSaveInstanceState(container: SparseArray<Parcelable>?) {
+        dispatchFreezeSelfOnly(container)
+    }
+
     override fun onSaveInstanceState(): Parcelable {
         return SavedState(super.onSaveInstanceState()).also {
             it.week = currentWeek
@@ -242,17 +247,23 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
     }
 
+    override fun dispatchRestoreInstanceState(container: SparseArray<Parcelable>?) {
+        dispatchThawSelfOnly(container)
+    }
+
     override fun onRestoreInstanceState(state: Parcelable?) {
-        if (state is SavedState) {
-            super.onRestoreInstanceState(state.superState)
-            state.week?.also { currentWeek = it }
-            state.range?.also { range = it }
-            state.hourHeightMin?.also { hourHeightMin = it }
-            state.hourHeightMax?.also { hourHeightMax = it }
-            state.hourHeight?.also { hourHeight = it }
-            state.scrollPosition?.also { scrollPosition = it }
-        } else
+        if (state !is SavedState) {
             super.onRestoreInstanceState(state)
+            return
+        }
+        super.onRestoreInstanceState(state.superState)
+        // firstDayOfWeek not updated on restore automatically
+        state.week?.also { currentWeek = Week(it.year, it.week) }
+        state.range?.also { range = it }
+        state.hourHeightMin?.also { hourHeightMin = it }
+        state.hourHeightMax?.also { hourHeightMax = it }
+        state.hourHeight?.also { hourHeight = it }
+        state.scrollPosition?.also { scrollPosition = it }
     }
 
     internal class SavedState : View.BaseSavedState {
