@@ -85,6 +85,8 @@ class DayView @JvmOverloads constructor(context: Context,
         hourHeightMin = a.getDimension(R.styleable.DayView_hourHeightMin, 0f)
         hourHeightMax = a.getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
+        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+
         a.recycle()
 
         onUpdateDay(day)
@@ -234,7 +236,6 @@ class DayView @JvmOverloads constructor(context: Context,
             null
 
         if (day.isToday && timePaint == null) {
-            timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
             timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
             val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
             timePaint = Paint().apply {
