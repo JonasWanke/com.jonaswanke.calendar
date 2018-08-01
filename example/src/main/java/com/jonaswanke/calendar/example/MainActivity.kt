@@ -11,6 +11,7 @@ import android.text.format.DateUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.jonaswanke.calendar.BaseEvent
 import com.jonaswanke.calendar.Event
 import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
             for (i in 0..15) {
                 val id = nextId++.toString()
                 val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
-                events.add(Event(
+                events.add(BaseEvent(
                         id,
                         id,
                         random.nextInt(),
