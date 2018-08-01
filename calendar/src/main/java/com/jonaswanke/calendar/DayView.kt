@@ -9,6 +9,7 @@ import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.coroutines.experimental.android.UI
@@ -21,11 +22,12 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class DayView @JvmOverloads constructor(context: Context,
-                                        private val attrs: AttributeSet? = null,
-                                        @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
-                                        _day: Day? = null)
-    : ViewGroup(context, attrs, defStyleAttr) {
+class DayView @JvmOverloads constructor(
+    context: Context,
+    private val attrs: AttributeSet? = null,
+    @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
+    _day: Day? = null
+) : ViewGroup(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -159,38 +161,28 @@ class DayView @JvmOverloads constructor(context: Context,
     fun setDay(day: Day, events: List<Event> = emptyList()) {
         this.day = day
         onUpdateDay(day)
-        checkEvents(events)
-        this.events = events
 
-        launch(UI) {
-            eventViewCache.addAll((0 until childCount).map { getChildAt(it) as EventView })
-            removeAllViews()
-            for (event in events) {
-                val view = if (eventViewCache.isEmpty())
-                    EventView(this@DayView.context).also {
-                        it.event = event
-                    }
-                else
-                    eventViewCache.removeAt(0)
-                addView(view)
-                updateListeners(onEventClickListener, onEventLongClickListener)
-            }
-        }
+        setEvents(events)
     }
 
     fun setEvents(events: List<Event>) {
         checkEvents(events)
         this.events = events
 
-        async(UI) {
-            removeAllViews()
-            events.map { event ->
-                async(UI) {
+        launch(UI) {
+            val existing = childCount
+            for (i in 0 until events.size) {
+                val event = events[i]
+
+                if (existing > i)
+                    (getChildAt(i) as EventView).event = event
+                else
                     addView(EventView(this@DayView.context).also {
                         it.event = event
                     })
-                }
-            }.forEach { it.await() }
+            }
+            if (events.size < existing)
+                removeViews(events.size, existing - events.size)
             updateListeners(onEventClickListener, onEventLongClickListener)
         }
     }
@@ -201,8 +193,10 @@ class DayView @JvmOverloads constructor(context: Context,
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
 
-    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
-                                onEventLongClickListener: ((Event) -> Unit)?) {
+    private fun updateListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?
+    ) {
         for (i in 0 until childCount) {
             val view = getChildAt(i) as EventView
             val event = view.event
