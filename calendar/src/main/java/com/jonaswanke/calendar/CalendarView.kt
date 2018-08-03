@@ -46,6 +46,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
     var eventRequestCallback: (Week) -> Unit = {}
 
+    val cachedWeeks: Set<Week> get() = weekViews.keys
+
 
     @get: Range
     var range: Int by Delegates.observable(RANGE_WEEK) { _, old, new ->
