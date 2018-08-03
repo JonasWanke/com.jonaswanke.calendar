@@ -9,4 +9,9 @@
         android:title="@string/main_action_today"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/main_action_regenerate"
+        android:title="@string/main_action_regenerate"
+        app:showAsAction="never" />
+
 </menu>
