@@ -24,10 +24,26 @@ Optional intro comment.
 ## [Unreleased] - 2018-xx-xx
 
 
-## [0.0.2] - 2018-xx-xx
+
+
+## [0.0.3] - 2018-08-05
+
+- Added: add default text for empty title ([#38](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/38)), fixes [#36](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/36)
+- Added: add getter for cached weeks ([#33](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/33)), fixes [#30](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/30)
+- Changed: make event an interface ([#29](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/29)), fixes [#26](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/26)
+- Fixed: don't overlap events ([#32](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/32)), fixes [#2](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/2)
+- Fixed: setting new events gives flash ([#31](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/31)), fixes [#25](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/25)
+- Fixed: event spacing on left side missing ([#21](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/21)), fixes [#20](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/20)
+- Fixed: day zoom not working after reset ([#27](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/27)), fixes [#23](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/23)
+- Fixed: day zoom sometimes jumps ([#28](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/28)), fixes [#24](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/24)
+- Fixed: PR template doesn't close issue ([#22](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/22))
+- Fixed: typo in changelog ([#22](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/22)), fixes [#19](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/19)
+
+
+## [0.0.2] - 2018-07-30
 
 - Added: support support scroll and zoom for days ([#15](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/15)), closes [#6](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/6)
-- Added: add readme and changelog ([#](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/5)), closes [#](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/5)
+- Added: add readme and changelog ([#18](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/18)), closes [#5](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/5)
 - Fixed: adapt week start to device's locale ([#11](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/11)), closes [#1](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/1)
 - Fixed: handle config changes correctly in CalendarView ([#16](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/16)), closes [#3](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/3)
 - Performance: speed up horizontal scrolling ([#10](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/10)), closes [#7](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/7)
@@ -38,5 +54,6 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...dev
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...dev
+[0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...0.0.3
 [0.0.2]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.1...v0.0.2

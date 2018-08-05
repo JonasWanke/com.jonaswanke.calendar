@@ -11,6 +11,7 @@ import android.text.format.DateUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.jonaswanke.calendar.BaseEvent
 import com.jonaswanke.calendar.Event
 import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
@@ -19,6 +20,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private var nextId: Long = 0
+    private val random = Random()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,21 +33,7 @@ class MainActivity : AppCompatActivity() {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        val random = Random()
-        calendar.eventRequestCallback = { week ->
-            val events = mutableListOf<Event>()
-            for (i in 0..15) {
-                val id = nextId++.toString()
-                val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
-                events.add(Event(
-                        id,
-                        id,
-                        random.nextInt(),
-                        start,
-                        start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
-            }
-            calendar.setEventsForWeek(week, events)
-        }
+        calendar.eventRequestCallback = this::populate
         calendar.onEventClickListener = {
             Toast.makeText(this, it.title + " clicked", Toast.LENGTH_LONG).show()
         }
@@ -69,12 +57,27 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.main_action_today -> calendar.currentWeek = Week()
+            R.id.main_action_regenerate -> calendar.cachedWeeks.forEach(this::populate)
             else ->
                 return super.onOptionsItemSelected(item)
         }
         return true
     }
 
+    private fun populate(week: Week) {
+        val events = mutableListOf<Event>()
+        for (i in 0..15) {
+            val id = nextId++.toString()
+            val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
+            events.add(BaseEvent(
+                    id,
+                    id,
+                    random.nextInt(),
+                    start,
+                    start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
+        }
+        calendar.setEventsForWeek(week, events)
+    }
 
     fun openHomepage() {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://jonas-wanke.com")))

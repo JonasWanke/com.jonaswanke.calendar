@@ -46,6 +46,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
     var eventRequestCallback: (Week) -> Unit = {}
 
+    val cachedWeeks: Set<Week> get() = weekViews.keys
+
 
     @get: Range
     var range: Int by Delegates.observable(RANGE_WEEK) { _, old, new ->
@@ -122,26 +124,17 @@ class CalendarView @JvmOverloads constructor(context: Context,
         a.recycle()
 
         isGestureVisible = false
+        gestureStrokeLengthThreshold = 10f
 
         scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-            var beginFocus: Float = 0f
-            var beginHeight: Float = 0f
-
-            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
-                if (detector == null)
-                    return false
-
-                beginHeight = hourHeight
-                beginFocus = detector.focusY / hourHeight
-                return super.onScaleBegin(detector)
-            }
-
             override fun onScale(detector: ScaleGestureDetector?): Boolean {
                 if (detector == null)
                     return false
 
-                hourHeight *= detector.scaleFactor
-                scrollPosition = (beginFocus * hourHeight - detector.focusY).toInt()
+                val foc = (detector.focusY + scrollPosition) / hourHeight
+                hourHeight *= detector.currentSpanY / detector.previousSpanY
+                scrollPosition = (foc * hourHeight - detector.focusY).toInt() // (beginFocus * hourHeight - detector.focusY).toInt()
+
                 return true
             }
         })
@@ -169,7 +162,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
                         doOnLayout { _ -> it.scrollTo(scrollPosition) }
                     }
                 else {
-                    weekViews.remove(oldView.week)
+                    if (weekViews[oldView.week] == oldView)
+                        weekViews.remove(oldView.week)
                     oldView.also {
                         it.setWeek(indicator, events[indicator] ?: emptyList())
                     }
@@ -290,18 +284,12 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
             fun readInt(): Int? {
                 val value = source.readInt()
-                return if (value == Int.MIN_VALUE)
-                    null
-                else
-                    value
+                return if (value == Int.MIN_VALUE) null else value
             }
 
             fun readFloat(): Float? {
                 val value = source.readFloat()
-                return if (value == Float.NaN)
-                    null
-                else
-                    value
+                return if (value == Float.NaN) null else value
             }
 
             week = source.readString()?.toWeek()

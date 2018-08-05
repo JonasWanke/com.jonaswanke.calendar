@@ -12,7 +12,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.math.max
@@ -21,11 +20,12 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class DayView @JvmOverloads constructor(context: Context,
-                                        private val attrs: AttributeSet? = null,
-                                        @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
-                                        _day: Day? = null)
-    : ViewGroup(context, attrs, defStyleAttr) {
+class DayView @JvmOverloads constructor(
+    context: Context,
+    private val attrs: AttributeSet? = null,
+    @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
+    _day: Day? = null
+) : ViewGroup(context, attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -39,7 +39,7 @@ class DayView @JvmOverloads constructor(context: Context,
     var day: Day = _day ?: Day()
         private set
     private var events: List<Event> = emptyList()
-    private val eventViewCache = mutableListOf<EventView>()
+    private val eventsParallel: MutableMap<Event, Pair<Int, Int>> = mutableMapOf()
 
 
     private var _hourHeight: Float
@@ -52,6 +52,7 @@ class DayView @JvmOverloads constructor(context: Context,
                 return
 
             _hourHeight = v
+            positionEvents()
             requestLayout()
         }
     var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
@@ -85,6 +86,8 @@ class DayView @JvmOverloads constructor(context: Context,
         hourHeightMin = a.getDimension(R.styleable.DayView_hourHeightMin, 0f)
         hourHeightMax = a.getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
+        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+
         a.recycle()
 
         onUpdateDay(day)
@@ -92,6 +95,11 @@ class DayView @JvmOverloads constructor(context: Context,
         launch(UI) {
             divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
             invalidate()
+        }
+
+        setOnLongClickListener {
+            positionEvents()
+            true
         }
     }
 
@@ -108,11 +116,13 @@ class DayView @JvmOverloads constructor(context: Context,
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val left = paddingLeft + timeCircleRadius
+        val space = timeCircleRadius / 2
+        val left = paddingLeft + space
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
         val height = bottom - top
+        val width = right - left
 
         fun getPosForTime(time: Long): Int {
             return (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
@@ -121,10 +131,14 @@ class DayView @JvmOverloads constructor(context: Context,
         for (viewIndex in 0 until childCount) {
             val view = getChildAt(viewIndex) as EventView
             val event = view.event ?: continue
-            val startHeight = top + getPosForTime(event.start)
-            val endHeight = max(top + getPosForTime(event.end), startHeight + view.minHeight)
+            val parallel = eventsParallel[event]!!
 
-            view.layout(left, startHeight, right, endHeight)
+            val eventTop = top + getPosForTime(event.start)
+            val eventBottom = max(top + getPosForTime(event.end), eventTop + view.minHeight)
+            val eventWidth = width / parallel.first
+            val eventLeft = left + eventWidth * parallel.second + space
+
+            view.layout(eventLeft, eventTop, eventLeft + eventWidth - space, eventBottom)
         }
     }
 
@@ -157,40 +171,79 @@ class DayView @JvmOverloads constructor(context: Context,
     fun setDay(day: Day, events: List<Event> = emptyList()) {
         this.day = day
         onUpdateDay(day)
-        checkEvents(events)
-        this.events = events
 
-        launch(UI) {
-            eventViewCache.addAll((0 until childCount).map { getChildAt(it) as EventView })
-            removeAllViews()
-            for (event in events) {
-                val view = if (eventViewCache.isEmpty())
-                    EventView(this@DayView.context).also {
-                        it.event = event
-                    }
-                else
-                    eventViewCache.removeAt(0)
-                addView(view)
-                updateListeners(onEventClickListener, onEventLongClickListener)
-            }
-        }
+        setEvents(events)
     }
 
     fun setEvents(events: List<Event>) {
         checkEvents(events)
-        this.events = events
+        this.events = events.sortedBy { it.start }
 
-        async(UI) {
-            removeAllViews()
-            events.map { event ->
-                async(UI) {
+        launch(UI) {
+            @Suppress("NAME_SHADOWING")
+            val events = this@DayView.events
+            positionEvents()
+
+            val existing = childCount
+            for (i in 0 until events.size) {
+                val event = events[i]
+
+                if (existing > i)
+                    (getChildAt(i) as EventView).event = event
+                else
                     addView(EventView(this@DayView.context).also {
                         it.event = event
                     })
-                }
-            }.forEach { it.await() }
+            }
+            if (events.size < existing)
+                removeViews(events.size, existing - events.size)
             updateListeners(onEventClickListener, onEventLongClickListener)
+            requestLayout()
         }
+    }
+
+    private fun positionEvents() {
+        eventsParallel.clear()
+        val view = if (childCount > 0) (getChildAt(0) as EventView) else EventView(context)
+        val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
+
+        fun endOf(event: Event) = Math.max(event.end, event.start + minLength)
+
+        var currentGroup = mutableListOf<Event>()
+        var currentEnd = 0L
+        fun endGroup() {
+            when (currentGroup.size) {
+                0 -> return
+                1 -> eventsParallel[currentGroup[0]] = 1 to 0
+                else -> {
+                    val ends = mutableListOf<Long>()
+                    for (event in currentGroup) {
+                        val min = ends.filter { it < event.start }.min()
+                        val index = ends.indexOf(min)
+
+                        if (index < 0) {
+                            eventsParallel[event] = 1 to ends.size
+                            ends.add(endOf(event))
+                        } else {
+                            eventsParallel[event] = 1 to index
+                            ends[index] = endOf(event)
+                        }
+                    }
+                    for (e in currentGroup)
+                        eventsParallel[e] = eventsParallel[e]!!.copy(first = ends.size)
+                }
+            }
+        }
+        for (event in events)
+            if (event.start <= currentEnd) {
+                currentGroup.add(event)
+                currentEnd = Math.max(currentEnd, endOf(event))
+            } else {
+                endGroup()
+                currentGroup = mutableListOf(event)
+                currentEnd = endOf(event)
+            }
+        endGroup()
     }
 
 
@@ -199,8 +252,10 @@ class DayView @JvmOverloads constructor(context: Context,
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
 
-    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
-                                onEventLongClickListener: ((Event) -> Unit)?) {
+    private fun updateListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?
+    ) {
         for (i in 0 until childCount) {
             val view = getChildAt(i) as EventView
             val event = view.event
@@ -234,7 +289,6 @@ class DayView @JvmOverloads constructor(context: Context,
             null
 
         if (day.isToday && timePaint == null) {
-            timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
             timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
             val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
             timePaint = Paint().apply {
