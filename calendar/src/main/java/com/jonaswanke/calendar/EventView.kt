@@ -18,11 +18,12 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class EventView @JvmOverloads constructor(context: Context,
-                                          attrs: AttributeSet? = null,
-                                          @AttrRes defStyleAttr: Int = R.attr.eventViewStyle,
-                                          _event: Event? = null)
-    : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
+class EventView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = R.attr.eventViewStyle,
+    _event: Event? = null
+) : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
 
     var event by Delegates.observable<Event?>(_event) { _, old, new ->
         if (old == new)
@@ -30,6 +31,21 @@ class EventView @JvmOverloads constructor(context: Context,
 
         onEventChanged(new)
     }
+    private val titleDefault by lazy {
+        val a = context.obtainStyledAttributes(
+                attrs, R.styleable.EventView, defStyleAttr, R.style.Calendar_EventViewStyle)
+        val default = a.getString(R.styleable.EventView_titleDefault)
+        a.recycle()
+        default
+    }
+    private val title: String?
+        get() {
+            val title = event?.title
+            return if (title == null || title.isBlank())
+                titleDefault
+            else
+                title
+        }
 
     private val backgroundDrawable: Drawable?
     private val backgroundColorDefault: Int
@@ -44,6 +60,8 @@ class EventView @JvmOverloads constructor(context: Context,
         val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
         foreground = a.getDrawable(0)
         a.recycle()
+
+        onEventChanged(null)
     }
 
     private fun onEventChanged(event: Event?) {
@@ -53,7 +71,7 @@ class EventView @JvmOverloads constructor(context: Context,
             return
         }
 
-        val builder = SpannableStringBuilder(event.title)
+        val builder = SpannableStringBuilder(title)
         val titleEnd = builder.length
         builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
         builder.append("\n").append(event.description)

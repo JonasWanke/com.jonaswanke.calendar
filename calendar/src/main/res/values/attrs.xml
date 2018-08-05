@@ -51,6 +51,7 @@
 
     <declare-styleable name="EventView">
         <attr name="cornerRadius" format="dimension" />
+        <attr name="titleDefault" format="string" />
     </declare-styleable>
 
     <declare-styleable name="HoursHeaderView">
