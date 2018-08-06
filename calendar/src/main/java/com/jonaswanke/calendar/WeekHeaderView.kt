@@ -13,11 +13,12 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class WeekHeaderView @JvmOverloads constructor(context: Context,
-                                               private val attrs: AttributeSet? = null,
-                                               @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
-                                               _week: Week? = null)
-    : View(context, attrs, defStyleAttr) {
+class WeekHeaderView @JvmOverloads constructor(
+    context: Context,
+    private val attrs: AttributeSet? = null,
+    @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
+    _week: Week? = null
+) : View(context, attrs, defStyleAttr) {
 
 
     var week: Week by Delegates.observable(_week ?: Week()) { _, _, new ->

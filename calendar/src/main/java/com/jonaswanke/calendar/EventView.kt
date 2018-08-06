@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.support.annotation.AttrRes
+import android.support.annotation.StyleRes
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.view.ContextThemeWrapper
@@ -22,6 +23,7 @@ class EventView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = R.attr.eventViewStyle,
+    @StyleRes defStyleRes: Int = R.style.Calendar_EventViewStyle,
     _event: Event? = null
 ) : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
 
@@ -32,8 +34,7 @@ class EventView @JvmOverloads constructor(
         onEventChanged(new)
     }
     private val titleDefault by lazy {
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.EventView, defStyleAttr, R.style.Calendar_EventViewStyle)
+        val a = context.obtainStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes)
         val default = a.getString(R.styleable.EventView_titleDefault)
         a.recycle()
         default
@@ -54,7 +55,7 @@ class EventView @JvmOverloads constructor(
         gravity = Gravity.START or Gravity.TOP
 
         backgroundDrawable = ResourcesCompat.getDrawable(context.resources,
-                R.drawable.event_background, ContextThemeWrapper(context, R.style.Calendar_EventViewStyle).theme)
+                R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
         backgroundColorDefault = 0xFF039BE5.toInt()
 
         val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))

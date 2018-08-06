@@ -248,6 +248,8 @@ class DayView @JvmOverloads constructor(
 
 
     private fun checkEvents(events: List<Event>) {
+        if (events.any { event -> event.allDay })
+            throw IllegalArgumentException("all-day events cannot be shown inside DayView")
         if (events.any { event -> event.start < day.start || event.start >= day.end })
             throw IllegalArgumentException("event starts must all be inside the set day")
     }

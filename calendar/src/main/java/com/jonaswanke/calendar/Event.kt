@@ -9,6 +9,7 @@ interface Event {
     val color: Int?
     val start: Long
     val end: Long
+    val allDay: Boolean
 }
 
 open class BaseEvent(
@@ -17,5 +18,6 @@ open class BaseEvent(
     @get:ColorInt
     override val color: Int?,
     override val start: Long,
-    override val end: Long
+    override val end: Long,
+    override val allDay: Boolean = false
 ) : Event

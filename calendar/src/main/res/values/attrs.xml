@@ -8,8 +8,10 @@
         <attr name="calendarViewStyle" format="reference" />
         <attr name="weekViewStyle" format="reference" />
         <attr name="weekHeaderViewStyle" format="reference" />
+        <attr name="allDayEventsViewStyle" format="reference" />
         <attr name="dayViewStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
+        <attr name="eventViewAllDayStyle" format="reference" />
         <attr name="hoursHeaderViewStyle" format="reference" />
         <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
@@ -26,7 +28,6 @@
     </declare-styleable>
 
     <declare-styleable name="WeekView" />
-
     <declare-styleable name="WeekHeaderView">
         <attr name="dateSize" format="dimension" />
         <attr name="dateColor" format="color" />
@@ -36,6 +37,10 @@
         <attr name="weekDayColor" format="color" />
         <attr name="weekDayCurrentColor" format="color" />
         <attr name="weekDayFutureColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="AllDayEventsView">
+        <attr name="spacing" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="DayView">
@@ -59,7 +64,6 @@
         <attr name="weekSize" format="dimension" />
         <attr name="weekColor" format="color" />
     </declare-styleable>
-
     <declare-styleable name="HoursView">
         <attr name="hourHeight" />
         <attr name="hourHeightMin" />
