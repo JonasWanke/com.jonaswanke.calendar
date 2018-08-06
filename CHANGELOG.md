@@ -55,5 +55,5 @@ Initial release supporting week view.
 
 
 [Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...dev
-[0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...0.0.3
+[0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.1...v0.0.2
