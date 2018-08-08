@@ -3,9 +3,9 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.support.annotation.AttrRes
-import android.support.annotation.StyleRes
-import android.support.v7.view.ContextThemeWrapper
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View

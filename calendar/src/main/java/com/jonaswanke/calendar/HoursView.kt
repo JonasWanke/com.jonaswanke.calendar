@@ -3,8 +3,8 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.support.annotation.AttrRes
-import android.support.v4.content.ContextCompat
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View

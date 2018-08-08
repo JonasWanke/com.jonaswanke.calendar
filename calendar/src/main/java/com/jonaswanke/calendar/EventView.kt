@@ -3,11 +3,11 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import android.support.annotation.AttrRes
-import android.support.annotation.StyleRes
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v4.graphics.drawable.DrawableCompat
-import android.support.v7.view.ContextThemeWrapper
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.appcompat.view.ContextThemeWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan

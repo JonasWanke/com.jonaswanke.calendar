@@ -1,6 +1,6 @@
 package com.jonaswanke.calendar
 
-import android.support.annotation.ColorInt
+import androidx.annotation.ColorInt
 
 interface Event {
     val title: String

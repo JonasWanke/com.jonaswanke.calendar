@@ -1,6 +1,6 @@
 package com.jonaswanke.calendar
 
-import android.support.v4.view.ViewCompat
+import androidx.core.view.ViewCompat
 import android.text.format.DateUtils
 import android.view.View
 import java.util.*

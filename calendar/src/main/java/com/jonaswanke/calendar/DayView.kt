@@ -5,8 +5,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import android.support.annotation.AttrRes
-import android.support.v4.content.ContextCompat
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View

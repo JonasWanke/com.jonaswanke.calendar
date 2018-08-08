@@ -4,9 +4,9 @@ import android.content.Context
 import android.gesture.GestureOverlayView
 import android.os.Parcel
 import android.os.Parcelable
-import android.support.annotation.AttrRes
-import android.support.annotation.IntDef
-import android.support.v4.view.ViewPager
+import androidx.annotation.AttrRes
+import androidx.annotation.IntDef
+import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.util.SparseArray
