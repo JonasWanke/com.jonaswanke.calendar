@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.support.annotation.AttrRes
+import android.support.annotation.StyleRes
+import android.support.v7.view.ContextThemeWrapper
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
@@ -13,11 +15,13 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class WeekHeaderView @JvmOverloads constructor(context: Context,
-                                               private val attrs: AttributeSet? = null,
-                                               @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
-                                               _week: Week? = null)
-    : View(context, attrs, defStyleAttr) {
+class WeekHeaderView @JvmOverloads constructor(
+    context: Context,
+    private val attrs: AttributeSet? = null,
+    @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
+    @StyleRes defStyleRes: Int = R.style.Calendar_WeekHeaderViewStyle,
+    _week: Week? = null
+) : View(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
 
     var week: Week by Delegates.observable(_week ?: Week()) { _, _, new ->
@@ -44,6 +48,11 @@ class WeekHeaderView @JvmOverloads constructor(context: Context,
                 .map { (key, value) -> value to key }
                 .toMap()
         onUpdateWeek(week)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val height = paddingTop + paddingBottom + minimumHeight
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
     }
 
     override fun onDraw(canvas: Canvas?) {

@@ -23,8 +23,8 @@ val Calendar.isFuture: Boolean
 
 
 data class Week(
-        val year: Int = TODAY.get(Calendar.YEAR),
-        val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
+    val year: Int = TODAY.get(Calendar.YEAR),
+    val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
 ) {
     private val cal: Calendar = toCalendar()
     val start = cal.timeInMillis
@@ -80,9 +80,9 @@ fun Week.toCalendar(): Calendar =
 
 
 data class Day(
-        val year: Int = TODAY.get(Calendar.YEAR),
-        val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
-        val day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
+    val year: Int = TODAY.get(Calendar.YEAR),
+    val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
+    val day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
 ) {
     constructor(week: Week, day: Int) : this(week.year, week.week, day)
 
@@ -97,6 +97,17 @@ data class Day(
 
     val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
     val isFuture = TODAY.timeInMillis < start
+
+    val nextDay: Day by lazy {
+        val day = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.toDay()
+        cal.apply { add(Calendar.DAY_OF_WEEK, -1) }
+        day
+    }
+    val prevDay: Day by lazy {
+        val day = cal.apply { add(Calendar.DAY_OF_WEEK, -1) }.toDay()
+        cal.apply { add(Calendar.DAY_OF_WEEK, 1) }
+        day
+    }
 }
 
 fun Calendar.toDay(): Day {
@@ -134,11 +145,24 @@ var Calendar.dayOfWeek: Int
     set(value) = set(Calendar.DAY_OF_WEEK, value)
 
 
+internal fun Calendar.daysUntil(other: Long): Int {
+    val time = timeInMillis
+    var days = 0
+    while (timeInMillis <= other) {
+        days++
+        add(Calendar.DAY_OF_MONTH, 1)
+    }
+    timeInMillis = time
+    return days - 1
+}
+
 inline fun View.doOnNextLayout(crossinline action: (view: View) -> Unit) {
     addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
-        override fun onLayoutChange(view: View,
-                                    left: Int, top: Int, right: Int, bottom: Int,
-                                    oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
+        override fun onLayoutChange(
+            view: View,
+            left: Int, top: Int, right: Int, bottom: Int,
+            oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+        ) {
             view.removeOnLayoutChangeListener(this)
             action(view)
         }

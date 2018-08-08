@@ -14,11 +14,12 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class HoursHeaderView @JvmOverloads constructor(context: Context,
-                                                attrs: AttributeSet? = null,
-                                                @AttrRes defStyleAttr: Int = R.attr.hoursHeaderViewStyle,
-                                                _week: Week? = null)
-    : View(context, attrs, defStyleAttr) {
+class HoursHeaderView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = R.attr.hoursHeaderViewStyle,
+    _week: Week? = null
+) : View(context, attrs, defStyleAttr) {
 
     var week: Week by Delegates.observable(_week ?: Week()) { _, old, new ->
         if (old == new)
@@ -47,6 +48,11 @@ class HoursHeaderView @JvmOverloads constructor(context: Context,
         }
 
         a.recycle()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val height = paddingTop + paddingBottom + minimumHeight
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
     }
 
     override fun onDraw(canvas: Canvas?) {

@@ -8,6 +8,7 @@ import android.support.annotation.AttrRes
 import android.support.annotation.IntDef
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -18,10 +19,11 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class CalendarView @JvmOverloads constructor(context: Context,
-                                             attrs: AttributeSet? = null,
-                                             @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle)
-    : GestureOverlayView(context, attrs, defStyleAttr) {
+class CalendarView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle
+) : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -155,6 +157,7 @@ class CalendarView @JvmOverloads constructor(context: Context,
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
+                        it.onHeaderHeightChangeListener = { onHeaderHeightUpdated() }
                         it.onScrollChangeListener = { scrollPosition = it }
                         it.hourHeightMin = hourHeightMin
                         it.hourHeightMax = hourHeightMax
@@ -180,6 +183,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
             override fun onPageScrolled(indicator: Any?, positionOffset: Float, positionOffsetPixels: Int) {
+                Log.d("Pager", "$indicator, $positionOffset")
+                onHeaderHeightUpdated()
             }
 
             override fun onPageSelected(indicator: Any?) {
@@ -206,6 +211,20 @@ class CalendarView @JvmOverloads constructor(context: Context,
     }
 
 
+    private fun onHeaderHeightUpdated() {
+        val firstPosition = when (pager.position) {
+            -1 -> weekViews[currentWeek.prevWeek]
+            1 -> weekViews[currentWeek.nextWeek]
+            else -> weekViews[currentWeek]
+        }?.headerHeight ?: 0
+        val secondPosition = when (pager.position) {
+            0 -> weekViews[currentWeek.nextWeek]
+            else -> weekViews[currentWeek]
+        }?.headerHeight ?: 0
+        hoursHeader.minimumHeight = (firstPosition * (1 - pager.positionOffset)
+                + secondPosition * pager.positionOffset).toInt()
+    }
+
     private fun onRangeUpdated() {
         when (range) {
             RANGE_DAY -> TODO()
@@ -217,8 +236,10 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
     }
 
-    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
-                                onEventLongClickListener: ((Event) -> Unit)?) {
+    private fun updateListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?
+    ) {
         for (view in weekViews.values) {
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener

@@ -11,6 +11,7 @@
     </style>
 
     <style name="Calendar.WeekHeaderViewStyle">
+        <item name="android:minHeight">65dp</item>
         <item name="dateSize">32sp</item>
         <item name="dateColor">?android:attr/textColorHint</item>
         <item name="dateCurrentColor">#4285f4</item>
@@ -19,6 +20,10 @@
         <item name="weekDayColor">?android:attr/textColorHint</item>
         <item name="weekDayCurrentColor">#4285f4</item>
         <item name="weekDayFutureColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="Calendar.AllDayEventsViewStyle">
+        <item name="spacing">4dp</item>
     </style>
 
     <style name="Calendar.DayViewStyle">
@@ -39,6 +44,12 @@
         <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
         <item name="cornerRadius">2dp</item>
         <item name="titleDefault">@string/event_title_default</item>
+    </style>
+    <style name="Calendar.EventViewStyle.AllDay">
+        <item name="android:minHeight">24dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:gravity">center_vertical</item>
     </style>
 
     <style name="Calendar.HoursHeaderViewStyle">
