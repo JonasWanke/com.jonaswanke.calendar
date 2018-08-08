@@ -11,6 +11,7 @@
     </style>
 
     <style name="Calendar.WeekHeaderViewStyle">
+        <item name="android:minHeight">65dp</item>
         <item name="dateSize">32sp</item>
         <item name="dateColor">?android:attr/textColorHint</item>
         <item name="dateCurrentColor">#4285f4</item>

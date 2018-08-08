@@ -14,10 +14,11 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-class HoursView @JvmOverloads constructor(context: Context,
-                                          attrs: AttributeSet? = null,
-                                          @AttrRes defStyleAttr: Int = R.attr.hoursViewStyle)
-    : View(context, attrs, defStyleAttr) {
+class HoursView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = R.attr.hoursViewStyle
+) : View(context, attrs, defStyleAttr) {
 
     private var _hourHeight: Float
     var hourHeight: Float

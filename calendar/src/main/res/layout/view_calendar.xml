@@ -23,7 +23,7 @@
             <com.jonaswanke.calendar.HoursHeaderView
                 android:id="@+id/hoursHeader"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/calendar_headerHeight" />
+                android:layout_height="wrap_content" />
 
             <com.jonaswanke.calendar.ReportingScrollView
                 android:id="@+id/hoursScroll"

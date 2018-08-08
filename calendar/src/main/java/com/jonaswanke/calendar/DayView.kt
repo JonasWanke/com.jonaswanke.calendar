@@ -96,11 +96,6 @@ class DayView @JvmOverloads constructor(
             divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
             invalidate()
         }
-
-        setOnLongClickListener {
-            positionEvents()
-            true
-        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {

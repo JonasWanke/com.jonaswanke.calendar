@@ -54,12 +54,6 @@ class AllDayEventsView @JvmOverloads constructor(
         a.recycle()
 
         onUpdateRange(start, end)
-
-        setOnLongClickListener {
-            positionEvents()
-            requestLayout()
-            return@setOnLongClickListener true
-        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {

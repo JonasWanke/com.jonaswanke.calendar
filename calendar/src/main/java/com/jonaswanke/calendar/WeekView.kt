@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.support.annotation.AttrRes
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import java.util.*
@@ -28,6 +29,7 @@ class WeekView @JvmOverloads constructor(
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new)
             }
+    var onHeaderHeightChangeListener: ((Int) -> Unit)? = null
     var onScrollChangeListener: ((Int) -> Unit)?
         get() = scrollView.onScrollChangeListener
         set(value) {
@@ -55,6 +57,8 @@ class WeekView @JvmOverloads constructor(
 
     private var cal: Calendar
 
+    var headerHeight: Int = 0
+        private set
     var hourHeight: Float
         get() = dayViews[0].hourHeight
         set(value) {
@@ -82,11 +86,20 @@ class WeekView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
-        showDividers = SHOW_DIVIDER_MIDDLE
 
         cal = week.toCalendar()
 
         headerView = WeekHeaderView(context, _week = week)
+        addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
+        val range = range
+        allDayEventsView = AllDayEventsView(context, _start = range.first, _end = range.second)
+        addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
+        val dividerView = View(context).apply {
+            setBackgroundResource(android.R.drawable.divider_horizontal_bright)
+        }
+        addView(dividerView, LayoutParams(LayoutParams.MATCH_PARENT, dividerView.background.intrinsicHeight))
 
         dayViews = (0 until 7).map {
             DayView(context, _day = Day(week, mapBackDay(it))).also {
@@ -94,14 +107,6 @@ class WeekView @JvmOverloads constructor(
                 it.onEventLongClickListener = onEventLongClickListener
             }
         }
-
-        val headerHeight = context.resources.getDimensionPixelOffset(R.dimen.calendar_headerHeight)
-        addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, headerHeight))
-
-        val range = range
-        allDayEventsView = AllDayEventsView(context, _start = range.first, _end = range.second)
-        addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
-
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
             for (day in dayViews)
@@ -112,6 +117,16 @@ class WeekView @JvmOverloads constructor(
             addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         }
         addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+
+        val headerHeightNew = headerView.measuredHeight + allDayEventsView.measuredHeight
+        if (headerHeight != headerHeightNew) {
+            headerHeight = headerHeightNew
+            onHeaderHeightChangeListener?.invoke(headerHeight)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
