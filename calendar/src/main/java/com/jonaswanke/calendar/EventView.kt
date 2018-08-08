@@ -12,7 +12,6 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.util.AttributeSet
-import android.view.Gravity
 import android.widget.TextView
 import kotlin.properties.Delegates
 
@@ -25,7 +24,7 @@ class EventView @JvmOverloads constructor(
     @AttrRes defStyleAttr: Int = R.attr.eventViewStyle,
     @StyleRes defStyleRes: Int = R.style.Calendar_EventViewStyle,
     _event: Event? = null
-) : TextView(ContextThemeWrapper(context, R.style.Calendar_EventViewStyle), attrs, defStyleAttr) {
+) : TextView(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
     var event by Delegates.observable<Event?>(_event) { _, old, new ->
         if (old == new)
@@ -52,8 +51,6 @@ class EventView @JvmOverloads constructor(
     private val backgroundColorDefault: Int
 
     init {
-        gravity = Gravity.START or Gravity.TOP
-
         backgroundDrawable = ResourcesCompat.getDrawable(context.resources,
                 R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
         backgroundColorDefault = 0xFF039BE5.toInt()
