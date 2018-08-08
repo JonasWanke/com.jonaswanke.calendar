@@ -175,6 +175,8 @@ class WeekView @JvmOverloads constructor(
         onEventClickListener: ((Event) -> Unit)?,
         onEventLongClickListener: ((Event) -> Unit)?
     ) {
+        allDayEventsView.onEventClickListener = onEventClickListener
+        allDayEventsView.onEventLongClickListener = onEventLongClickListener
         for (day in dayViews) {
             day.onEventClickListener = onEventClickListener
             day.onEventLongClickListener = onEventLongClickListener
