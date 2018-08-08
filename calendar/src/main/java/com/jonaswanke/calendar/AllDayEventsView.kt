@@ -15,7 +15,7 @@ import kotlin.properties.Delegates
  */
 class AllDayEventsView @JvmOverloads constructor(
     context: Context,
-    private val attrs: AttributeSet? = null,
+    attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.allDayEventsViewStyle,
     _start: Day? = null,
     _end: Day? = null
@@ -37,8 +37,7 @@ class AllDayEventsView @JvmOverloads constructor(
     private var days: Int = 0
 
     private var events: List<Event> = emptyList()
-    private val eventRows: MutableMap<Event, Int> = mutableMapOf()
-    private val eventTimes: MutableMap<Event, Pair<Int, Int>> = mutableMapOf()
+    private val eventData: MutableMap<Event, EventData> = mutableMapOf()
     private var rows: Int = 0
 
     private val spacing: Float
@@ -55,6 +54,12 @@ class AllDayEventsView @JvmOverloads constructor(
         a.recycle()
 
         onUpdateRange(start, end)
+
+        setOnLongClickListener {
+            positionEvents()
+            requestLayout()
+            return@setOnLongClickListener true
+        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -64,39 +69,30 @@ class AllDayEventsView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val view = if (childCount > 0)
-            (getChildAt(0) as EventView)
-        else
-            EventView(context,
-                    defStyleAttr = R.attr.eventViewAllDayStyle,
-                    defStyleRes = R.style.Calendar_AllDayEventsViewStyle)
-        val rowsHeight = (rows * (view.minHeight + spacing)).toInt()
+        val rowsHeight = (rows * (((getChildAt(0) as? EventView)?.minHeight ?: 0) + spacing)).toInt()
         val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, rowsHeight)
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val left = paddingLeft + spacing
+        val left = paddingLeft
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
         val height = bottom - top
         val width = right - left
 
-        fun getX(index: Int) = top + height * index / rows
+        fun getX(index: Int) = left + width * index / days
         fun getY(index: Int) = top + height * index / rows
 
         for (viewIndex in 0 until childCount) {
             val view = getChildAt(viewIndex) as EventView
             val event = view.event ?: continue
-            val parallel = eventRows[event]!!
-            val times = eventTimes[event]!!
+            val data = eventData[event] ?: continue
 
-            val eventWidth = width / parallel.first
-            val eventLeft = left + eventWidth * parallel.second + space
-
-            view.layout(eventLeft, getY(parallel), eventLeft + eventWidth - space, getY(parallel + 1))
+            view.layout((getX(data.start) + spacing).toInt(), getY(data.index),
+                    getX(data.end + 1), (getY(data.index + 1) - spacing).toInt())
         }
     }
 
@@ -110,7 +106,13 @@ class AllDayEventsView @JvmOverloads constructor(
 
     fun setEvents(events: List<Event>) {
         checkEvents(events)
-        this.events = events.sortedBy { it.start }
+        eventData.clear()
+        for (event in events) {
+            val start = calStart.daysUntil(event.start).coerceAtLeast(0)
+            val end = calStart.daysUntil(event.end).coerceIn(start, 6)
+            eventData[event] = EventData(start, end)
+        }
+        this.events = events.sortedWith(compareBy({ eventData[it]?.start }, { eventData[it]?.length }))
 
         launch(UI) {
             @Suppress("NAME_SHADOWING")
@@ -124,7 +126,10 @@ class AllDayEventsView @JvmOverloads constructor(
                 if (existing > i)
                     (getChildAt(i) as EventView).event = event
                 else
-                    addView(EventView(this@AllDayEventsView.context, defStyleAttr = R.attr.eventViewAllDayStyle).also {
+                    addView(EventView(
+                            this@AllDayEventsView.context,
+                            defStyleAttr = R.attr.eventViewAllDayStyle,
+                            defStyleRes = R.style.Calendar_EventViewStyle_AllDay).also {
                         it.event = event
                     })
             }
@@ -136,45 +141,43 @@ class AllDayEventsView @JvmOverloads constructor(
     }
 
     private fun positionEvents() {
-        eventRows.clear()
-        eventTimes.clear()
-        for (event in events)
-            eventTimes[event] = calStart.daysUntil(event.start) to calStart.daysUntil(event.end)
-
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0
         fun endGroup() {
             when (currentGroup.size) {
                 0 -> return
-                1 -> eventRows[currentGroup[0]] = 0
+                1 -> eventData[currentGroup[0]]?.index = 0
                 else -> {
                     val ends = mutableListOf<Int>()
                     for (event in currentGroup) {
-                        val min = ends.filter { it < event.start }.min()
+                        val data = eventData[event] ?: continue
+                        val min = ends.filter { it < data.start }.min()
                         val index = ends.indexOf(min)
 
                         if (index < 0) {
-                            eventRows[event] = ends.size
-                            ends.add(eventTimes[event]!!.second)
+                            data.index = ends.size
+                            ends.add(data.end)
                         } else {
-                            eventRows[event] = index
-                            ends[index] = eventTimes[event]!!.second
+                            data.index = index
+                            ends[index] = data.end
                         }
                     }
                 }
             }
         }
-        for (event in events)
-            if (eventTimes[event]!!.first <= currentEnd) {
+        for (event in events) {
+            val data = eventData[event] ?: continue
+            if (data.start <= currentEnd) {
                 currentGroup.add(event)
-                currentEnd = Math.max(currentEnd, eventTimes[event]!!.second)
+                currentEnd = Math.max(currentEnd, data.end)
             } else {
                 endGroup()
                 currentGroup = mutableListOf(event)
-                currentEnd = eventTimes[event]!!.second
+                currentEnd = data.end
             }
+        }
         endGroup()
-        rows = (eventRows.maxBy { it.value }?.value ?: -1) + 1
+        rows = (eventData.maxBy { it.value.index }?.value?.index ?: -1) + 1
     }
 
     private fun checkEvents(events: List<Event>) {
@@ -214,6 +217,15 @@ class AllDayEventsView @JvmOverloads constructor(
     private fun onUpdateRange(start: Day, end: Day) {
         calStart = start.start.asCalendar()
         calEnd = end.start.asCalendar()
+        days = calStart.daysUntil(end.start)
         requestLayout()
+    }
+
+    private data class EventData(
+        val start: Int,
+        val end: Int,
+        var index: Int = 0
+    ) {
+        val length = end - start
     }
 }

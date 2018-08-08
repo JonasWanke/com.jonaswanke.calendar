@@ -20,4 +20,8 @@ open class BaseEvent(
     override val start: Long,
     override val end: Long,
     override val allDay: Boolean = false
-) : Event
+) : Event {
+    override fun toString(): String {
+        return "$title ($description), $start-$end, allDay: $allDay"
+    }
+}

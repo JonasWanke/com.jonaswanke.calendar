@@ -148,12 +148,12 @@ var Calendar.dayOfWeek: Int
 internal fun Calendar.daysUntil(other: Long): Int {
     val time = timeInMillis
     var days = 0
-    while (timeInMillis < event) {
+    while (timeInMillis <= other) {
         days++
         add(Calendar.DAY_OF_MONTH, 1)
     }
     timeInMillis = time
-    return days
+    return days - 1
 }
 
 inline fun View.doOnNextLayout(crossinline action: (view: View) -> Unit) {

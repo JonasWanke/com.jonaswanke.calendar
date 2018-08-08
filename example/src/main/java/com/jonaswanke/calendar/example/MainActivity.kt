@@ -76,6 +76,17 @@ class MainActivity : AppCompatActivity() {
                     start,
                     start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
         }
+        for (i in 0..7) {
+            val id = nextId++.toString()
+            val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
+            events.add(BaseEvent(
+                    id,
+                    id,
+                    random.nextInt(),
+                    start,
+                    start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS * 7),
+                    true))
+        }
         calendar.setEventsForWeek(week, events)
     }
 
