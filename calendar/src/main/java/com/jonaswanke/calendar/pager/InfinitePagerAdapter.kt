@@ -1,10 +1,11 @@
-package com.jonaswanke.calendar
+package com.jonaswanke.calendar.pager
 
 import androidx.viewpager.widget.PagerAdapter
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.jonaswanke.calendar.BuildConfig
 
 
 abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: Int = 1) : PagerAdapter() {

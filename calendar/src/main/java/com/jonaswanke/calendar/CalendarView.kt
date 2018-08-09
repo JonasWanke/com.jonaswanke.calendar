@@ -15,6 +15,8 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.doOnLayout
+import com.jonaswanke.calendar.pager.InfinitePagerAdapter
+import com.jonaswanke.calendar.pager.InfiniteViewPager
 import kotlinx.android.synthetic.main.view_calendar.view.*
 import kotlin.properties.Delegates
 
