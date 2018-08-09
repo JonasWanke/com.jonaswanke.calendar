@@ -1,4 +1,4 @@
-package com.jonaswanke.calendar
+package com.jonaswanke.calendar.pager
 
 
 import android.view.View

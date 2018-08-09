@@ -1,13 +1,14 @@
-package com.jonaswanke.calendar
+package com.jonaswanke.calendar.pager
 
 import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
-import android.support.v4.view.PagerAdapter
-import android.support.v4.view.ViewPager
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import com.jonaswanke.calendar.BuildConfig
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 

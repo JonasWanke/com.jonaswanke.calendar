@@ -2,8 +2,8 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import android.support.annotation.AttrRes
-import android.support.v4.content.ContextCompat
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -136,8 +136,8 @@ class WeekView @JvmOverloads constructor(
 
         val left = paddingLeft
         val top = paddingTop
-        val right = canvas.width - paddingRight
-        val bottom = canvas.height - paddingBottom
+        val right = width - paddingRight
+        val bottom = height - paddingBottom
 
         val dayWidth = (right.toFloat() - left) / 7
         dividerDrawable?.also { divider ->

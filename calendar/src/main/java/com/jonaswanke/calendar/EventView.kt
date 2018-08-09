@@ -3,16 +3,17 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import android.support.annotation.AttrRes
-import android.support.annotation.StyleRes
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v4.graphics.drawable.DrawableCompat
-import android.support.v7.view.ContextThemeWrapper
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.appcompat.view.ContextThemeWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.widget.TextView
+import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
 /**
@@ -33,10 +34,11 @@ class EventView @JvmOverloads constructor(
         onEventChanged(new)
     }
     private val titleDefault by lazy {
-        val a = context.obtainStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes)
-        val default = a.getString(R.styleable.EventView_titleDefault)
-        a.recycle()
-        default
+        lateinit var default: String
+        context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes) {
+            default = getString(R.styleable.EventView_titleDefault)
+        }
+        return@lazy default
     }
     private val title: String?
         get() {
@@ -47,17 +49,14 @@ class EventView @JvmOverloads constructor(
                 title
         }
 
-    private val backgroundDrawable: Drawable?
-    private val backgroundColorDefault: Int
+    private val backgroundDrawable: Drawable? = ResourcesCompat.getDrawable(context.resources,
+            R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
+    private val backgroundColorDefault: Int = 0xFF039BE5.toInt()
 
     init {
-        backgroundDrawable = ResourcesCompat.getDrawable(context.resources,
-                R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
-        backgroundColorDefault = 0xFF039BE5.toInt()
-
-        val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
-        foreground = a.getDrawable(0)
-        a.recycle()
+        context.withStyledAttributes(attrs = intArrayOf(android.R.attr.selectableItemBackground)) {
+            foreground = getDrawable(0)
+        }
 
         onEventChanged(null)
     }

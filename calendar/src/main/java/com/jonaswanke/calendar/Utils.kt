@@ -1,6 +1,6 @@
 package com.jonaswanke.calendar
 
-import android.support.v4.view.ViewCompat
+import androidx.core.view.ViewCompat
 import android.text.format.DateUtils
 import android.view.View
 import java.util.*
@@ -154,26 +154,4 @@ internal fun Calendar.daysUntil(other: Long): Int {
     }
     timeInMillis = time
     return days - 1
-}
-
-inline fun View.doOnNextLayout(crossinline action: (view: View) -> Unit) {
-    addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
-        override fun onLayoutChange(
-            view: View,
-            left: Int, top: Int, right: Int, bottom: Int,
-            oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
-        ) {
-            view.removeOnLayoutChangeListener(this)
-            action(view)
-        }
-    })
-}
-
-inline fun View.doOnLayout(crossinline action: (view: View) -> Unit) {
-    if (ViewCompat.isLaidOut(this) && !isLayoutRequested)
-        action(this)
-    else
-        doOnNextLayout {
-            action(it)
-        }
 }
