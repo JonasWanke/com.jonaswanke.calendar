@@ -11,6 +11,9 @@ import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.withStyledAttributes
+import androidx.core.view.children
+import androidx.core.view.get
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -42,7 +45,7 @@ class DayView @JvmOverloads constructor(
     private val eventsParallel: MutableMap<Event, Pair<Int, Int>> = mutableMapOf()
 
 
-    private var _hourHeight: Float
+    private var _hourHeight: Float = 0f
     var hourHeight: Float
         get() = _hourHeight
         set(value) {
@@ -79,16 +82,13 @@ class DayView @JvmOverloads constructor(
     init {
         setWillNotDraw(false)
 
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
+        context.withStyledAttributes(attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle) {
+            _hourHeight = getDimension(R.styleable.DayView_hourHeight, 16f)
+            hourHeightMin = getDimension(R.styleable.DayView_hourHeightMin, 0f)
+            hourHeightMax = getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
-        _hourHeight = a.getDimension(R.styleable.DayView_hourHeight, 16f)
-        hourHeightMin = a.getDimension(R.styleable.DayView_hourHeightMin, 0f)
-        hourHeightMax = a.getDimension(R.styleable.DayView_hourHeightMax, 0f)
-
-        timeCircleRadius = a.getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
-
-        a.recycle()
+            timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+        }
 
         onUpdateDay(day)
         cal = day.start.asCalendar()
@@ -123,17 +123,17 @@ class DayView @JvmOverloads constructor(
             return (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
         }
 
-        for (viewIndex in 0 until childCount) {
-            val view = getChildAt(viewIndex) as EventView
-            val event = view.event ?: continue
+        for (view in children) {
+            val eventView = view as EventView
+            val event = eventView.event ?: continue
             val parallel = eventsParallel[event]!!
 
             val eventTop = top + getPosForTime(event.start)
-            val eventBottom = max(top + getPosForTime(event.end), eventTop + view.minHeight)
+            val eventBottom = max(top + getPosForTime(event.end), eventTop + eventView.minHeight)
             val eventWidth = width / parallel.first
             val eventLeft = left + eventWidth * parallel.second + space
 
-            view.layout(eventLeft, eventTop, eventLeft + eventWidth - space, eventBottom)
+            eventView.layout(eventLeft, eventTop, eventLeft + eventWidth - space, eventBottom)
         }
     }
 
@@ -144,8 +144,8 @@ class DayView @JvmOverloads constructor(
 
         val left = paddingLeft
         val top = paddingTop
-        val right = canvas.width - paddingRight
-        val bottom = canvas.height - paddingBottom
+        val right = width - paddingRight
+        val bottom = height - paddingBottom
 
         if (day.isToday) {
             val time = Calendar.getInstance().timeOfDay
@@ -184,7 +184,7 @@ class DayView @JvmOverloads constructor(
                 val event = events[i]
 
                 if (existing > i)
-                    (getChildAt(i) as EventView).event = event
+                    (this@DayView[i] as EventView).event = event
                 else
                     addView(EventView(this@DayView.context).also {
                         it.event = event
@@ -199,7 +199,7 @@ class DayView @JvmOverloads constructor(
 
     private fun positionEvents() {
         eventsParallel.clear()
-        val view = if (childCount > 0) (getChildAt(0) as EventView) else EventView(context)
+        val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
 
         fun endOf(event: Event) = Math.max(event.end, event.start + minLength)
@@ -253,46 +253,43 @@ class DayView @JvmOverloads constructor(
         onEventClickListener: ((Event) -> Unit)?,
         onEventLongClickListener: ((Event) -> Unit)?
     ) {
-        for (i in 0 until childCount) {
-            val view = getChildAt(i) as EventView
-            val event = view.event
+        for (view in children) {
+            val eventView = view as EventView
+            val event = eventView.event
             if (event == null) {
-                view.setOnClickListener(null)
-                view.setOnLongClickListener(null)
+                eventView.setOnClickListener(null)
+                eventView.setOnLongClickListener(null)
                 continue
             }
 
             onEventClickListener?.let { listener ->
-                view.setOnClickListener {
+                eventView.setOnClickListener {
                     listener(event)
                 }
-            } ?: view.setOnClickListener(null)
+            } ?: eventView.setOnClickListener(null)
             onEventLongClickListener?.let { listener ->
-                view.setOnLongClickListener {
+                eventView.setOnLongClickListener {
                     listener(event)
                     true
                 }
-            } ?: view.setOnLongClickListener(null)
+            } ?: eventView.setOnLongClickListener(null)
         }
     }
 
     private fun onUpdateDay(day: Day) {
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle)
+        context.withStyledAttributes(attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle) {
+            background = if (day.isToday)
+                getDrawable(R.styleable.DayView_dateCurrentBackground)
+            else
+                null
 
-        background = if (day.isToday)
-            a.getDrawable(R.styleable.DayView_dateCurrentBackground)
-        else
-            null
-
-        if (day.isToday && timePaint == null) {
-            timeLineSize = a.getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
-            val timeColor = a.getColor(R.styleable.DayView_timeColor, Color.BLACK)
-            timePaint = Paint().apply {
-                color = timeColor
+            if (day.isToday && timePaint == null) {
+                timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
+                val timeColor = getColor(R.styleable.DayView_timeColor, Color.BLACK)
+                timePaint = Paint().apply {
+                    color = timeColor
+                }
             }
         }
-
-        a.recycle()
     }
 }

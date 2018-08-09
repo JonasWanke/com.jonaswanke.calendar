@@ -8,7 +8,6 @@ import android.widget.FrameLayout
 
 
 abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: Int = 1) : PagerAdapter() {
-
     companion object {
         private val TAG: String = InfinitePagerAdapter::class.java.simpleName
     }

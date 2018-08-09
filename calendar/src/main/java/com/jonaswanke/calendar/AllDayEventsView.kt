@@ -5,6 +5,9 @@ import androidx.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.withStyledAttributes
+import androidx.core.view.children
+import androidx.core.view.get
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -40,18 +43,15 @@ class AllDayEventsView @JvmOverloads constructor(
     private val eventData: MutableMap<Event, EventData> = mutableMapOf()
     private var rows: Int = 0
 
-    private val spacing: Float
+    private var spacing: Float = 0f
 
     private lateinit var calStart: Calendar
     private lateinit var calEnd: Calendar
 
     init {
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle)
-
-        spacing = a.getDimension(R.styleable.AllDayEventsView_spacing, 0f)
-
-        a.recycle()
+        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
+            spacing = getDimension(R.styleable.AllDayEventsView_spacing, 0f)
+        }
 
         onUpdateRange(start, end)
     }
@@ -80,12 +80,12 @@ class AllDayEventsView @JvmOverloads constructor(
         fun getX(index: Int) = left + width * index / days
         fun getY(index: Int) = top + height * index / rows
 
-        for (viewIndex in 0 until childCount) {
-            val view = getChildAt(viewIndex) as EventView
-            val event = view.event ?: continue
+        for (view in children) {
+            val eventView = view as EventView
+            val event = eventView.event ?: continue
             val data = eventData[event] ?: continue
 
-            view.layout((getX(data.start) + spacing).toInt(), getY(data.index),
+            eventView.layout((getX(data.start) + spacing).toInt(), getY(data.index),
                     getX(data.end + 1), (getY(data.index + 1) - spacing).toInt())
         }
     }
@@ -118,7 +118,7 @@ class AllDayEventsView @JvmOverloads constructor(
                 val event = events[i]
 
                 if (existing > i)
-                    (getChildAt(i) as EventView).event = event
+                    (this@AllDayEventsView[i] as EventView).event = event
                 else
                     addView(EventView(
                             this@AllDayEventsView.context,
@@ -185,26 +185,26 @@ class AllDayEventsView @JvmOverloads constructor(
         onEventClickListener: ((Event) -> Unit)?,
         onEventLongClickListener: ((Event) -> Unit)?
     ) {
-        for (i in 0 until childCount) {
-            val view = getChildAt(i) as EventView
-            val event = view.event
+        for (view in children) {
+            val eventView = view as EventView
+            val event = eventView.event
             if (event == null) {
-                view.setOnClickListener(null)
-                view.setOnLongClickListener(null)
+                eventView.setOnClickListener(null)
+                eventView.setOnLongClickListener(null)
                 continue
             }
 
             onEventClickListener?.let { listener ->
-                view.setOnClickListener {
+                eventView.setOnClickListener {
                     listener(event)
                 }
-            } ?: view.setOnClickListener(null)
+            } ?: eventView.setOnClickListener(null)
             onEventLongClickListener?.let { listener ->
-                view.setOnLongClickListener {
+                eventView.setOnLongClickListener {
                     listener(event)
                     true
                 }
-            } ?: view.setOnLongClickListener(null)
+            } ?: eventView.setOnLongClickListener(null)
         }
     }
 

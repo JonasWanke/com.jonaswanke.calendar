@@ -8,6 +8,7 @@ import androidx.annotation.AttrRes
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
 
@@ -28,26 +29,23 @@ class HoursHeaderView @JvmOverloads constructor(
         invalidate()
     }
 
-    private val weekOffsetTop: Int
-    private val weekSize: Int
-    private val weekColor: Int
-    private val weekPaint: TextPaint
+    private var weekOffsetTop: Int = 0
+    private var weekSize: Int = 0
+    private var weekColor: Int = 0
+    private lateinit var weekPaint: TextPaint
 
     init {
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.HoursHeaderView, defStyleAttr, R.style.Calendar_HoursHeaderViewStyle)
-
-        weekOffsetTop = a.getDimensionPixelSize(R.styleable.HoursHeaderView_weekOffsetTop, 48)
-        weekSize = a.getDimensionPixelSize(R.styleable.HoursHeaderView_weekSize, 16)
-        weekColor = a.getColor(R.styleable.HoursHeaderView_weekColor, Color.BLACK)
-        weekPaint = TextPaint().apply {
-            typeface = Typeface.DEFAULT_BOLD
-            color = weekColor
-            isAntiAlias = true
-            textSize = weekSize.toFloat()
+        context.withStyledAttributes(attrs, R.styleable.HoursHeaderView, defStyleAttr, R.style.Calendar_HoursHeaderViewStyle) {
+            weekOffsetTop = getDimensionPixelSize(R.styleable.HoursHeaderView_weekOffsetTop, 48)
+            weekSize = getDimensionPixelSize(R.styleable.HoursHeaderView_weekSize, 16)
+            weekColor = getColor(R.styleable.HoursHeaderView_weekColor, Color.BLACK)
+            weekPaint = TextPaint().apply {
+                typeface = Typeface.DEFAULT_BOLD
+                color = weekColor
+                isAntiAlias = true
+                textSize = weekSize.toFloat()
+            }
         }
-
-        a.recycle()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -62,8 +60,8 @@ class HoursHeaderView @JvmOverloads constructor(
 
         val left = paddingLeft
         val top = paddingTop
-        val right = canvas.width - paddingRight
-        val bottom = canvas.height - paddingBottom
+        val right = width - paddingRight
+        val bottom = height - paddingBottom
 
         val weekText = week.week.toString()
         val weekWidth = weekPaint.measureText(weekText)

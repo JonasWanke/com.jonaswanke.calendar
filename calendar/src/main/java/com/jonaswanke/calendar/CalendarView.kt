@@ -13,6 +13,8 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import androidx.core.content.withStyledAttributes
+import androidx.core.view.doOnLayout
 import kotlinx.android.synthetic.main.view_calendar.view.*
 import kotlin.properties.Delegates
 
@@ -115,15 +117,12 @@ class CalendarView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_calendar, this)
 
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
-
-        range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
-        hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
-        hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
-        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
-
-        a.recycle()
+        context.withStyledAttributes(attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle) {
+            range = getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+            hourHeightMin = getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
+            hourHeightMax = getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
+            hourHeight = getDimension(R.styleable.CalendarView_hourHeight, 100f)
+        }
 
         isGestureVisible = false
         gestureStrokeLengthThreshold = 10f

@@ -136,8 +136,8 @@ class WeekView @JvmOverloads constructor(
 
         val left = paddingLeft
         val top = paddingTop
-        val right = canvas.width - paddingRight
-        val bottom = canvas.height - paddingBottom
+        val right = width - paddingRight
+        val bottom = height - paddingBottom
 
         val dayWidth = (right.toFloat() - left) / 7
         dividerDrawable?.also { divider ->
