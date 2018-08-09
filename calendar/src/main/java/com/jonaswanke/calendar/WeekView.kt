@@ -23,11 +23,15 @@ class WeekView @JvmOverloads constructor(
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
+                updateListeners(new, onEventLongClickListener, onAddEventListener)
             }
     var onEventLongClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
+                updateListeners(onEventClickListener, new, onAddEventListener)
+            }
+    var onAddEventListener: ((AddEvent) -> Unit)?
+            by Delegates.observable<((AddEvent) -> Unit)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, onEventLongClickListener, new)
             }
     var onHeaderHeightChangeListener: ((Int) -> Unit)? = null
     var onScrollChangeListener: ((Int) -> Unit)?
@@ -188,13 +192,15 @@ class WeekView @JvmOverloads constructor(
 
     private fun updateListeners(
         onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Unit)?
     ) {
         allDayEventsView.onEventClickListener = onEventClickListener
         allDayEventsView.onEventLongClickListener = onEventLongClickListener
         for (day in dayViews) {
             day.onEventClickListener = onEventClickListener
             day.onEventLongClickListener = onEventLongClickListener
+            day.onAddEventListener = onAddEventListener
         }
     }
 

@@ -9,6 +9,8 @@ import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.withStyledAttributes
@@ -38,11 +40,13 @@ class DayView @JvmOverloads constructor(
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new)
             }
+    var onAddEventListener: ((AddEvent) -> Unit)? = null
 
     var day: Day = _day ?: Day()
         private set
     private var events: List<Event> = emptyList()
-    private val eventsParallel: MutableMap<Event, Pair<Int, Int>> = mutableMapOf()
+    private val eventData: MutableMap<Event, EventData> = mutableMapOf()
+    private var addEventView: EventView? = null
 
 
     private var _hourHeight: Float = 0f
@@ -96,11 +100,37 @@ class DayView @JvmOverloads constructor(
             divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
             invalidate()
         }
+
+        setOnTouchListener { _, motionEvent ->
+            if (motionEvent.action == MotionEvent.ACTION_UP) {
+                fun hourToTime(hour: Int) = day.start + hour * DateUtils.HOUR_IN_MILLIS
+
+                val hour = (motionEvent.y / hourHeight).toInt()
+                val event = AddEvent(hourToTime(hour), hourToTime(hour + 1))
+                eventData[event] = EventData()
+
+                val view = addEventView
+                if (view == null) {
+                    addView(EventView(context,
+                            defStyleAttr = R.attr.eventViewAddStyle,
+                            defStyleRes = R.style.Calendar_EventViewStyle_Add,
+                            _event = event))
+                } else {
+                    view.event = event
+                    requestLayout()
+                }
+            }
+            return@setOnTouchListener motionEvent.action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)
+        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of DayView")
+        if (child.event is AddEvent)
+            if (addEventView != null)
+                throw  IllegalStateException("DayView may only contain one add-EventView")
+            else addEventView = child
         super.addView(child, index, params)
     }
 
@@ -126,12 +156,12 @@ class DayView @JvmOverloads constructor(
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event ?: continue
-            val parallel = eventsParallel[event]!!
 
+            val data = eventData[event] ?: continue
             val eventTop = top + getPosForTime(event.start)
             val eventBottom = max(top + getPosForTime(event.end), eventTop + eventView.minHeight)
-            val eventWidth = width / parallel.first
-            val eventLeft = left + eventWidth * parallel.second + space
+            val eventWidth = width / data.parallel
+            val eventLeft = left + eventWidth * data.index + space
 
             eventView.layout(eventLeft, eventTop, eventLeft + eventWidth - space, eventBottom)
         }
@@ -179,6 +209,9 @@ class DayView @JvmOverloads constructor(
             val events = this@DayView.events
             positionEvents()
 
+            if (addEventView != null)
+                removeView(addEventView)
+
             val existing = childCount
             for (i in 0 until events.size) {
                 val event = events[i]
@@ -192,13 +225,16 @@ class DayView @JvmOverloads constructor(
             }
             if (events.size < existing)
                 removeViews(events.size, existing - events.size)
+            if (addEventView != null)
+                addView(addEventView)
+
             updateListeners(onEventClickListener, onEventLongClickListener)
             requestLayout()
         }
     }
 
     private fun positionEvents() {
-        eventsParallel.clear()
+        eventData.clear()
         val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
 
@@ -209,7 +245,7 @@ class DayView @JvmOverloads constructor(
         fun endGroup() {
             when (currentGroup.size) {
                 0 -> return
-                1 -> eventsParallel[currentGroup[0]] = 1 to 0
+                1 -> eventData[currentGroup[0]] = EventData()
                 else -> {
                     val ends = mutableListOf<Long>()
                     for (event in currentGroup) {
@@ -217,20 +253,22 @@ class DayView @JvmOverloads constructor(
                         val index = ends.indexOf(min)
 
                         if (index < 0) {
-                            eventsParallel[event] = 1 to ends.size
+                            eventData[event] = EventData(index = ends.size)
                             ends.add(endOf(event))
                         } else {
-                            eventsParallel[event] = 1 to index
+                            eventData[event] = EventData(index = index)
                             ends[index] = endOf(event)
                         }
                     }
                     for (e in currentGroup)
-                        eventsParallel[e] = eventsParallel[e]!!.copy(first = ends.size)
+                        eventData[e]?.parallel = ends.size
                 }
             }
         }
         for (event in events)
-            if (event.start <= currentEnd) {
+            if (event is AddEvent) {
+                eventData[event] = EventData()
+            } else if (event.start <= currentEnd) {
                 currentGroup.add(event)
                 currentEnd = Math.max(currentEnd, endOf(event))
             } else {
@@ -245,6 +283,8 @@ class DayView @JvmOverloads constructor(
     private fun checkEvents(events: List<Event>) {
         if (events.any { event -> event.allDay })
             throw IllegalArgumentException("all-day events cannot be shown inside DayView")
+        if (events.any { event -> event is AddEvent })
+            throw IllegalArgumentException("add events currently cannot be set from the outside")
         if (events.any { event -> event.start < day.start || event.start >= day.end })
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
@@ -292,4 +332,9 @@ class DayView @JvmOverloads constructor(
             }
         }
     }
+
+    private data class EventData(
+        var parallel: Int = 1,
+        val index: Int = 0
+    )
 }

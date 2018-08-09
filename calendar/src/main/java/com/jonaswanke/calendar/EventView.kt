@@ -58,7 +58,7 @@ class EventView @JvmOverloads constructor(
             foreground = getDrawable(0)
         }
 
-        onEventChanged(null)
+        onEventChanged(event)
     }
 
     private fun onEventChanged(event: Event?) {
@@ -71,7 +71,8 @@ class EventView @JvmOverloads constructor(
         val builder = SpannableStringBuilder(title)
         val titleEnd = builder.length
         builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-        builder.append("\n").append(event.description)
+        if (event.description != null)
+            builder.append("\n").append(event.description)
         text = builder
 
         backgroundDrawable?.also {

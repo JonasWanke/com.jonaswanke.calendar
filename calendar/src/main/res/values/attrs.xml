@@ -11,6 +11,7 @@
         <attr name="allDayEventsViewStyle" format="reference" />
         <attr name="dayViewStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
+        <attr name="eventViewAddStyle" format="reference" />
         <attr name="eventViewAllDayStyle" format="reference" />
         <attr name="hoursHeaderViewStyle" format="reference" />
         <attr name="hoursViewStyle" format="reference" />
