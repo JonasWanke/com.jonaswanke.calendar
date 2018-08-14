@@ -34,7 +34,7 @@ class EventView @JvmOverloads constructor(
         onEventChanged(new)
     }
     private val titleDefault by lazy {
-        lateinit var default: String
+        var default: String? = null
         context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes) {
             default = getString(R.styleable.EventView_titleDefault)
         }
@@ -58,7 +58,7 @@ class EventView @JvmOverloads constructor(
             foreground = getDrawable(0)
         }
 
-        onEventChanged(null)
+        onEventChanged(event)
     }
 
     private fun onEventChanged(event: Event?) {
@@ -68,11 +68,14 @@ class EventView @JvmOverloads constructor(
             return
         }
 
-        val builder = SpannableStringBuilder(title)
-        val titleEnd = builder.length
-        builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-        builder.append("\n").append(event.description)
-        text = builder
+        if (text.isNullOrBlank()) {
+            val builder = SpannableStringBuilder(title)
+            val titleEnd = builder.length
+            builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+            if (event.description != null)
+                builder.append("\n").append(event.description)
+            text = builder
+        }
 
         backgroundDrawable?.also {
             DrawableCompat.setTint(it, event.color ?: backgroundColorDefault)

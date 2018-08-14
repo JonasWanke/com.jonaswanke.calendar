@@ -23,11 +23,16 @@ class WeekView @JvmOverloads constructor(
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
+                updateListeners(new, onEventLongClickListener, onAddEventListener)
             }
     var onEventLongClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
+                updateListeners(onEventClickListener, new, onAddEventListener)
+            }
+    internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
+    var onAddEventListener: ((AddEvent) -> Boolean)?
+            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, onEventLongClickListener, new)
             }
     var onHeaderHeightChangeListener: ((Int) -> Unit)? = null
     var onScrollChangeListener: ((Int) -> Unit)?
@@ -107,6 +112,14 @@ class WeekView @JvmOverloads constructor(
                 it.onEventLongClickListener = onEventLongClickListener
             }
         }
+        dayViews.forEach {
+            it.onAddEventViewListener = { event ->
+                for (view in dayViews)
+                    if (view != it)
+                        view.removeAddEvent()
+                onAddEventViewListener?.invoke(event)
+            }
+        }
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
             for (day in dayViews)
@@ -154,6 +167,7 @@ class WeekView @JvmOverloads constructor(
         this.week = week
         cal = week.toCalendar()
 
+        removeAddEvent()
         checkEvents(events)
         headerView.week = week
 
@@ -168,6 +182,11 @@ class WeekView @JvmOverloads constructor(
 
     fun scrollTo(pos: Int) {
         scrollView.scrollY = pos
+    }
+
+    fun removeAddEvent() {
+        for (view in dayViews)
+            view.removeAddEvent()
     }
 
 
@@ -188,13 +207,15 @@ class WeekView @JvmOverloads constructor(
 
     private fun updateListeners(
         onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Boolean)?
     ) {
         allDayEventsView.onEventClickListener = onEventClickListener
         allDayEventsView.onEventLongClickListener = onEventLongClickListener
-        for (day in dayViews) {
-            day.onEventClickListener = onEventClickListener
-            day.onEventLongClickListener = onEventLongClickListener
+        for (view in dayViews) {
+            view.onEventClickListener = onEventClickListener
+            view.onEventLongClickListener = onEventLongClickListener
+            view.onAddEventListener = onAddEventListener
         }
     }
 

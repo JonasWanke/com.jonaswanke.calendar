@@ -4,7 +4,7 @@ import androidx.annotation.ColorInt
 
 interface Event {
     val title: String
-    val description: String
+    val description: String?
     @get:ColorInt
     val color: Int?
     val start: Long
@@ -14,7 +14,7 @@ interface Event {
 
 open class BaseEvent(
     override val title: String,
-    override val description: String,
+    override val description: String?,
     @get:ColorInt
     override val color: Int?,
     override val start: Long,
@@ -25,3 +25,6 @@ open class BaseEvent(
         return "$title ($description), $start-$end, allDay: $allDay"
     }
 }
+
+class AddEvent(start: Long, end: Long) :
+        BaseEvent("", null, null, start, end, false)

@@ -45,6 +45,10 @@
         <item name="cornerRadius">2dp</item>
         <item name="titleDefault">@string/event_title_default</item>
     </style>
+    <style name="Calendar.EventViewStyle.Add">
+        <item name="android:textStyle">bold</item>
+        <item name="android:text">@string/event_title_add</item>
+    </style>
     <style name="Calendar.EventViewStyle.AllDay">
         <item name="android:minHeight">24dp</item>
         <item name="android:textSize">14sp</item>
