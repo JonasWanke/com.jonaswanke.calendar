@@ -46,7 +46,8 @@
         <item name="titleDefault">@string/event_title_default</item>
     </style>
     <style name="Calendar.EventViewStyle.Add">
-        <item name="android:drawableLeft">@drawable/ic_add_white_24dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:text">@string/event_title_add</item>
     </style>
     <style name="Calendar.EventViewStyle.AllDay">
         <item name="android:minHeight">24dp</item>
