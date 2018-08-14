@@ -41,7 +41,7 @@ class DayView @JvmOverloads constructor(
                 updateListeners(onEventClickListener, new)
             }
     internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
-    var onAddEventListener: ((AddEvent) -> Unit)? = null
+    var onAddEventListener: ((AddEvent) -> Boolean)? = null
 
     var day: Day = _day ?: Day()
         private set
@@ -74,7 +74,7 @@ class DayView @JvmOverloads constructor(
 
     private var timeCircleRadius: Int = 0
     private var timeLineSize: Int = 0
-    private var timePaint: Paint? = null
+    private lateinit var timePaint: Paint
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
         dividerHeight = new?.intrinsicHeight ?: 0
@@ -115,7 +115,12 @@ class DayView @JvmOverloads constructor(
                     addView(EventView(context,
                             defStyleAttr = R.attr.eventViewAddStyle,
                             defStyleRes = R.style.Calendar_EventViewStyle_Add,
-                            _event = event))
+                            _event = event).also {
+                        it.setOnClickListener {
+                            if (onAddEventListener?.invoke(event) == true)
+                                removeAddEvent()
+                        }
+                    })
                 } else {
                     view.event = event
                     requestLayout()
@@ -164,7 +169,10 @@ class DayView @JvmOverloads constructor(
 
             val data = eventData[event] ?: continue
             val eventTop = top + getPosForTime(event.start)
-            val eventBottom = max(top + getPosForTime(event.end), eventTop + eventView.minHeight)
+            var eventBottom = top + getPosForTime(event.end)
+            // Fix if event ends on next day
+            eventBottom = if (eventBottom < eventTop && event.end > event.start) bottom
+            else max(eventBottom, eventTop + eventView.minHeight)
             val eventWidth = width / data.parallel
             val eventLeft = left + eventWidth * data.index + space
 
@@ -336,7 +344,7 @@ class DayView @JvmOverloads constructor(
             else
                 null
 
-            if (day.isToday && timePaint == null) {
+            if (day.isToday && !this@DayView::timePaint.isInitialized) {
                 timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
                 val timeColor = getColor(R.styleable.DayView_timeColor, Color.BLACK)
                 timePaint = Paint().apply {

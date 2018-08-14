@@ -26,5 +26,5 @@ open class BaseEvent(
     }
 }
 
-open class AddEvent(start: Long, end: Long) :
+class AddEvent(start: Long, end: Long) :
         BaseEvent("", null, null, start, end, false)

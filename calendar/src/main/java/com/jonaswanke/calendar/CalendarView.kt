@@ -49,8 +49,8 @@ class CalendarView @JvmOverloads constructor(
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new, onAddEventListener)
             }
-    var onAddEventListener: ((AddEvent) -> Unit)?
-            by Delegates.observable<((AddEvent) -> Unit)?>(null) { _, _, new ->
+    var onAddEventListener: ((AddEvent) -> Boolean)?
+            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, onEventLongClickListener, new)
             }
 
@@ -250,7 +250,7 @@ class CalendarView @JvmOverloads constructor(
     private fun updateListeners(
         onEventClickListener: ((Event) -> Unit)?,
         onEventLongClickListener: ((Event) -> Unit)?,
-        onAddEventListener: ((AddEvent) -> Unit)?
+        onAddEventListener: ((AddEvent) -> Boolean)?
     ) {
         for (view in weekViews.values) {
             view.onEventClickListener = onEventClickListener
