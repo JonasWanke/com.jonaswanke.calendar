@@ -26,6 +26,13 @@ Optional intro comment.
 
 
 
+## [0.0.4] - 2018-08-14
+
+- Added: Support all-day events ([#41](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/41)), fixes [#9](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/9)
+- Added: Support creating events ([#44](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/44)), fixes [#37](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/37)
+- Changed: Use AndroidX ([#42](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/42)), fixes [#39](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/39)
+
+
 ## [0.0.3] - 2018-08-05
 
 - Added: add default text for empty title ([#38](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/38)), fixes [#36](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/36)
@@ -54,6 +61,7 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...dev
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.4...dev
+[0.0.4]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.1...v0.0.2
