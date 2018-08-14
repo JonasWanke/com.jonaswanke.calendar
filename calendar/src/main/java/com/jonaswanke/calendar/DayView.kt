@@ -41,7 +41,11 @@ class DayView @JvmOverloads constructor(
                 updateListeners(onEventClickListener, new)
             }
     internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
-    var onAddEventListener: ((AddEvent) -> Boolean)? = null
+    var onAddEventListener: ((AddEvent) -> Boolean)?
+            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
+                if (new == null)
+                    removeAddEvent()
+            }
 
     var day: Day = _day ?: Day()
         private set
@@ -103,6 +107,9 @@ class DayView @JvmOverloads constructor(
         }
 
         setOnTouchListener { _, motionEvent ->
+            if (onAddEventListener == null)
+                return@setOnTouchListener false
+
             if (motionEvent.action == MotionEvent.ACTION_UP) {
                 fun hourToTime(hour: Int) = day.start + hour * DateUtils.HOUR_IN_MILLIS
 
