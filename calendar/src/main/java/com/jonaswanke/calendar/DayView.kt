@@ -40,6 +40,7 @@ class DayView @JvmOverloads constructor(
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new)
             }
+    internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
     var onAddEventListener: ((AddEvent) -> Unit)? = null
 
     var day: Day = _day ?: Day()
@@ -119,6 +120,7 @@ class DayView @JvmOverloads constructor(
                     view.event = event
                     requestLayout()
                 }
+                onAddEventViewListener?.invoke(event)
             }
             return@setOnTouchListener motionEvent.action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)
         }
@@ -128,9 +130,12 @@ class DayView @JvmOverloads constructor(
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of DayView")
         if (child.event is AddEvent)
-            if (addEventView != null)
+            if (addEventView != null && addEventView != child)
                 throw  IllegalStateException("DayView may only contain one add-EventView")
-            else addEventView = child
+            else {
+                addEventView = child
+                onAddEventViewListener?.invoke(child.event as AddEvent)
+            }
         super.addView(child, index, params)
     }
 
@@ -197,6 +202,7 @@ class DayView @JvmOverloads constructor(
         this.day = day
         onUpdateDay(day)
 
+        removeAddEvent()
         setEvents(events)
     }
 
@@ -232,6 +238,14 @@ class DayView @JvmOverloads constructor(
             requestLayout()
         }
     }
+
+    fun removeAddEvent() {
+        addEventView?.also {
+            removeView(it)
+            addEventView = null
+        }
+    }
+
 
     private fun positionEvents() {
         eventData.clear()
@@ -278,7 +292,6 @@ class DayView @JvmOverloads constructor(
             }
         endGroup()
     }
-
 
     private fun checkEvents(events: List<Event>) {
         if (events.any { event -> event.allDay })

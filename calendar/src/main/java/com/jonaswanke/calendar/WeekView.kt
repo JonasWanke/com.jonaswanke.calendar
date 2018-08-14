@@ -29,6 +29,7 @@ class WeekView @JvmOverloads constructor(
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, new, onAddEventListener)
             }
+    internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
     var onAddEventListener: ((AddEvent) -> Unit)?
             by Delegates.observable<((AddEvent) -> Unit)?>(null) { _, _, new ->
                 updateListeners(onEventClickListener, onEventLongClickListener, new)
@@ -111,6 +112,14 @@ class WeekView @JvmOverloads constructor(
                 it.onEventLongClickListener = onEventLongClickListener
             }
         }
+        dayViews.forEach {
+            it.onAddEventViewListener = { event ->
+                for (view in dayViews)
+                    if (view != it)
+                        view.removeAddEvent()
+                onAddEventViewListener?.invoke(event)
+            }
+        }
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
             for (day in dayViews)
@@ -158,6 +167,7 @@ class WeekView @JvmOverloads constructor(
         this.week = week
         cal = week.toCalendar()
 
+        removeAddEvent()
         checkEvents(events)
         headerView.week = week
 
@@ -172,6 +182,11 @@ class WeekView @JvmOverloads constructor(
 
     fun scrollTo(pos: Int) {
         scrollView.scrollY = pos
+    }
+
+    fun removeAddEvent() {
+        for (view in dayViews)
+            view.removeAddEvent()
     }
 
 
@@ -197,10 +212,10 @@ class WeekView @JvmOverloads constructor(
     ) {
         allDayEventsView.onEventClickListener = onEventClickListener
         allDayEventsView.onEventLongClickListener = onEventLongClickListener
-        for (day in dayViews) {
-            day.onEventClickListener = onEventClickListener
-            day.onEventLongClickListener = onEventLongClickListener
-            day.onAddEventListener = onAddEventListener
+        for (view in dayViews) {
+            view.onEventClickListener = onEventClickListener
+            view.onEventLongClickListener = onEventLongClickListener
+            view.onAddEventListener = onAddEventListener
         }
     }
 

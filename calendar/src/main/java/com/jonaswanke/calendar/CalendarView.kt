@@ -43,11 +43,15 @@ class CalendarView @JvmOverloads constructor(
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
+                updateListeners(new, onEventLongClickListener, onAddEventListener)
             }
     var onEventLongClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
+                updateListeners(onEventClickListener, new, onAddEventListener)
+            }
+    var onAddEventListener: ((AddEvent) -> Unit)?
+            by Delegates.observable<((AddEvent) -> Unit)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, onEventLongClickListener, new)
             }
 
     var eventRequestCallback: (Week) -> Unit = {}
@@ -158,6 +162,12 @@ class CalendarView @JvmOverloads constructor(
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
+                        it.onAddEventViewListener = { _ ->
+                            for (view in weekViews.values)
+                                if (view != it)
+                                    view.removeAddEvent()
+                        }
+                        it.onAddEventListener = onAddEventListener
                         it.onHeaderHeightChangeListener = { onHeaderHeightUpdated() }
                         it.onScrollChangeListener = { scrollPosition = it }
                         it.hourHeightMin = hourHeightMin
@@ -239,11 +249,13 @@ class CalendarView @JvmOverloads constructor(
 
     private fun updateListeners(
         onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Unit)?
     ) {
         for (view in weekViews.values) {
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
+            view.onAddEventListener = onAddEventListener
         }
     }
 
@@ -322,7 +334,7 @@ class CalendarView @JvmOverloads constructor(
             scrollPosition = readInt()
         }
 
-        constructor(superState: Parcelable) : super(superState)
+        constructor(superState: Parcelable?) : super(superState)
 
         override fun writeToParcel(out: Parcel?, flags: Int) {
             super.writeToParcel(out, flags)
