@@ -1,12 +1,12 @@
 package com.jonaswanke.calendar.example
 
 import android.content.Intent
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import android.text.format.DateUtils
 import android.view.Menu
 import android.view.MenuItem
@@ -14,6 +14,7 @@ import android.widget.Toast
 import com.jonaswanke.calendar.BaseEvent
 import com.jonaswanke.calendar.Event
 import com.jonaswanke.calendar.Week
+import com.jonaswanke.calendar.asCalendar
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
@@ -35,10 +36,15 @@ class MainActivity : AppCompatActivity() {
 
         calendar.eventRequestCallback = this::populate
         calendar.onEventClickListener = {
-            Toast.makeText(this, it.title + " clicked", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, it.title + " clicked", Toast.LENGTH_SHORT).show()
         }
         calendar.onEventLongClickListener = {
-            Toast.makeText(this, it.title + " long clicked", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, it.title + " long clicked", Toast.LENGTH_SHORT).show()
+        }
+        calendar.onAddEventListener = {
+            val start = DateUtils.formatDateTime(this, it.start, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME)
+            Toast.makeText(this, "Add event at $start", Toast.LENGTH_SHORT).show()
+            true
         }
     }
 
@@ -75,6 +81,17 @@ class MainActivity : AppCompatActivity() {
                     random.nextInt(),
                     start,
                     start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
+        }
+        for (i in 0..3) {
+            val id = nextId++.toString()
+            val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
+            events.add(BaseEvent(
+                    id,
+                    id,
+                    random.nextInt(),
+                    start,
+                    start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS * 7),
+                    true))
         }
         calendar.setEventsForWeek(week, events)
     }

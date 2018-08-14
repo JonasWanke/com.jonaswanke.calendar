@@ -3,21 +3,26 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.support.annotation.AttrRes
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.withStyledAttributes
 import java.util.*
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class WeekHeaderView @JvmOverloads constructor(context: Context,
-                                               private val attrs: AttributeSet? = null,
-                                               @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
-                                               _week: Week? = null)
-    : View(context, attrs, defStyleAttr) {
+class WeekHeaderView @JvmOverloads constructor(
+    context: Context,
+    private val attrs: AttributeSet? = null,
+    @AttrRes private val defStyleAttr: Int = R.attr.weekHeaderViewStyle,
+    @StyleRes defStyleRes: Int = R.style.Calendar_WeekHeaderViewStyle,
+    _week: Week? = null
+) : View(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
 
     var week: Week by Delegates.observable(_week ?: Week()) { _, _, new ->
@@ -46,6 +51,11 @@ class WeekHeaderView @JvmOverloads constructor(context: Context,
         onUpdateWeek(week)
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val height = paddingTop + paddingBottom + minimumHeight
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
+    }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         if (canvas == null)
@@ -53,7 +63,7 @@ class WeekHeaderView @JvmOverloads constructor(context: Context,
 
         val left = paddingLeft
         val top = paddingTop.toFloat()
-        val width = canvas.width - paddingRight - left
+        val width = width - paddingRight - left
 
         cal.timeInMillis = week.start
 
@@ -81,56 +91,53 @@ class WeekHeaderView @JvmOverloads constructor(context: Context,
 
 
     private fun onUpdateWeek(week: Week) {
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.WeekHeaderView, defStyleAttr, R.style.Calendar_WeekHeaderViewStyle)
+        context.withStyledAttributes(attrs, R.styleable.WeekHeaderView, defStyleAttr, R.style.Calendar_WeekHeaderViewStyle) {
+            dateSize = getDimensionPixelSize(R.styleable.WeekHeaderView_dateSize, 16)
+            weekDaySize = getDimensionPixelSize(R.styleable.WeekHeaderView_weekDaySize, 16)
 
-        dateSize = a.getDimensionPixelSize(R.styleable.WeekHeaderView_dateSize, 16)
-        weekDaySize = a.getDimensionPixelSize(R.styleable.WeekHeaderView_weekDaySize, 16)
-
-        if (!week.isFuture) {
-            if (datePaint == null)
-                datePaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_dateColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = dateSize.toFloat()
-                }
-            if (weekDayPaint == null)
-                weekDayPaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_weekDayColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = weekDaySize.toFloat()
-                }
+            if (!week.isFuture) {
+                if (datePaint == null)
+                    datePaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_dateColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = dateSize.toFloat()
+                    }
+                if (weekDayPaint == null)
+                    weekDayPaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_weekDayColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = weekDaySize.toFloat()
+                    }
+            }
+            if (week.isToday || (!week.isFuture && week.nextWeek.isFuture)) {
+                if (dateCurrentPaint == null)
+                    dateCurrentPaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_dateCurrentColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = dateSize.toFloat()
+                    }
+                if (weekDayCurrentPaint == null)
+                    weekDayCurrentPaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_weekDayCurrentColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = weekDaySize.toFloat()
+                    }
+            }
+            // False-positive if today's the last day of the week
+            if (week.nextWeek.isFuture) {
+                if (dateFuturePaint == null)
+                    dateFuturePaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_dateFutureColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = dateSize.toFloat()
+                    }
+                if (weekDayFuturePaint == null)
+                    weekDayFuturePaint = TextPaint().apply {
+                        color = getColor(R.styleable.WeekHeaderView_weekDayFutureColor, Color.BLACK)
+                        isAntiAlias = true
+                        textSize = weekDaySize.toFloat()
+                    }
+            }
         }
-        if (week.isToday || (!week.isFuture && week.nextWeek.isFuture)) {
-            if (dateCurrentPaint == null)
-                dateCurrentPaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_dateCurrentColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = dateSize.toFloat()
-                }
-            if (weekDayCurrentPaint == null)
-                weekDayCurrentPaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_weekDayCurrentColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = weekDaySize.toFloat()
-                }
-        }
-        // False-positive if today's the last day of the week
-        if (week.nextWeek.isFuture) {
-            if (dateFuturePaint == null)
-                dateFuturePaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_dateFutureColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = dateSize.toFloat()
-                }
-            if (weekDayFuturePaint == null)
-                weekDayFuturePaint = TextPaint().apply {
-                    color = a.getColor(R.styleable.WeekHeaderView_weekDayFutureColor, Color.BLACK)
-                    isAntiAlias = true
-                    textSize = weekDaySize.toFloat()
-                }
-        }
-
-        a.recycle()
     }
 }

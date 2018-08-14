@@ -4,24 +4,30 @@ import android.content.Context
 import android.gesture.GestureOverlayView
 import android.os.Parcel
 import android.os.Parcelable
-import android.support.annotation.AttrRes
-import android.support.annotation.IntDef
-import android.support.v4.view.ViewPager
+import androidx.annotation.AttrRes
+import androidx.annotation.IntDef
+import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
+import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import androidx.core.content.withStyledAttributes
+import androidx.core.view.doOnLayout
+import com.jonaswanke.calendar.pager.InfinitePagerAdapter
+import com.jonaswanke.calendar.pager.InfiniteViewPager
 import kotlinx.android.synthetic.main.view_calendar.view.*
 import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
  */
-class CalendarView @JvmOverloads constructor(context: Context,
-                                             attrs: AttributeSet? = null,
-                                             @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle)
-    : GestureOverlayView(context, attrs, defStyleAttr) {
+class CalendarView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = R.attr.calendarViewStyle
+) : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
         const val RANGE_DAY = 1
@@ -37,11 +43,15 @@ class CalendarView @JvmOverloads constructor(context: Context,
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
+                updateListeners(new, onEventLongClickListener, onAddEventListener)
             }
     var onEventLongClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
+                updateListeners(onEventClickListener, new, onAddEventListener)
+            }
+    var onAddEventListener: ((AddEvent) -> Boolean)?
+            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
+                updateListeners(onEventClickListener, onEventLongClickListener, new)
             }
 
     var eventRequestCallback: (Week) -> Unit = {}
@@ -113,15 +123,12 @@ class CalendarView @JvmOverloads constructor(context: Context,
     init {
         View.inflate(context, R.layout.view_calendar, this)
 
-        val a = context.obtainStyledAttributes(
-                attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle)
-
-        range = a.getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
-        hourHeightMin = a.getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
-        hourHeightMax = a.getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
-        hourHeight = a.getDimension(R.styleable.CalendarView_hourHeight, 100f)
-
-        a.recycle()
+        context.withStyledAttributes(attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle) {
+            range = getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+            hourHeightMin = getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
+            hourHeightMax = getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
+            hourHeight = getDimension(R.styleable.CalendarView_hourHeight, 100f)
+        }
 
         isGestureVisible = false
         gestureStrokeLengthThreshold = 10f
@@ -155,6 +162,13 @@ class CalendarView @JvmOverloads constructor(context: Context,
                         it.events = events[indicator] ?: emptyList()
                         it.onEventClickListener = onEventClickListener
                         it.onEventLongClickListener = onEventLongClickListener
+                        it.onAddEventViewListener = { _ ->
+                            for (view in weekViews.values)
+                                if (view != it)
+                                    view.removeAddEvent()
+                        }
+                        it.onAddEventListener = onAddEventListener
+                        it.onHeaderHeightChangeListener = { onHeaderHeightUpdated() }
                         it.onScrollChangeListener = { scrollPosition = it }
                         it.hourHeightMin = hourHeightMin
                         it.hourHeightMax = hourHeightMax
@@ -180,6 +194,8 @@ class CalendarView @JvmOverloads constructor(context: Context,
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
             override fun onPageScrolled(indicator: Any?, positionOffset: Float, positionOffsetPixels: Int) {
+                Log.d("Pager", "$indicator, $positionOffset")
+                onHeaderHeightUpdated()
             }
 
             override fun onPageSelected(indicator: Any?) {
@@ -206,6 +222,20 @@ class CalendarView @JvmOverloads constructor(context: Context,
     }
 
 
+    private fun onHeaderHeightUpdated() {
+        val firstPosition = when (pager.position) {
+            -1 -> weekViews[currentWeek.prevWeek]
+            1 -> weekViews[currentWeek.nextWeek]
+            else -> weekViews[currentWeek]
+        }?.headerHeight ?: 0
+        val secondPosition = when (pager.position) {
+            0 -> weekViews[currentWeek.nextWeek]
+            else -> weekViews[currentWeek]
+        }?.headerHeight ?: 0
+        hoursHeader.minimumHeight = (firstPosition * (1 - pager.positionOffset)
+                + secondPosition * pager.positionOffset).toInt()
+    }
+
     private fun onRangeUpdated() {
         when (range) {
             RANGE_DAY -> TODO()
@@ -217,11 +247,15 @@ class CalendarView @JvmOverloads constructor(context: Context,
         }
     }
 
-    private fun updateListeners(onEventClickListener: ((Event) -> Unit)?,
-                                onEventLongClickListener: ((Event) -> Unit)?) {
+    private fun updateListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Boolean)?
+    ) {
         for (view in weekViews.values) {
             view.onEventClickListener = onEventClickListener
             view.onEventLongClickListener = onEventLongClickListener
+            view.onAddEventListener = onAddEventListener
         }
     }
 
@@ -300,7 +334,7 @@ class CalendarView @JvmOverloads constructor(context: Context,
             scrollPosition = readInt()
         }
 
-        constructor(superState: Parcelable) : super(superState)
+        constructor(superState: Parcelable?) : super(superState)
 
         override fun writeToParcel(out: Parcel?, flags: Int) {
             super.writeToParcel(out, flags)

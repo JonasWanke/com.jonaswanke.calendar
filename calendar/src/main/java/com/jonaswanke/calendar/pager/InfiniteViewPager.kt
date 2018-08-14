@@ -1,18 +1,19 @@
-package com.jonaswanke.calendar
+package com.jonaswanke.calendar.pager
 
 import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
-import android.support.v4.view.PagerAdapter
-import android.support.v4.view.ViewPager
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import com.jonaswanke.calendar.BuildConfig
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
-class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null)
-    : ViewPager(context, attrs) {
+class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+        ViewPager(context, attrs) {
 
     companion object {
         private val TAG: String = InfiniteViewPager::class.java.simpleName
@@ -21,10 +22,25 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         const val STATE_ADAPTER = "STATE_ADAPTER"
     }
 
+    private var isCycling: Boolean = false
+    var position: Int = 0
+        private set
+    var positionOffset: Float = 0f
+        private set
+    var positionOffsetPixels: Int = 0
+        private set
+
     init {
         addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 val adapter = adapter as InfinitePagerAdapter<*, *>? ?: return
+                if (isCycling || i > adapter.center)
+                    return
+
+                this@InfiniteViewPager.position = i - adapter.center
+                this@InfiniteViewPager.positionOffset = positionOffset
+                this@InfiniteViewPager.positionOffsetPixels = positionOffsetPixels
+
                 listener?.onPageScrolled(adapter.currentIndicator, positionOffset, positionOffsetPixels)
             }
 
@@ -44,9 +60,16 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
                 if (state != ViewPager.SCROLL_STATE_IDLE)
                     return
 
+                isCycling = true
                 adapter.cycleBack(positionCurrent)
                 setCurrentItem(adapter.center, false)
+                isCycling = false
+
                 listener?.onPageScrollStateChanged(state)
+                this@InfiniteViewPager.position = 0
+                this@InfiniteViewPager.positionOffset = 0f
+                this@InfiniteViewPager.positionOffsetPixels = 0
+                listener?.onPageScrolled(adapter.currentIndicator, 0f, 0)
             }
         })
     }

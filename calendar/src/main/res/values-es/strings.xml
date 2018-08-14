@@ -2,5 +2,6 @@
 <resources>
 
     <string name="event_title_default">(Sin título)</string>
+    <string name="event_title_add">+ Añadir evento</string>
 
 </resources>

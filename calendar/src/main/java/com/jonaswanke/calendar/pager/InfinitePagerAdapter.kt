@@ -1,14 +1,14 @@
-package com.jonaswanke.calendar
+package com.jonaswanke.calendar.pager
 
-import android.support.v4.view.PagerAdapter
+import androidx.viewpager.widget.PagerAdapter
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.jonaswanke.calendar.BuildConfig
 
 
 abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: Int = 1) : PagerAdapter() {
-
     companion object {
         private val TAG: String = InfinitePagerAdapter::class.java.simpleName
     }
@@ -21,7 +21,7 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: I
 
     open var currentIndicatorString: String
         get() = ""
-        set(value) {}
+        set(_) {}
 
     abstract fun nextIndicator(current: T): T
 
