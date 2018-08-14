@@ -9,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 3
-        versionName "0.0.3"
+        versionCode 4
+        versionName "0.0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -55,7 +55,7 @@ ext {
     gitUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar.git'
     githubRepository = 'JonasWanke/com.jonaswanke.calendar'
 
-    libraryVersion = '0.0.3'
+    libraryVersion = '0.0.4'
 
     developerId = 'JonasWanke'
     developerName = 'Jonas Wanke'
