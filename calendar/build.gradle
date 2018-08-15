@@ -2,6 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
 kotlin.experimental.coroutines "enable"
 
 android {
@@ -42,17 +45,10 @@ dependencies {
 }
 
 ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'calendar'
-
     publishedGroupId = 'com.jonaswanke.calendar'
     libraryName = 'Calendar'
     artifact = 'calendar'
 
-    libraryDescription = 'Material Design CalendarView for Android'
-
-    siteUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar'
-    gitUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar.git'
     githubRepository = 'JonasWanke/com.jonaswanke.calendar'
 
     libraryVersion = '0.0.4'
@@ -63,9 +59,7 @@ ext {
 
     licenseName = 'The Apache Software License, Version 2.0'
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
 }
 
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
 apply from: rootProject.file('gradle-bintray-push.gradle')

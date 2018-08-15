@@ -1,0 +1,44 @@
+sudo: required
+language: android
+android:
+  components:
+  - tools
+  - platform-tools
+  - tools
+  - build-tools-28.0.2
+  - android-28
+  - android-16
+  - extra-android-m2repository
+  - extra-google-m2repository
+  - extra-android-support
+  - extra-google-google_play_services
+  - sys-img-armeabi-v7a-android-16
+jdk:
+- oraclejdk8
+
+before_install:
+- mkdir "$ANDROID_HOME/licenses" || true
+- echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+- echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+- chmod +x gradlew
+
+before_script:
+- echo no | android create avd --force -n test -t android-16 --abi armeabi-v7a --skin 480x800
+- emulator -avd test -no-audio -no-window &
+- android-wait-for-emulator
+- sleep 10
+- adb shell settings put global window_animation_scale 0
+- adb shell settings put global transition_animation_scale 0
+- adb shell settings put global animator_duration_scale 0
+- adb shell input keyevent 82
+script:
+- ./gradlew build connectedCheck
+- ./gradlew clean build
+
+deploy:
+  dry_run: true
+  provider: script
+  script: ./gradlew :clean :calendar:assembleRelease :calendar:bintrayUpload
+  skip_cleanup: true
+  on:
+    all_branches: true
