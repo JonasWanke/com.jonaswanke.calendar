@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply from: rootProject.file('gradle-bintray-push.gradle')
 
 kotlin.experimental.coroutines "enable"
 
@@ -16,7 +17,6 @@ android {
         versionName "0.0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -43,23 +43,3 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
 }
-
-ext {
-    publishedGroupId = 'com.jonaswanke.calendar'
-    libraryName = 'Calendar'
-    artifact = 'calendar'
-
-    githubRepository = 'JonasWanke/com.jonaswanke.calendar'
-
-    libraryVersion = '0.0.4'
-
-    developerId = 'JonasWanke'
-    developerName = 'Jonas Wanke'
-    developerEmail = 'contact@jonas-wanke.com'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-}
-
-apply plugin: 'com.github.dcendents.android-maven'
-apply from: rootProject.file('gradle-bintray-push.gradle')
