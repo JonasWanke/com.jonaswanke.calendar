@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
+    buildToolsVersion '28.0.2'
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.jonaswanke.calendar.example"
