@@ -1,5 +1,6 @@
 package com.jonaswanke.calendar
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
@@ -55,6 +56,7 @@ class EventView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs = intArrayOf(android.R.attr.selectableItemBackground)) {
+            @SuppressLint("NewApi")
             foreground = getDrawable(0)
         }
 
