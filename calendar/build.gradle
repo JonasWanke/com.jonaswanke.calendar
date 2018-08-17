@@ -30,6 +30,7 @@ android {
     lintOptions {
         abortOnError false
         absolutePaths false
+        xmlReport true
         lintConfig file("lint.xml")
     }
 }
