@@ -12,7 +12,7 @@ ext {
     gitUrl = 'https://github.com/JonasWanke/com.jonaswanke.calendar.git'
     githubRepository = 'JonasWanke/com.jonaswanke.calendar'
 
-    libraryVersion = '0.0.4'
+    libraryVersion = rootProject.versionName
 
     developerId = 'JonasWanke'
     developerName = 'Jonas Wanke'
