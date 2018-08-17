@@ -34,6 +34,7 @@ publishing {
             version libraryVersion
 
             pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
                 //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
                 configurations.implementation.allDependencies.each {
                     if (it.name != 'unspecified') {
