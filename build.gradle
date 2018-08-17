@@ -6,7 +6,7 @@ buildscript {
         targetSdkVersion = 28
         compileSdkVersion = 28
 
-        versionName = '0.0.4'
+        versionName = '0.0.5-SNAPSHOT'
         versionCode = 4
     }
     repositories {

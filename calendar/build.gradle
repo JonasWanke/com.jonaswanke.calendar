@@ -2,8 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'maven-publish'
 apply from: rootProject.file('gradle-bintray-push.gradle')
 
 kotlin.experimental.coroutines "enable"

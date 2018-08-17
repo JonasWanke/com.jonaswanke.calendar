@@ -32,9 +32,9 @@ script:
 - ./gradlew clean build
 
 deploy:
-  dry_run: true
   provider: script
   script: ./gradlew :clean :calendar:assembleRelease :calendar:bintrayUpload
   skip_cleanup: true
+  dry_run: false
   on:
     all_branches: true
