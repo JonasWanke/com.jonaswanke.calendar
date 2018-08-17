@@ -2,12 +2,12 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Rect
-import androidx.annotation.AttrRes
-import androidx.core.content.ContextCompat
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
@@ -52,8 +52,7 @@ class HoursView @JvmOverloads constructor(
             hourHeightMin = getDimension(R.styleable.HoursView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.HoursView_hourHeightMax, 0f)
             hourSize = getDimensionPixelSize(R.styleable.HoursView_hourSize, 16)
-            hourColor = getColor(R.styleable.HoursView_hourColor,
-                    ContextCompat.getColor(context, android.R.color.secondary_text_light))
+            hourColor = getColor(R.styleable.HoursView_hourColor, Color.BLACK)
             hourPaint = TextPaint().apply {
                 color = hourColor
                 isAntiAlias = true

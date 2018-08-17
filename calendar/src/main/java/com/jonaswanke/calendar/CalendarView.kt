@@ -59,7 +59,7 @@ class CalendarView @JvmOverloads constructor(
     val cachedWeeks: Set<Week> get() = weekViews.keys
 
 
-    @get: Range
+    @Range
     var range: Int by Delegates.observable(RANGE_WEEK) { _, old, new ->
         if (old == new)
             return@observable

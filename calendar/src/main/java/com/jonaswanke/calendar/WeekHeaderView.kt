@@ -3,12 +3,12 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import androidx.annotation.AttrRes
-import androidx.annotation.StyleRes
-import androidx.appcompat.view.ContextThemeWrapper
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.withStyledAttributes
 import java.util.*
 import kotlin.properties.Delegates
@@ -77,11 +77,16 @@ class WeekHeaderView @JvmOverloads constructor(
                 cal.isFuture -> dateFuturePaint to weekDayFuturePaint
                 else -> datePaint to weekDayPaint
             }
+            if (datePaint == null)
+                throw IllegalStateException("datePaint is null")
+            if (weekDayPaint == null)
+                throw IllegalStateException("datePaint is null")
+
+            val text = weekDayStrings[cal.get(Calendar.DAY_OF_WEEK)]
+                    ?: throw IllegalStateException("weekDayString for day ${cal.get(Calendar.DAY_OF_WEEK)} not found")
             val textLeft = left + width * day / 7 + .3f * dateSize
-            canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
-                    textLeft, dateBottom, datePaint)
-            canvas.drawText(weekDayStrings[cal.get(Calendar.DAY_OF_WEEK)],
-                    textLeft, weekDayBottom, weekDayPaint)
+            canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(), textLeft, dateBottom, datePaint)
+            canvas.drawText(text, textLeft, weekDayBottom, weekDayPaint)
 
             cal.add(Calendar.DAY_OF_WEEK, 1)
         }
