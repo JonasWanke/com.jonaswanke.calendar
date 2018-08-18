@@ -127,7 +127,8 @@ class DayView @JvmOverloads constructor(
 
                 val hour = (motionEvent.y / hourHeight).toInt()
                 val event = AddEvent(hourToTime(hour), hourToTime(hour + 1))
-                eventData[event] = EventData()
+                eventData[event] = EventData((hour * DateUtils.HOUR_IN_MILLIS).toInt(),
+                        ((hour + 1) * DateUtils.HOUR_IN_MILLIS).toInt())
 
                 val view = addEventView
                 if (view == null) {
@@ -254,7 +255,10 @@ class DayView @JvmOverloads constructor(
 
     fun setEvents(events: List<Event>) {
         checkEvents(events)
-        this.events = events.sortedBy { it.start }
+
+        regenerateBaseEventData(events)
+        this.events = events.sortedWith(compareBy({ eventData[it]?.start },
+                { -(eventData[it]?.end ?: Int.MIN_VALUE) }))
 
         launch(UI) {
             @Suppress("NAME_SHADOWING")
@@ -292,48 +296,60 @@ class DayView @JvmOverloads constructor(
         }
     }
 
+    private fun regenerateBaseEventData(events: List<Event>) {
+        val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
+        val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
+
+        eventData.clear()
+        for (event in events) {
+            val start = (event.start - day.start).coerceIn(0, DateUtils.DAY_IN_MILLIS - minLength).toInt()
+            eventData[event] = EventData(start,
+                    (event.end - day.start).coerceIn(start + minLength, DateUtils.DAY_IN_MILLIS).toInt())
+        }
+    }
 
     private fun positionEvents() {
-        eventData.clear()
         val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
         val spacing = eventSpacing / hourHeight * DateUtils.HOUR_IN_MILLIS
         val stackOverlap = eventStackOverlap / hourHeight * DateUtils.HOUR_IN_MILLIS
 
-        fun startOf(event: Event) = (event.start - day.start).coerceIn(0, DateUtils.DAY_IN_MILLIS - minLength)
-        fun endOf(event: Event) = (event.end - day.start).coerceIn(startOf(event) + minLength, DateUtils.DAY_IN_MILLIS)
+        regenerateBaseEventData(events)
+
         fun endOfNoSpacing(event: Event) = (event.end - day.start)
-                .coerceIn(startOf(event) + minLength + spacing.toLong(), DateUtils.DAY_IN_MILLIS)
+                .coerceIn((eventData[event]?.start ?: 0) + minLength + spacing.toLong(), DateUtils.DAY_IN_MILLIS)
 
         var currentGroup = mutableListOf<Event>()
-        var currentEnd = 0L
         fun endGroup() {
             when (currentGroup.size) {
                 0 -> return
-                1 -> eventData[currentGroup.first()] = EventData()
+                1 -> return
                 else -> {
                     val columns = mutableListOf<MutableList<Event>>()
                     for (event in currentGroup) {
+                        val data = eventData[event] ?: continue
+
                         var minIndex = Int.MIN_VALUE
                         var minSubIndex = Int.MAX_VALUE
-                        var minTop = Long.MAX_VALUE
+                        var minTop = Int.MAX_VALUE
                         var minIsStacking = false
                         for (index in columns.indices) {
                             val column = columns[index]
                             for (subIndex in column.indices.reversed()) {
                                 val other = column[subIndex]
+                                val otherData = eventData[other] ?: continue
 
                                 // No space in current subgroup
-                                if (startOf(other) + stackOverlap > startOf(event) && endOfNoSpacing(other) >= startOf(event))
+                                if (otherData.start + stackOverlap > data.start && endOfNoSpacing(other) >= data.start)
                                     break
 
                                 // Stacking
-                                val (top, isStacking) = if (startOf(other) + stackOverlap <= startOf(event)
-                                        && endOfNoSpacing(other) >= startOf(event))
-                                    (startOf(other) + stackOverlap).toLong() to true
+                                val (top, isStacking) = if (otherData.start + stackOverlap <= data.start
+                                        && endOfNoSpacing(other) >= data.start)
+                                    (otherData.start + stackOverlap).toInt() to true
                                 // Below other
-                                else if (endOf(other) <= startOf(event))
-                                    endOf(other) to false
+                                else if (otherData.end <= data.start)
+                                    otherData.end to false
                                 // Too close
                                 else
                                     continue
@@ -345,21 +361,24 @@ class DayView @JvmOverloads constructor(
                                     minTop = top
                                     minIsStacking = isStacking
 
-                                    if (endOf(other) >= startOf(event))
+                                    if (otherData.end >= data.start)
                                         break
                                 }
                             }
                         }
 
                         // If no column fits
-                        if (minTop == Long.MAX_VALUE) {
-                            eventData[event] = EventData(index = columns.size)
+                        if (minTop == Int.MAX_VALUE) {
+                            eventData[event]?.index = columns.size
                             columns.add(mutableListOf(event))
                             continue
                         }
 
                         val subIndex = if (minIsStacking) minSubIndex + 1 else minSubIndex
-                        eventData[event] = EventData(index = minIndex, subIndex = subIndex)
+                        eventData[event]?.also {
+                            it.index = minIndex
+                            it.subIndex = subIndex
+                        }
 
                         val column = columns[minIndex]
                         if (column.size > subIndex)
@@ -372,19 +391,23 @@ class DayView @JvmOverloads constructor(
                 }
             }
         }
-        for (event in events)
+
+        var currentEnd = 0
+        loop@ for (event in events) {
+            val data = eventData[event] ?: continue
             when {
-                event is AddEvent -> eventData[event] = EventData()
-                startOf(event) <= currentEnd -> {
+                event is AddEvent -> continue@loop
+                data.start <= currentEnd -> {
                     currentGroup.add(event)
-                    currentEnd = max(currentEnd, endOf(event))
+                    currentEnd = max(currentEnd, data.end)
                 }
                 else -> {
                     endGroup()
                     currentGroup = mutableListOf(event)
-                    currentEnd = endOf(event)
+                    currentEnd = data.end
                 }
             }
+        }
         endGroup()
     }
 
@@ -460,8 +483,10 @@ class DayView @JvmOverloads constructor(
     }
 
     private data class EventData(
+        val start: Int,
+        val end: Int,
         var parallel: Int = 1,
-        val index: Int = 0,
-        val subIndex: Int = 0
+        var index: Int = 0,
+        var subIndex: Int = 0
     )
 }

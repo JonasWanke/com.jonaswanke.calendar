@@ -52,17 +52,19 @@ class WeekView @JvmOverloads constructor(
             return Day(week.year, week.week, cal.firstDayOfWeek) to
                     Day(week.nextWeek.year, week.nextWeek.week, cal.firstDayOfWeek)
         }
-    var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
-        if (old == new)
-            return@observable
-        checkEvents(new)
+    private var _events: List<Event> = emptyList()
+    var events: List<Event>
+        get() = _events
+        set(value) {
+            checkEvents(value)
+            val sortedEvents = value.sorted()
 
-        allDayEventsView.setEvents(new.filter { showAsAllDay(it) })
+            allDayEventsView.setEvents(sortedEvents.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(new.filter { !showAsAllDay(it) })
-        for (day in 0 until 7)
-            dayViews[day].setEvents(byDays[day])
-    }
+            val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
+            for (day in 0 until 7)
+                dayViews[day].setEvents(byDays[day])
+        }
 
     private var cal: Calendar
 
@@ -174,15 +176,16 @@ class WeekView @JvmOverloads constructor(
 
         removeAddEvent()
         checkEvents(events)
+        val sortedEvents = events.sorted()
         headerView.week = week
 
         val range = range
-        allDayEventsView.setRange(range.first, range.second, events.filter { showAsAllDay(it) })
+        allDayEventsView.setRange(range.first, range.second, sortedEvents.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
+        val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), byDays[day])
-        this.events = events
+        this.events = sortedEvents
     }
 
     fun scrollTo(pos: Int) {
@@ -196,7 +199,7 @@ class WeekView @JvmOverloads constructor(
 
 
     private fun checkEvents(events: List<Event>) {
-        if (events.any { event -> event.start < week.start || event.start >= week.end })
+        if (events.any { event -> event.end < week.start || event.start >= week.end })
             throw IllegalArgumentException("event starts must all be inside the set week")
     }
 

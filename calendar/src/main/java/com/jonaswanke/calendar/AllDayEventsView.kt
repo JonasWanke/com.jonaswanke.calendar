@@ -108,16 +108,17 @@ class AllDayEventsView @JvmOverloads constructor(
             val end = calStart.daysUntil(event.end).coerceIn(start, 6)
             eventData[event] = EventData(start, end)
         }
-        this.events = events.sortedWith(compareBy({ eventData[it]?.start }, { eventData[it]?.length }))
+        val sortedEvents = events.sortedWith(compareBy({ eventData[it]?.start },
+                { -(eventData[it]?.end ?: Int.MIN_VALUE) }))
+        this.events = sortedEvents
 
         launch(UI) {
             @Suppress("NAME_SHADOWING")
-            val events = this@AllDayEventsView.events
             positionEvents()
 
             val existing = childCount
-            for (i in 0 until events.size) {
-                val event = events[i]
+            for (i in 0 until sortedEvents.size) {
+                val event = sortedEvents[i]
 
                 if (existing > i)
                     (this@AllDayEventsView[i] as EventView).event = event
@@ -129,8 +130,8 @@ class AllDayEventsView @JvmOverloads constructor(
                         it.event = event
                     })
             }
-            if (events.size < existing)
-                removeViews(events.size, existing - events.size)
+            if (sortedEvents.size < existing)
+                removeViews(sortedEvents.size, existing - sortedEvents.size)
             updateListeners(onEventClickListener, onEventLongClickListener)
             requestLayout()
         }
@@ -221,7 +222,5 @@ class AllDayEventsView @JvmOverloads constructor(
         val start: Int,
         val end: Int,
         var index: Int = 0
-    ) {
-        val length = end - start
-    }
+    )
 }
