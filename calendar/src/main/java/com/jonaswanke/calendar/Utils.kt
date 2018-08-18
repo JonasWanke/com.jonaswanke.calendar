@@ -32,8 +32,6 @@ data class Week(
         end
     }
 
-    val millis = start until end
-
     val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
     val isFuture = TODAY.timeInMillis < start
 
@@ -53,6 +51,8 @@ data class Week(
         else
             Week(year, week.week)
     }
+
+    operator fun contains(time: Long) = time in start until end
 
     override fun toString(): String {
         return "$year-$week"
