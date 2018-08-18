@@ -15,12 +15,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
+import com.jonaswanke.calendar.WeekView.Companion.showAsAllDay
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.properties.Delegates
 
 /**
@@ -166,7 +168,7 @@ class DayView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
+        val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -375,7 +377,7 @@ class DayView @JvmOverloads constructor(
                 event is AddEvent -> eventData[event] = EventData()
                 startOf(event) <= currentEnd -> {
                     currentGroup.add(event)
-                    currentEnd = Math.max(currentEnd, endOf(event))
+                    currentEnd = max(currentEnd, endOf(event))
                 }
                 else -> {
                     endGroup()
@@ -404,11 +406,11 @@ class DayView @JvmOverloads constructor(
     }
 
     private fun checkEvents(events: List<Event>) {
-        if (events.any { event -> event.allDay })
+        if (events.any { showAsAllDay(it) })
             throw IllegalArgumentException("all-day events cannot be shown inside DayView")
-        if (events.any { event -> event is AddEvent })
+        if (events.any { it is AddEvent })
             throw IllegalArgumentException("add events currently cannot be set from the outside")
-        if (events.any { event -> event.end < day.start || event.start >= day.end })
+        if (events.any { it.end < day.start || it.start >= day.end })
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
 

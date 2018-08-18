@@ -2,6 +2,7 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
+import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,9 @@ class WeekView @JvmOverloads constructor(
     @AttrRes defStyleAttr: Int = 0,
     _week: Week? = null
 ) : LinearLayout(context, attrs, defStyleAttr) {
+    companion object {
+        internal fun showAsAllDay(event: Event) = event.allDay || event.end - event.start >= DateUtils.DAY_IN_MILLIS
+    }
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -53,9 +57,9 @@ class WeekView @JvmOverloads constructor(
             return@observable
         checkEvents(new)
 
-        allDayEventsView.setEvents(new.filter { it.allDay })
+        allDayEventsView.setEvents(new.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(new.filter { !it.allDay })
+        val byDays = distributeEvents(new.filter { !showAsAllDay(it) })
         for (day in 0 until 7)
             dayViews[day].setEvents(byDays[day])
     }
@@ -173,9 +177,9 @@ class WeekView @JvmOverloads constructor(
         headerView.week = week
 
         val range = range
-        allDayEventsView.setRange(range.first, range.second, events.filter { it.allDay })
+        allDayEventsView.setRange(range.first, range.second, events.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(events.filter { !it.allDay })
+        val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), byDays[day])
         this.events = events
