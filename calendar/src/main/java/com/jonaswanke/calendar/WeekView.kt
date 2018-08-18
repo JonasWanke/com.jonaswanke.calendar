@@ -2,12 +2,12 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import androidx.annotation.AttrRes
-import androidx.core.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -91,6 +91,7 @@ class WeekView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
+        setWillNotDraw(false)
 
         cal = week.toCalendar()
 
