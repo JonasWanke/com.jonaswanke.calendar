@@ -1,20 +1,19 @@
 package com.jonaswanke.calendar.example
 
 import android.content.Intent
-import androidx.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
-import androidx.core.view.GravityCompat
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import android.text.format.DateUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.databinding.DataBindingUtil
 import com.jonaswanke.calendar.BaseEvent
 import com.jonaswanke.calendar.Event
 import com.jonaswanke.calendar.Week
-import com.jonaswanke.calendar.asCalendar
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
@@ -78,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             events.add(BaseEvent(
                     id,
                     id,
-                    random.nextInt(),
+                    (random.nextInt() or 0xFF000000.toInt()) and 0x00202020.inv(),
                     start,
                     start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
         }
@@ -88,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             events.add(BaseEvent(
                     id,
                     id,
-                    random.nextInt(),
+                    (random.nextInt() or 0xFF000000.toInt()) and 0x00202020.inv(),
                     start,
                     start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS * 7),
                     true))
