@@ -3,16 +3,17 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import androidx.annotation.AttrRes
-import androidx.annotation.StyleRes
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.DrawableCompat
-import androidx.appcompat.view.ContextThemeWrapper
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.widget.TextView
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
@@ -77,9 +78,9 @@ class EventView @JvmOverloads constructor(
             text = builder
         }
 
-        backgroundDrawable?.also {
-            DrawableCompat.setTint(it, event.color ?: backgroundColorDefault)
-        }
+        ((backgroundDrawable as? LayerDrawable)
+                ?.getDrawable(1) as? GradientDrawable)
+                ?.setColor(event.color ?: backgroundColorDefault)
         background = backgroundDrawable
     }
 }

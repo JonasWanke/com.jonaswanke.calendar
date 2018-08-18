@@ -4,20 +4,22 @@ import android.content.Context
 import android.gesture.GestureOverlayView
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.annotation.AttrRes
-import androidx.annotation.IntDef
-import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.IntDef
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.doOnLayout
+import androidx.viewpager.widget.ViewPager
 import com.jonaswanke.calendar.pager.InfinitePagerAdapter
 import com.jonaswanke.calendar.pager.InfiniteViewPager
 import kotlinx.android.synthetic.main.view_calendar.view.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import kotlin.properties.Delegates
 
 /**
@@ -76,8 +78,12 @@ class CalendarView @JvmOverloads constructor(
             return@vetoable true
 
         hours.hourHeight = new
-        for (week in weekViews.values)
-            week.hourHeight = new
+        weekViews[currentWeek]?.hourHeight = new
+        launch(UI) {
+            for (week in weekViews.values)
+                if (week.week != currentWeek)
+                    week.hourHeight = new
+        }
         return@vetoable true
     }
     var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
