@@ -185,7 +185,7 @@ class DayView @JvmOverloads constructor(
             val subGroupLeft = left + subGroupWidth * data.index + eventSpacing
 
             eventView.layout((subGroupLeft + data.subIndex * eventSpacing).toInt(), eventTop.toInt(),
-                    (subGroupLeft + subGroupWidth - eventSpacing).toInt(), (eventBottom - eventSpacing).toInt())
+                    (subGroupLeft + subGroupWidth - eventSpacing).toInt(), eventBottom.toInt())
         }
     }
 
@@ -272,6 +272,7 @@ class DayView @JvmOverloads constructor(
         val stackOverlap = eventStackOverlap / hourHeight * DateUtils.HOUR_IN_MILLIS
 
         fun endOf(event: Event) = Math.max(event.end, (event.start + minLength + spacing).toLong())
+        fun endOfNoSpacing(event: Event) = Math.max(event.end, event.start + minLength)
 
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0L
@@ -280,42 +281,65 @@ class DayView @JvmOverloads constructor(
                 0 -> return
                 1 -> eventData[currentGroup.first()] = EventData()
                 else -> {
-                    val lastEvents = mutableListOf<Event>()
+                    val columns = mutableListOf<MutableList<Event>>()
                     for (event in currentGroup) {
-                        // Last event of column with minimum height when stacking
-                        val stackPrevEvent = lastEvents
-                                .filter { it.start + stackOverlap <= event.start }
-                                .minBy { it.start }
-                        // Last event of column with minimum height when putting behind
-                        val behindPrevEvent = lastEvents
-                                .filter { endOf(it) <= event.start }
-                                .minBy { endOf(it) }
+                        var minIndex = Int.MIN_VALUE
+                        var minSubIndex = Int.MIN_VALUE
+                        var minTop = Long.MAX_VALUE
+                        var minIsStacking = false
+                        for (index in columns.indices) {
+                            val column = columns[index]
+                            for (subIndex in column.indices.reversed()) {
+                                val other = column[subIndex]
+
+                                // No space in current subgroup
+                                if (other.start + stackOverlap > event.start && endOfNoSpacing(other) >= event.start)
+                                    break
+
+                                // Stacking
+                                val (top, isStacking) = if (other.start + stackOverlap <= event.start
+                                        && endOfNoSpacing(other) >= event.start)
+                                    (other.start + stackOverlap).toLong() to true
+                                // Below other
+                                else if (endOf(other) <= event.start)
+                                    endOf(other) to false
+                                // Too close
+                                else
+                                    continue
+
+                                if (minTop > top // Further at the top
+                                        || minSubIndex > subIndex // Further to the left
+                                        || (minTop == top && !minIsStacking && isStacking)) {
+                                    // Prefer stacking
+                                    minIndex = index
+                                    minSubIndex = subIndex
+                                    minTop = top
+                                    minIsStacking = isStacking
+
+                                    if (endOf(other) >= event.start)
+                                        break
+                                }
+                            }
+                        }
 
                         // If no column fits
-                        if (stackPrevEvent == null && behindPrevEvent == null) {
-                            eventData[event] = EventData(index = lastEvents.size)
-                            lastEvents.add(event)
+                        if (minTop == Long.MAX_VALUE) {
+                            eventData[event] = EventData(index = columns.size)
+                            columns.add(mutableListOf(event))
                             continue
                         }
 
-                        // Stacking is further at the top
-                        if (behindPrevEvent == null
-                                || stackPrevEvent!!.start + stackOverlap <= endOf(behindPrevEvent)) {
-                            val prevEventData = eventData[stackPrevEvent]!!
+                        val subIndex = if (minIsStacking) minSubIndex + 1 else minSubIndex
+                        eventData[event] = EventData(index = minIndex, subIndex = subIndex)
 
-                            eventData[event] = EventData(index = prevEventData.index,
-                                    subIndex = (prevEventData.subIndex ?: 0) + 1)
-                            if (stackPrevEvent!!.start < event.start)
-                                lastEvents[prevEventData.index] = event
-                        } else {
-                            val index = eventData[behindPrevEvent]!!.index
-
-                            eventData[event] = EventData(index = index)
-                            lastEvents[index] = event
-                        }
+                        val column = columns[minIndex]
+                        if (column.size > subIndex)
+                            column[subIndex] = event
+                        else
+                            column.add(event)
                     }
                     for (e in currentGroup)
-                        eventData[e]?.parallel = lastEvents.size
+                        eventData[e]?.parallel = columns.size
                 }
             }
         }
