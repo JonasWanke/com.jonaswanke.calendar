@@ -54,6 +54,7 @@
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
         <attr name="eventSpacing" />
+        <attr name="eventStackOverlap" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="EventView">

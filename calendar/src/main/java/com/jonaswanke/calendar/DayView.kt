@@ -7,7 +7,6 @@ import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
@@ -80,6 +79,7 @@ class DayView @JvmOverloads constructor(
     }
 
     private var eventSpacing: Float = 0f
+    private var eventStackOverlap: Float = 0f
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
         dividerHeight = new?.intrinsicHeight ?: 0
@@ -98,6 +98,7 @@ class DayView @JvmOverloads constructor(
             hourHeightMax = getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
             eventSpacing = getDimension(R.styleable.DayView_eventSpacing, 2f)
+            eventStackOverlap = getDimension(R.styleable.DayView_eventStackOverlap, 20f)
         }
 
         onUpdateDay(day)
@@ -159,7 +160,7 @@ class DayView @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val left = paddingLeft + eventSpacing
+        val left = paddingLeft
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
@@ -176,15 +177,15 @@ class DayView @JvmOverloads constructor(
 
             val data = eventData[event] ?: continue
             val eventTop = (top + getPosForTime(event.start)).toFloat()
-            var eventBottom = (top + getPosForTime(event.end)).toFloat()
+            var eventBottom = (top + getPosForTime(event.end) - eventSpacing).toFloat()
             // Fix if event ends on next day
-            eventBottom = if (eventBottom < eventTop && event.end > event.start) bottom + eventSpacing
+            eventBottom = if (event.end >= day.nextDay.start) bottom + eventSpacing
             else max(eventBottom, eventTop + eventView.minHeight)
-            val eventWidth = width / data.parallel
-            val eventLeft = left + eventWidth * data.index + eventSpacing
+            val subGroupWidth = width / data.parallel
+            val subGroupLeft = left + subGroupWidth * data.index + eventSpacing
 
-            eventView.layout(eventLeft.toInt(), eventTop.toInt(),
-                    (eventLeft + eventWidth - eventSpacing).toInt(), (eventBottom - eventSpacing).toInt())
+            eventView.layout((subGroupLeft + data.subIndex * eventSpacing).toInt(), eventTop.toInt(),
+                    (subGroupLeft + subGroupWidth - eventSpacing).toInt(), (eventBottom - eventSpacing).toInt())
         }
     }
 
@@ -267,31 +268,54 @@ class DayView @JvmOverloads constructor(
         eventData.clear()
         val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
+        val spacing = eventSpacing / hourHeight * DateUtils.HOUR_IN_MILLIS
+        val stackOverlap = eventStackOverlap / hourHeight * DateUtils.HOUR_IN_MILLIS
 
-        fun endOf(event: Event) = Math.max(event.end, event.start + minLength)
+        fun endOf(event: Event) = Math.max(event.end, (event.start + minLength + spacing).toLong())
 
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0L
         fun endGroup() {
             when (currentGroup.size) {
                 0 -> return
-                1 -> eventData[currentGroup[0]] = EventData()
+                1 -> eventData[currentGroup.first()] = EventData()
                 else -> {
-                    val ends = mutableListOf<Long>()
+                    val lastEvents = mutableListOf<Event>()
                     for (event in currentGroup) {
-                        val min = ends.filter { it < event.start }.min()
-                        val index = ends.indexOf(min)
+                        // Last event of column with minimum height when stacking
+                        val stackPrevEvent = lastEvents
+                                .filter { it.start + stackOverlap <= event.start }
+                                .minBy { it.start }
+                        // Last event of column with minimum height when putting behind
+                        val behindPrevEvent = lastEvents
+                                .filter { endOf(it) <= event.start }
+                                .minBy { endOf(it) }
 
-                        if (index < 0) {
-                            eventData[event] = EventData(index = ends.size)
-                            ends.add(endOf(event))
+                        // If no column fits
+                        if (stackPrevEvent == null && behindPrevEvent == null) {
+                            eventData[event] = EventData(index = lastEvents.size)
+                            lastEvents.add(event)
+                            continue
+                        }
+
+                        // Stacking is further at the top
+                        if (behindPrevEvent == null
+                                || stackPrevEvent!!.start + stackOverlap <= endOf(behindPrevEvent)) {
+                            val prevEventData = eventData[stackPrevEvent]!!
+
+                            eventData[event] = EventData(index = prevEventData.index,
+                                    subIndex = (prevEventData.subIndex ?: 0) + 1)
+                            if (stackPrevEvent!!.start < event.start)
+                                lastEvents[prevEventData.index] = event
                         } else {
+                            val index = eventData[behindPrevEvent]!!.index
+
                             eventData[event] = EventData(index = index)
-                            ends[index] = endOf(event)
+                            lastEvents[index] = event
                         }
                     }
                     for (e in currentGroup)
-                        eventData[e]?.parallel = ends.size
+                        eventData[e]?.parallel = lastEvents.size
                 }
             }
         }
@@ -367,6 +391,7 @@ class DayView @JvmOverloads constructor(
 
     private data class EventData(
         var parallel: Int = 1,
-        val index: Int = 0
+        val index: Int = 0,
+        val subIndex: Int = 0
     )
 }
