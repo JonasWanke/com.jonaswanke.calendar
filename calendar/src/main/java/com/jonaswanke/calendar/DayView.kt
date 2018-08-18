@@ -14,7 +14,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.math.max
@@ -29,6 +31,9 @@ class DayView @JvmOverloads constructor(
     @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
     _day: Day? = null
 ) : ViewGroup(context, attrs, defStyleAttr) {
+    companion object {
+        private const val EVENT_POSITIONING_DEBOUNCE = 500L
+    }
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -66,8 +71,8 @@ class DayView @JvmOverloads constructor(
                 return
 
             _hourHeight = v
-            positionEvents()
-            requestLayout()
+            invalidate()
+            requestPositionEventsAndLayout()
         }
     var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
         if (new > 0 && hourHeight < new)
@@ -77,6 +82,8 @@ class DayView @JvmOverloads constructor(
         if (new > 0 && hourHeight > new)
             hourHeight = new
     }
+    private var eventPositionRequired: Boolean = false
+    private var eventPositionJob: Job? = null
 
     private var eventSpacing: Float = 0f
     private var eventStackOverlap: Float = 0f
@@ -177,10 +184,11 @@ class DayView @JvmOverloads constructor(
 
             val data = eventData[event] ?: continue
             val eventTop = (top + getPosForTime(event.start)).toFloat()
-            var eventBottom = (top + getPosForTime(event.end) - eventSpacing).toFloat()
             // Fix if event ends on next day
-            eventBottom = if (event.end >= day.nextDay.start) bottom + eventSpacing
-            else max(eventBottom, eventTop + eventView.minHeight)
+            val eventBottom = if (event.end >= day.nextDay.start)
+                bottom + eventSpacing
+            else
+                max(top + getPosForTime(event.end) - eventSpacing, eventTop + eventView.minHeight)
             val subGroupWidth = width / data.parallel
             val subGroupLeft = left + subGroupWidth * data.index + eventSpacing
 
@@ -357,6 +365,23 @@ class DayView @JvmOverloads constructor(
                 }
             }
         endGroup()
+    }
+
+    private fun requestPositionEventsAndLayout() {
+        requestLayout()
+
+        if (eventPositionJob == null)
+            eventPositionJob = launch(UI) {
+                eventPositionRequired = false
+                delay(EVENT_POSITIONING_DEBOUNCE)
+                positionEvents()
+                requestLayout()
+                eventPositionJob = null
+                if (eventPositionRequired)
+                    requestPositionEventsAndLayout()
+            }
+        else
+            eventPositionRequired = true
     }
 
     private fun checkEvents(events: List<Event>) {
