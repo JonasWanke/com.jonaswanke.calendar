@@ -2,6 +2,5 @@
 <resources>
 
     <dimen name="calendar_headerHeight">65dp</dimen>
-    <dimen name="event_stroke_width">.6dp</dimen>
 
 </resources>

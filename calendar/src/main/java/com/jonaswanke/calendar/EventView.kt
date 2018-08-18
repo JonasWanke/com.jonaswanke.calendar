@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
@@ -77,7 +78,9 @@ class EventView @JvmOverloads constructor(
             text = builder
         }
 
-        (backgroundDrawable as? GradientDrawable)?.setColor(event.color ?: backgroundColorDefault)
+        ((backgroundDrawable as? LayerDrawable)
+                ?.getDrawable(1) as? GradientDrawable)
+                ?.setColor(event.color ?: backgroundColorDefault)
         background = backgroundDrawable
     }
 }
