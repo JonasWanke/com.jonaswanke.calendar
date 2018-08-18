@@ -197,8 +197,8 @@ class DayView @JvmOverloads constructor(
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
+    override fun draw(canvas: Canvas?) {
+        super.draw(canvas)
         if (canvas == null)
             return
 
@@ -207,18 +207,28 @@ class DayView @JvmOverloads constructor(
         val right = width - paddingRight
         val bottom = height - paddingBottom
 
-        for (hour in 1..23) {
-            divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
-                    right, (top + _hourHeight * hour + dividerHeight).toInt())
-            divider?.draw(canvas)
-        }
-
         if (day.isToday) {
             val time = Calendar.getInstance().timeOfDay
             val posY = top + (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
             canvas.drawCircle(left.toFloat(), posY, timeCircleRadius.toFloat(), timePaint)
             canvas.drawRect(left.toFloat(), posY - timeLineSize / 2,
                     right.toFloat(), posY + timeLineSize / 2, timePaint)
+        }
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        if (canvas == null)
+            return
+
+        val left = paddingLeft
+        val top = paddingTop
+        val right = width - paddingRight
+
+        for (hour in 1..23) {
+            divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
+                    right, (top + _hourHeight * hour + dividerHeight).toInt())
+            divider?.draw(canvas)
         }
     }
 
