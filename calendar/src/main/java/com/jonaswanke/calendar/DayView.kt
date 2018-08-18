@@ -292,7 +292,7 @@ class DayView @JvmOverloads constructor(
                     val columns = mutableListOf<MutableList<Event>>()
                     for (event in currentGroup) {
                         var minIndex = Int.MIN_VALUE
-                        var minSubIndex = Int.MIN_VALUE
+                        var minSubIndex = Int.MAX_VALUE
                         var minTop = Long.MAX_VALUE
                         var minIsStacking = false
                         for (index in columns.indices) {
@@ -315,10 +315,8 @@ class DayView @JvmOverloads constructor(
                                 else
                                     continue
 
-                                if (minTop > top // Further at the top
-                                        || minSubIndex > subIndex // Further to the left
-                                        || (minTop == top && !minIsStacking && isStacking)) {
-                                    // Prefer stacking
+                                // Wider and further at the top
+                                if (minSubIndex >= subIndex && minTop >= top) {
                                     minIndex = index
                                     minSubIndex = subIndex
                                     minTop = top
