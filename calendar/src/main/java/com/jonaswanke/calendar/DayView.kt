@@ -316,7 +316,7 @@ class DayView @JvmOverloads constructor(
                                     continue
 
                                 // Wider and further at the top
-                                if (minSubIndex >= subIndex && minTop >= top) {
+                                if (minSubIndex >= subIndex) {
                                     minIndex = index
                                     minSubIndex = subIndex
                                     minTop = top
