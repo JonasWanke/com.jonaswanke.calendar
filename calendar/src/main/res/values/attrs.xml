@@ -3,6 +3,7 @@
     <attr name="hourHeight" format="dimension" />
     <attr name="hourHeightMin" format="dimension" />
     <attr name="hourHeightMax" format="dimension" />
+    <attr name="eventSpacing" format="dimension" />
 
     <declare-styleable name="AppTheme">
         <attr name="calendarViewStyle" format="reference" />
@@ -41,7 +42,7 @@
     </declare-styleable>
 
     <declare-styleable name="AllDayEventsView">
-        <attr name="spacing" format="dimension" />
+        <attr name="eventSpacing" />
     </declare-styleable>
 
     <declare-styleable name="DayView">
@@ -52,7 +53,7 @@
         <attr name="timeCircleRadius" format="dimension" />
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
-        <attr name="eventMinHeight" format="dimension" />
+        <attr name="eventSpacing" />
     </declare-styleable>
 
     <declare-styleable name="EventView">

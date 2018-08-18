@@ -5,14 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import androidx.annotation.AttrRes
-import androidx.core.content.ContextCompat
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
@@ -54,6 +53,10 @@ class DayView @JvmOverloads constructor(
     private var addEventView: EventView? = null
 
 
+    private var timeCircleRadius: Int = 0
+    private var timeLineSize: Int = 0
+    private lateinit var timePaint: Paint
+
     private var _hourHeight: Float = 0f
     var hourHeight: Float
         get() = _hourHeight
@@ -76,9 +79,7 @@ class DayView @JvmOverloads constructor(
             hourHeight = new
     }
 
-    private var timeCircleRadius: Int = 0
-    private var timeLineSize: Int = 0
-    private lateinit var timePaint: Paint
+    private var eventSpacing: Float = 0f
 
     internal var divider by Delegates.observable<Drawable?>(null) { _, _, new ->
         dividerHeight = new?.intrinsicHeight ?: 0
@@ -96,7 +97,7 @@ class DayView @JvmOverloads constructor(
             hourHeightMin = getDimension(R.styleable.DayView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
-            timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
+            eventSpacing = getDimension(R.styleable.DayView_eventSpacing, 2f)
         }
 
         onUpdateDay(day)
@@ -158,8 +159,7 @@ class DayView @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val space = timeCircleRadius / 2
-        val left = paddingLeft + space
+        val left = paddingLeft + eventSpacing
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
@@ -175,15 +175,16 @@ class DayView @JvmOverloads constructor(
             val event = eventView.event ?: continue
 
             val data = eventData[event] ?: continue
-            val eventTop = top + getPosForTime(event.start)
-            var eventBottom = top + getPosForTime(event.end)
+            val eventTop = (top + getPosForTime(event.start)).toFloat()
+            var eventBottom = (top + getPosForTime(event.end)).toFloat()
             // Fix if event ends on next day
-            eventBottom = if (eventBottom < eventTop && event.end > event.start) bottom
+            eventBottom = if (eventBottom < eventTop && event.end > event.start) bottom + eventSpacing
             else max(eventBottom, eventTop + eventView.minHeight)
             val eventWidth = width / data.parallel
-            val eventLeft = left + eventWidth * data.index + space
+            val eventLeft = left + eventWidth * data.index + eventSpacing
 
-            eventView.layout(eventLeft, eventTop, eventLeft + eventWidth - space, eventBottom)
+            eventView.layout(eventLeft.toInt(), eventTop.toInt(),
+                    (eventLeft + eventWidth - eventSpacing).toInt(), (eventBottom - eventSpacing).toInt())
         }
     }
 
@@ -197,18 +198,18 @@ class DayView @JvmOverloads constructor(
         val right = width - paddingRight
         val bottom = height - paddingBottom
 
+        for (hour in 1..23) {
+            divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
+                    right, (top + _hourHeight * hour + dividerHeight).toInt())
+            divider?.draw(canvas)
+        }
+
         if (day.isToday) {
             val time = Calendar.getInstance().timeOfDay
             val posY = top + (bottom.toFloat() - top) * time / DateUtils.DAY_IN_MILLIS
             canvas.drawCircle(left.toFloat(), posY, timeCircleRadius.toFloat(), timePaint)
             canvas.drawRect(left.toFloat(), posY - timeLineSize / 2,
                     right.toFloat(), posY + timeLineSize / 2, timePaint)
-        }
-
-        for (hour in 1..23) {
-            divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
-                    right, (top + _hourHeight * hour + dividerHeight).toInt())
-            divider?.draw(canvas)
         }
     }
 
@@ -295,15 +296,17 @@ class DayView @JvmOverloads constructor(
             }
         }
         for (event in events)
-            if (event is AddEvent) {
-                eventData[event] = EventData()
-            } else if (event.start <= currentEnd) {
-                currentGroup.add(event)
-                currentEnd = Math.max(currentEnd, endOf(event))
-            } else {
-                endGroup()
-                currentGroup = mutableListOf(event)
-                currentEnd = endOf(event)
+            when {
+                event is AddEvent -> eventData[event] = EventData()
+                event.start <= currentEnd -> {
+                    currentGroup.add(event)
+                    currentEnd = Math.max(currentEnd, endOf(event))
+                }
+                else -> {
+                    endGroup()
+                    currentGroup = mutableListOf(event)
+                    currentEnd = endOf(event)
+                }
             }
         endGroup()
     }
@@ -352,6 +355,7 @@ class DayView @JvmOverloads constructor(
                 null
 
             if (day.isToday && !this@DayView::timePaint.isInitialized) {
+                timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
                 timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
                 val timeColor = getColor(R.styleable.DayView_timeColor, Color.BLACK)
                 timePaint = Paint().apply {

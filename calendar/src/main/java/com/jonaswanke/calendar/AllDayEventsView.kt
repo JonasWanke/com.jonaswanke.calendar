@@ -50,7 +50,7 @@ class AllDayEventsView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
-            spacing = getDimension(R.styleable.AllDayEventsView_spacing, 0f)
+            spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 
         onUpdateRange(start, end)

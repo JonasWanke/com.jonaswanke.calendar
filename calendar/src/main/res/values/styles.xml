@@ -34,7 +34,7 @@
         <item name="hourHeight">32dp</item>
         <item name="hourHeightMin">24dp</item>
         <item name="hourHeightMax">100dp</item>
-        <item name="eventMinHeight">24dp</item>
+        <item name="eventSpacing">2dp</item>
     </style>
 
     <style name="Calendar.EventViewStyle">
