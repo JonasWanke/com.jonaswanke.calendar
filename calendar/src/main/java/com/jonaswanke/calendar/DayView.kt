@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
@@ -145,6 +146,10 @@ class DayView @JvmOverloads constructor(
             }
             return@setOnTouchListener motionEvent.action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)
         }
+        setOnLongClickListener {
+            requestPositionEventsAndLayout()
+            true
+        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -175,7 +180,11 @@ class DayView @JvmOverloads constructor(
         val width = right - left
 
         fun getPosForTime(time: Long): Int {
-            return (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
+            return when {
+                time < day.start -> 0
+                time >= day.end -> height
+                else -> (height * cal.apply { timeInMillis = time }.timeOfDay / DateUtils.DAY_IN_MILLIS).toInt()
+            }
         }
 
         for (view in children) {
@@ -183,7 +192,7 @@ class DayView @JvmOverloads constructor(
             val event = eventView.event ?: continue
 
             val data = eventData[event] ?: continue
-            val eventTop = (top + getPosForTime(event.start)).toFloat()
+            val eventTop = (min(top + getPosForTime(event.start), bottom - eventView.minHeight)).toFloat()
             // Fix if event ends on next day
             val eventBottom = if (event.end >= day.nextDay.start)
                 bottom + eventSpacing
@@ -289,8 +298,10 @@ class DayView @JvmOverloads constructor(
         val spacing = eventSpacing / hourHeight * DateUtils.HOUR_IN_MILLIS
         val stackOverlap = eventStackOverlap / hourHeight * DateUtils.HOUR_IN_MILLIS
 
-        fun endOf(event: Event) = Math.max(event.end, (event.start + minLength + spacing).toLong())
-        fun endOfNoSpacing(event: Event) = Math.max(event.end, event.start + minLength)
+        fun startOf(event: Event) = (event.start - day.start).coerceIn(0, DateUtils.DAY_IN_MILLIS - minLength)
+        fun endOf(event: Event) = (event.end - day.start).coerceIn(startOf(event) + minLength, DateUtils.DAY_IN_MILLIS)
+        fun endOfNoSpacing(event: Event) = (event.end - day.start)
+                .coerceIn(startOf(event) + minLength + spacing.toLong(), DateUtils.DAY_IN_MILLIS)
 
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0L
@@ -311,15 +322,15 @@ class DayView @JvmOverloads constructor(
                                 val other = column[subIndex]
 
                                 // No space in current subgroup
-                                if (other.start + stackOverlap > event.start && endOfNoSpacing(other) >= event.start)
+                                if (startOf(other) + stackOverlap > startOf(event) && endOfNoSpacing(other) >= startOf(event))
                                     break
 
                                 // Stacking
-                                val (top, isStacking) = if (other.start + stackOverlap <= event.start
-                                        && endOfNoSpacing(other) >= event.start)
-                                    (other.start + stackOverlap).toLong() to true
+                                val (top, isStacking) = if (startOf(other) + stackOverlap <= startOf(event)
+                                        && endOfNoSpacing(other) >= startOf(event))
+                                    (startOf(other) + stackOverlap).toLong() to true
                                 // Below other
-                                else if (endOf(other) <= event.start)
+                                else if (endOf(other) <= startOf(event))
                                     endOf(other) to false
                                 // Too close
                                 else
@@ -332,7 +343,7 @@ class DayView @JvmOverloads constructor(
                                     minTop = top
                                     minIsStacking = isStacking
 
-                                    if (endOf(other) >= event.start)
+                                    if (endOf(other) >= startOf(event))
                                         break
                                 }
                             }
@@ -362,7 +373,7 @@ class DayView @JvmOverloads constructor(
         for (event in events)
             when {
                 event is AddEvent -> eventData[event] = EventData()
-                event.start <= currentEnd -> {
+                startOf(event) <= currentEnd -> {
                     currentGroup.add(event)
                     currentEnd = Math.max(currentEnd, endOf(event))
                 }
@@ -397,7 +408,7 @@ class DayView @JvmOverloads constructor(
             throw IllegalArgumentException("all-day events cannot be shown inside DayView")
         if (events.any { event -> event is AddEvent })
             throw IllegalArgumentException("add events currently cannot be set from the outside")
-        if (events.any { event -> event.start < day.start || event.start >= day.end })
+        if (events.any { event -> event.end < day.start || event.start >= day.end })
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
 

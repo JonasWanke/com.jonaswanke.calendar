@@ -223,8 +223,12 @@ class WeekView @JvmOverloads constructor(
     private fun distributeEvents(events: List<Event>): List<List<Event>> {
         val days = (0 until 7).map { mutableListOf<Event>() }
 
-        for (event in events)
-            days[cal.daysUntil(event.start)] += event
+        for (event in events) {
+            val start = cal.daysUntil(event.start).coerceAtLeast(0)
+            val end = cal.daysUntil(event.end).coerceAtMost(6)
+            for (day in start..end)
+                days[day] += event
+        }
 
         return days
     }
