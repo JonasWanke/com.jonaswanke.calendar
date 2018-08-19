@@ -34,6 +34,7 @@ class EventView @JvmOverloads constructor(
 
         onEventChanged(new)
     }
+    private val titleFromAttribute = !text.isEmpty()
     private val titleDefault by lazy {
         var default: String? = null
         context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes) {
@@ -69,7 +70,7 @@ class EventView @JvmOverloads constructor(
             return
         }
 
-        if (text.isNullOrBlank()) {
+        if (!titleFromAttribute) {
             val builder = SpannableStringBuilder(title)
             val titleEnd = builder.length
             builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)

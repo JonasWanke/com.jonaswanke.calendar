@@ -17,6 +17,7 @@ import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
     private var nextId: Long = 0
@@ -73,23 +74,23 @@ class MainActivity : AppCompatActivity() {
         val events = mutableListOf<Event>()
         for (i in 0..15) {
             val id = nextId++.toString()
-            val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
+            val start = week.start + abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
             events.add(BaseEvent(
                     id,
                     id,
                     (random.nextInt() or 0xFF000000.toInt()) and 0x00202020.inv(),
                     start,
-                    start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
+                    start + abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS / 8)))
         }
         for (i in 0..3) {
             val id = nextId++.toString()
-            val start = week.start + Math.abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
+            val start = week.start + abs(random.nextLong()) % DateUtils.WEEK_IN_MILLIS
             events.add(BaseEvent(
                     id,
                     id,
                     (random.nextInt() or 0xFF000000.toInt()) and 0x00202020.inv(),
                     start,
-                    start + Math.abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS * 7),
+                    start + abs(random.nextLong()) % (DateUtils.DAY_IN_MILLIS * 7),
                     true))
         }
         calendar.setEventsForWeek(week, events)

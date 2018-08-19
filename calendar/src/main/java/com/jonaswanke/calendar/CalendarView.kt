@@ -223,8 +223,22 @@ class CalendarView @JvmOverloads constructor(
 
 
     fun setEventsForWeek(week: Week, events: List<Event>) {
-        this.events[week] = events
-        weekViews[week]?.events = events
+        val allEvents = this.events[week].orEmpty().filter { it.start !in week } + events
+        this.events[week] = allEvents
+        weekViews[week]?.events = allEvents
+
+        // Update future weeks
+        var futureWeek = week.nextWeek
+        while (this.events[futureWeek]?.any { it.start in week } == true // Deprecated event has to be removed
+                || allEvents.any { it.end > futureWeek.start }) { // New event has to be added
+            val weekEvents = this.events[futureWeek].orEmpty() +
+                    events.filter { it.end > futureWeek.start }
+
+            this.events[futureWeek] = weekEvents
+            weekViews[futureWeek]?.events = weekEvents
+
+            futureWeek = futureWeek.nextWeek
+        }
     }
 
 
