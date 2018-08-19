@@ -4,20 +4,22 @@ import android.content.Context
 import android.gesture.GestureOverlayView
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.annotation.AttrRes
-import androidx.annotation.IntDef
-import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.IntDef
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.doOnLayout
+import androidx.viewpager.widget.ViewPager
 import com.jonaswanke.calendar.pager.InfinitePagerAdapter
 import com.jonaswanke.calendar.pager.InfiniteViewPager
 import kotlinx.android.synthetic.main.view_calendar.view.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import kotlin.properties.Delegates
 
 /**
@@ -76,8 +78,12 @@ class CalendarView @JvmOverloads constructor(
             return@vetoable true
 
         hours.hourHeight = new
-        for (week in weekViews.values)
-            week.hourHeight = new
+        weekViews[currentWeek]?.hourHeight = new
+        launch(UI) {
+            for (week in weekViews.values)
+                if (week.week != currentWeek)
+                    week.hourHeight = new
+        }
         return@vetoable true
     }
     var hourHeightMin: Float by Delegates.observable(0f) { _, _, new ->
@@ -217,8 +223,22 @@ class CalendarView @JvmOverloads constructor(
 
 
     fun setEventsForWeek(week: Week, events: List<Event>) {
-        this.events[week] = events
-        weekViews[week]?.events = events
+        val allEvents = this.events[week].orEmpty().filter { it.start !in week } + events
+        this.events[week] = allEvents
+        weekViews[week]?.events = allEvents
+
+        // Update future weeks
+        var futureWeek = week.nextWeek
+        while (this.events[futureWeek]?.any { it.start in week } == true // Deprecated event has to be removed
+                || allEvents.any { it.end > futureWeek.start }) { // New event has to be added
+            val weekEvents = this.events[futureWeek].orEmpty() +
+                    events.filter { it.end > futureWeek.start }
+
+            this.events[futureWeek] = weekEvents
+            weekViews[futureWeek]?.events = weekEvents
+
+            futureWeek = futureWeek.nextWeek
+        }
     }
 
 

@@ -2,12 +2,13 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import androidx.annotation.AttrRes
-import androidx.core.content.ContextCompat
+import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -20,6 +21,9 @@ class WeekView @JvmOverloads constructor(
     @AttrRes defStyleAttr: Int = 0,
     _week: Week? = null
 ) : LinearLayout(context, attrs, defStyleAttr) {
+    companion object {
+        internal fun showAsAllDay(event: Event) = event.allDay || event.end - event.start >= DateUtils.DAY_IN_MILLIS
+    }
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -48,17 +52,19 @@ class WeekView @JvmOverloads constructor(
             return Day(week.year, week.week, cal.firstDayOfWeek) to
                     Day(week.nextWeek.year, week.nextWeek.week, cal.firstDayOfWeek)
         }
-    var events: List<Event> by Delegates.observable(emptyList()) { _, old, new ->
-        if (old == new)
-            return@observable
-        checkEvents(new)
+    private var _events: List<Event> = emptyList()
+    var events: List<Event>
+        get() = _events
+        set(value) {
+            checkEvents(value)
+            val sortedEvents = value.sorted()
 
-        allDayEventsView.setEvents(new.filter { it.allDay })
+            allDayEventsView.setEvents(sortedEvents.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(new.filter { !it.allDay })
-        for (day in 0 until 7)
-            dayViews[day].setEvents(byDays[day])
-    }
+            val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
+            for (day in 0 until 7)
+                dayViews[day].setEvents(byDays[day])
+        }
 
     private var cal: Calendar
 
@@ -91,6 +97,7 @@ class WeekView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
+        setWillNotDraw(false)
 
         cal = week.toCalendar()
 
@@ -169,15 +176,16 @@ class WeekView @JvmOverloads constructor(
 
         removeAddEvent()
         checkEvents(events)
+        val sortedEvents = events.sorted()
         headerView.week = week
 
         val range = range
-        allDayEventsView.setRange(range.first, range.second, events.filter { it.allDay })
+        allDayEventsView.setRange(range.first, range.second, sortedEvents.filter { showAsAllDay(it) })
 
-        val byDays = distributeEvents(events.filter { !it.allDay })
+        val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
         for (day in 0 until 7)
             dayViews[day].setDay(Day(week, mapBackDay(day)), byDays[day])
-        this.events = events
+        this.events = sortedEvents
     }
 
     fun scrollTo(pos: Int) {
@@ -191,7 +199,7 @@ class WeekView @JvmOverloads constructor(
 
 
     private fun checkEvents(events: List<Event>) {
-        if (events.any { event -> event.start < week.start || event.start >= week.end })
+        if (events.any { event -> event.end < week.start || event.start >= week.end })
             throw IllegalArgumentException("event starts must all be inside the set week")
     }
 
@@ -222,8 +230,12 @@ class WeekView @JvmOverloads constructor(
     private fun distributeEvents(events: List<Event>): List<List<Event>> {
         val days = (0 until 7).map { mutableListOf<Event>() }
 
-        for (event in events)
-            days[cal.daysUntil(event.start)] += event
+        for (event in events) {
+            val start = cal.daysUntil(event.start).coerceAtLeast(0)
+            val end = cal.daysUntil(event.end).coerceAtMost(6)
+            for (day in start..end)
+                days[day] += event
+        }
 
         return days
     }

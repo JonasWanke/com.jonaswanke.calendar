@@ -1,8 +1,6 @@
 package com.jonaswanke.calendar
 
-import androidx.core.view.ViewCompat
 import android.text.format.DateUtils
-import android.view.View
 import java.util.*
 
 private val TODAY: Calendar = Calendar.getInstance().apply {
@@ -53,6 +51,8 @@ data class Week(
         else
             Week(year, week.week)
     }
+
+    operator fun contains(time: Long) = time in start until end
 
     override fun toString(): String {
         return "$year-$week"
@@ -152,6 +152,10 @@ internal fun Calendar.daysUntil(other: Long): Int {
         days++
         add(Calendar.DAY_OF_MONTH, 1)
     }
+    while (timeInMillis > other) {
+        days--
+        add(Calendar.DAY_OF_MONTH, -1)
+    }
     timeInMillis = time
-    return days - 1
+    return days
 }
