@@ -20,6 +20,9 @@ class HoursView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = R.attr.hoursViewStyle
 ) : View(context, attrs, defStyleAttr) {
+    companion object {
+        private const val DIGIT_MAX = 9
+    }
 
     private var _hourHeight: Float = 0f
     var hourHeight: Float
@@ -48,10 +51,10 @@ class HoursView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.HoursView, defStyleAttr, R.style.Calendar_HoursViewStyle) {
-            _hourHeight = getDimension(R.styleable.HoursView_hourHeight, 16f)
+            _hourHeight = getDimension(R.styleable.HoursView_hourHeight, 0f)
             hourHeightMin = getDimension(R.styleable.HoursView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.HoursView_hourHeightMax, 0f)
-            hourSize = getDimensionPixelSize(R.styleable.HoursView_hourSize, 16)
+            hourSize = getDimensionPixelSize(R.styleable.HoursView_hourSize, 0)
             hourColor = getColor(R.styleable.HoursView_hourColor, Color.BLACK)
             hourPaint = TextPaint().apply {
                 color = hourColor
@@ -62,7 +65,7 @@ class HoursView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
+        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * DAY_IN_HOURS).toInt())
         setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -85,8 +88,8 @@ class HoursView @JvmOverloads constructor(
             return center + height / 2
         }
 
-        for (hour in 1..23) {
-            val hourText = if (hour < 10) "0$hour:00" else "$hour:00"
+        for (hour in 1 until DAY_IN_HOURS) {
+            val hourText = if (hour <= DIGIT_MAX) "0$hour:00" else "$hour:00"
             hourPaint.getTextBounds(hourText, 0, hourText.length, hourBounds)
             canvas.drawText(hourText,
                     getStartForCentered(hourBounds.width().toFloat()),

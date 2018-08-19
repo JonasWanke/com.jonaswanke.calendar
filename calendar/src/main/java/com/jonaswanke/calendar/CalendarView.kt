@@ -32,6 +32,8 @@ class CalendarView @JvmOverloads constructor(
 ) : GestureOverlayView(context, attrs, defStyleAttr) {
 
     companion object {
+        private const val GESTURE_STROKE_LENGTH = 10f
+
         const val RANGE_DAY = 1
         const val RANGE_3_DAYS = 3
         const val RANGE_WEEK = 7
@@ -71,6 +73,7 @@ class CalendarView @JvmOverloads constructor(
         onRangeUpdated()
     }
     var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
+        @Suppress("ComplexCondition")
         if ((hourHeightMin > 0 && new < hourHeightMin)
                 || (hourHeightMax > 0 && new > hourHeightMax))
             return@vetoable false
@@ -133,11 +136,11 @@ class CalendarView @JvmOverloads constructor(
             range = getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
             hourHeightMin = getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
-            hourHeight = getDimension(R.styleable.CalendarView_hourHeight, 100f)
+            hourHeight = getDimension(R.styleable.CalendarView_hourHeight, 0f)
         }
 
         isGestureVisible = false
-        gestureStrokeLengthThreshold = 10f
+        gestureStrokeLengthThreshold = GESTURE_STROKE_LENGTH
 
         scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector?): Boolean {

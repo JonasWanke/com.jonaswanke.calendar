@@ -81,13 +81,13 @@ complexity:
     includeStaticDeclarations: false
   ComplexMethod:
     active: true
-    threshold: 10
+    threshold: 15
     ignoreSingleWhenExpression: false
   LabeledExpression:
     active: false
   LargeClass:
     active: true
-    threshold: 150
+    threshold: 200
   LongMethod:
     active: true
     threshold: 20
@@ -109,11 +109,11 @@ complexity:
     ignoreStringsRegex: '$^'
   TooManyFunctions:
     active: true
-    thresholdInFiles: 11
-    thresholdInClasses: 11
-    thresholdInInterfaces: 11
-    thresholdInObjects: 11
-    thresholdInEnums: 11
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+    thresholdInInterfaces: 10
+    thresholdInObjects: 10
+    thresholdInEnums: 10
 
 empty-blocks:
   active: true

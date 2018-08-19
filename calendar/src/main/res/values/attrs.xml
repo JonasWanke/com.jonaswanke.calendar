@@ -61,6 +61,7 @@
         <attr name="borderWidth" format="dimension" />
         <attr name="borderColor" format="color" />
         <attr name="cornerRadius" format="dimension" />
+        <attr name="backgroundColorDefault" format="color" />
         <attr name="titleDefault" format="string" />
     </declare-styleable>
 

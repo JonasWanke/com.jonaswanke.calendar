@@ -28,6 +28,7 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
+@Suppress("LargeClass")
 class DayView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
@@ -103,12 +104,12 @@ class DayView @JvmOverloads constructor(
         setWillNotDraw(false)
 
         context.withStyledAttributes(attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle) {
-            _hourHeight = getDimension(R.styleable.DayView_hourHeight, 16f)
+            _hourHeight = getDimension(R.styleable.DayView_hourHeight, 0f)
             hourHeightMin = getDimension(R.styleable.DayView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.DayView_hourHeightMax, 0f)
 
-            eventSpacing = getDimension(R.styleable.DayView_eventSpacing, 2f)
-            eventStackOverlap = getDimension(R.styleable.DayView_eventStackOverlap, 20f)
+            eventSpacing = getDimension(R.styleable.DayView_eventSpacing, 0f)
+            eventStackOverlap = getDimension(R.styleable.DayView_eventStackOverlap, 0f)
         }
 
         onUpdateDay(day)
@@ -169,7 +170,7 @@ class DayView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, (_hourHeight * 24).toInt())
+        val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, (_hourHeight * DAY_IN_HOURS).toInt())
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -237,7 +238,7 @@ class DayView @JvmOverloads constructor(
         val top = paddingTop
         val right = width - paddingRight
 
-        for (hour in 1..23) {
+        for (hour in 1 until DAY_IN_HOURS) {
             divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
                     right, (top + _hourHeight * hour + dividerHeight).toInt())
             divider?.draw(canvas)
@@ -308,6 +309,7 @@ class DayView @JvmOverloads constructor(
         }
     }
 
+    @Suppress("ComplexMethod", "NestedBlockDepth")
     private fun positionEvents() {
         val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
@@ -428,6 +430,7 @@ class DayView @JvmOverloads constructor(
             eventPositionRequired = true
     }
 
+    @Suppress("ThrowsCount")
     private fun checkEvents(events: List<Event>) {
         if (events.any { showAsAllDay(it) })
             throw IllegalArgumentException("all-day events cannot be shown inside DayView")
@@ -472,8 +475,8 @@ class DayView @JvmOverloads constructor(
                 null
 
             if (day.isToday && !this@DayView::timePaint.isInitialized) {
-                timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 16)
-                timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 16)
+                timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 0)
+                timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 0)
                 val timeColor = getColor(R.styleable.DayView_timeColor, Color.BLACK)
                 timePaint = Paint().apply {
                     color = timeColor

@@ -2,6 +2,7 @@ package com.jonaswanke.calendar
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -54,12 +55,15 @@ class EventView @JvmOverloads constructor(
 
     private val backgroundDrawable: Drawable? = ResourcesCompat.getDrawable(context.resources,
             R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
-    private val backgroundColorDefault: Int = 0xFF039BE5.toInt()
+    private var backgroundColorDefault: Int = 0
 
     init {
         context.withStyledAttributes(attrs = intArrayOf(android.R.attr.selectableItemBackground)) {
             @SuppressLint("NewApi")
             foreground = getDrawable(0)
+        }
+        context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, R.style.Calendar_EventViewStyle) {
+            backgroundColorDefault = getColor(R.styleable.EventView_backgroundColorDefault, Color.BLUE)
         }
 
         onEventChanged(event)

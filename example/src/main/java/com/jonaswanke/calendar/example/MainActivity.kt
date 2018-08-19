@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    @Suppress("MagicNumber")
     private fun populate(week: Week) {
         val events = mutableListOf<Event>()
         for (i in 0..15) {
