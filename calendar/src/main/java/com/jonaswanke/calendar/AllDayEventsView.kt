@@ -1,16 +1,18 @@
 package com.jonaswanke.calendar
 
 import android.content.Context
-import androidx.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
+import com.jonaswanke.calendar.WeekView.Companion.showAsAllDay
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
+import kotlin.math.max
 import kotlin.properties.Delegates
 
 /**
@@ -50,7 +52,7 @@ class AllDayEventsView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
-            spacing = getDimension(R.styleable.AllDayEventsView_spacing, 0f)
+            spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 
         onUpdateRange(start, end)
@@ -64,7 +66,7 @@ class AllDayEventsView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val rowsHeight = (rows * (((getChildAt(0) as? EventView)?.minHeight ?: 0) + spacing)).toInt()
-        val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, rowsHeight)
+        val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, rowsHeight)
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
                 height)
     }
@@ -103,19 +105,20 @@ class AllDayEventsView @JvmOverloads constructor(
         eventData.clear()
         for (event in events) {
             val start = calStart.daysUntil(event.start).coerceAtLeast(0)
-            val end = calStart.daysUntil(event.end).coerceIn(start, 6)
+            val end = calStart.daysUntil(event.end).coerceIn(start until WEEK_IN_DAYS)
             eventData[event] = EventData(start, end)
         }
-        this.events = events.sortedWith(compareBy({ eventData[it]?.start }, { eventData[it]?.length }))
+        val sortedEvents = events.sortedWith(compareBy({ eventData[it]?.start },
+                { -(eventData[it]?.end ?: Int.MIN_VALUE) }))
+        this.events = sortedEvents
 
         launch(UI) {
             @Suppress("NAME_SHADOWING")
-            val events = this@AllDayEventsView.events
             positionEvents()
 
             val existing = childCount
-            for (i in 0 until events.size) {
-                val event = events[i]
+            for (i in 0 until sortedEvents.size) {
+                val event = sortedEvents[i]
 
                 if (existing > i)
                     (this@AllDayEventsView[i] as EventView).event = event
@@ -127,8 +130,8 @@ class AllDayEventsView @JvmOverloads constructor(
                         it.event = event
                     })
             }
-            if (events.size < existing)
-                removeViews(events.size, existing - events.size)
+            if (sortedEvents.size < existing)
+                removeViews(sortedEvents.size, existing - sortedEvents.size)
             updateListeners(onEventClickListener, onEventLongClickListener)
             requestLayout()
         }
@@ -163,7 +166,7 @@ class AllDayEventsView @JvmOverloads constructor(
             val data = eventData[event] ?: continue
             if (data.start <= currentEnd) {
                 currentGroup.add(event)
-                currentEnd = Math.max(currentEnd, data.end)
+                currentEnd = max(currentEnd, data.end)
             } else {
                 endGroup()
                 currentGroup = mutableListOf(event)
@@ -175,9 +178,9 @@ class AllDayEventsView @JvmOverloads constructor(
     }
 
     private fun checkEvents(events: List<Event>) {
-        if (events.any { event -> !event.allDay })
+        if (events.any { !showAsAllDay(it) })
             throw IllegalArgumentException("only all-day events can be shown inside AllDayEventsView")
-        if (events.any { event -> event.start >= end.start || event.end < start.start })
+        if (events.any { it.end < start.start || it.start >= end.start })
             throw IllegalArgumentException("event must all partly be inside the set range")
     }
 
@@ -219,7 +222,5 @@ class AllDayEventsView @JvmOverloads constructor(
         val start: Int,
         val end: Int,
         var index: Int = 0
-    ) {
-        val length = end - start
-    }
+    )
 }

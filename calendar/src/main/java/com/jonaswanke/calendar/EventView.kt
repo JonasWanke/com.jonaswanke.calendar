@@ -1,18 +1,21 @@
 package com.jonaswanke.calendar
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import androidx.annotation.AttrRes
-import androidx.annotation.StyleRes
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.DrawableCompat
-import androidx.appcompat.view.ContextThemeWrapper
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.widget.TextView
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
@@ -33,6 +36,7 @@ class EventView @JvmOverloads constructor(
 
         onEventChanged(new)
     }
+    private val titleFromAttribute = !text.isEmpty()
     private val titleDefault by lazy {
         var default: String? = null
         context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, defStyleRes) {
@@ -51,11 +55,15 @@ class EventView @JvmOverloads constructor(
 
     private val backgroundDrawable: Drawable? = ResourcesCompat.getDrawable(context.resources,
             R.drawable.event_background, ContextThemeWrapper(context, defStyleRes).theme)
-    private val backgroundColorDefault: Int = 0xFF039BE5.toInt()
+    private var backgroundColorDefault: Int = 0
 
     init {
         context.withStyledAttributes(attrs = intArrayOf(android.R.attr.selectableItemBackground)) {
+            @SuppressLint("NewApi")
             foreground = getDrawable(0)
+        }
+        context.withStyledAttributes(attrs, R.styleable.EventView, defStyleAttr, R.style.Calendar_EventViewStyle) {
+            backgroundColorDefault = getColor(R.styleable.EventView_backgroundColorDefault, Color.BLUE)
         }
 
         onEventChanged(event)
@@ -68,7 +76,7 @@ class EventView @JvmOverloads constructor(
             return
         }
 
-        if (text.isNullOrBlank()) {
+        if (!titleFromAttribute) {
             val builder = SpannableStringBuilder(title)
             val titleEnd = builder.length
             builder.setSpan(StyleSpan(Typeface.BOLD), 0, titleEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
@@ -77,9 +85,9 @@ class EventView @JvmOverloads constructor(
             text = builder
         }
 
-        backgroundDrawable?.also {
-            DrawableCompat.setTint(it, event.color ?: backgroundColorDefault)
-        }
+        ((backgroundDrawable as? LayerDrawable)
+                ?.getDrawable(1) as? GradientDrawable)
+                ?.setColor(event.color ?: backgroundColorDefault)
         background = backgroundDrawable
     }
 }

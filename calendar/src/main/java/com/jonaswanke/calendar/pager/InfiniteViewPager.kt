@@ -3,11 +3,11 @@ package com.jonaswanke.calendar.pager
 import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import com.jonaswanke.calendar.BuildConfig
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
@@ -80,14 +80,14 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
 
     override fun setCurrentItem(item: Int) {
         if (item != (adapter as? InfinitePagerAdapter<*, *>)?.center ?: -1) {
-            throw RuntimeException("Cannot change page index unless its 1.")
+            throw UnsupportedOperationException("Cannot change page index unless its 1.")
         }
         super.setCurrentItem(item)
     }
 
     override fun setOffscreenPageLimit(limit: Int) {
         if (limit != offscreenPageLimit)
-            throw RuntimeException("OffscreenPageLimit cannot be changed.")
+            throw UnsupportedOperationException("OffscreenPageLimit cannot be changed.")
         super.setOffscreenPageLimit(limit)
     }
 

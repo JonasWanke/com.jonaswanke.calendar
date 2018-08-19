@@ -1,9 +1,10 @@
 # CalendarView
 
-[![GitHub version](https://img.shields.io/github/release/JonasWanke/com.jonaswanke.calendar/all.svg?colorB=4c1)](https://github.com/JonasWanke/com.jonaswanke.calendar/releases)
+[![Build Status](https://travis-ci.com/JonasWanke/com.jonaswanke.calendar.svg?branch=dev)](https://travis-ci.com/JonasWanke/com.jonaswanke.calendar)
 [![Bintray](https://img.shields.io/bintray/v/jonaswanke/maven/calendar.svg)](https://bintray.com/jonaswanke/maven/calendar)
 
 [![Apache 2.0 license](https://img.shields.io/badge/license-Apache%202.0-green.svg?colorB=4c1)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Semver](https://img.shields.io/badge/Semver-2.0.0-green.svg?colorB=4c1)](https://semver.org/spec/v2.0.0.html)
 [![Awesome Badges](https://img.shields.io/badge/badges-awesome-green.svg?colorB=4c1)](https://github.com/Naereen/badges)
 
 
@@ -26,7 +27,7 @@ This library provides a Material Design CalendarView for Android (week view; mor
 1. Import the library
 
   ```groovy
-  implementation 'com.jonaswanke.calendar:calendar:0.0.4'
+  implementation 'com.jonaswanke.calendar:calendar:0.0.5'
   ```
 
 2. Add CalendarView in you layout
