@@ -20,10 +20,16 @@ Optional intro comment.
 
  -->
 
+## [Unreleased] - estimated 2018-08-26
 
-## [Unreleased] - 2018-xx-xx
 
 
+
+## [0.0.5] - 2018-08-19
+
+- Added: Add CI ([#45](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/45)), fixes [#35](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/35)
+- Changed: Stack events if title is readable ([#47](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/47)), fixes [#34](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/34)
+- Fixed: Correctly show multiday/-week events ([#48](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/48)), fixes [#46](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/46)
 
 
 ## [0.0.4] - 2018-08-14
@@ -61,7 +67,8 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.4...dev
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.5...dev
+[0.0.5]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.1...v0.0.2
