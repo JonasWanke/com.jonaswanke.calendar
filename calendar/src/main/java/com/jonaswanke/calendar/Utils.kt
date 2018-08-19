@@ -1,6 +1,6 @@
 package com.jonaswanke.calendar
 
-import android.text.format.DateUtils
+import android.text.format.DateUtils.*
 import java.util.*
 
 private val TODAY: Calendar = Calendar.getInstance().apply {
@@ -9,6 +9,13 @@ private val TODAY: Calendar = Calendar.getInstance().apply {
 private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
     add(Calendar.DAY_OF_WEEK, 1)
 }
+
+const val WEEK_IN_DAYS = 7
+val WEEK_DAYS = 0 until WEEK_IN_DAYS
+const val DAY_IN_HOURS = 24
+val DAY_HOURS = 0 until DAY_IN_HOURS
+const val HOUR_IN_MINUTES = 60
+const val MINUTE_IN_SECONDS = 60
 
 fun Long.asCalendar(): Calendar {
     return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
@@ -125,19 +132,19 @@ fun Day.toCalendar(): Calendar = Calendar.getInstance().apply {
 }
 
 var Calendar.timeOfDay: Long
-    get() = (get(Calendar.HOUR_OF_DAY).toLong() * DateUtils.HOUR_IN_MILLIS
-            + get(Calendar.MINUTE) * DateUtils.MINUTE_IN_MILLIS
-            + get(Calendar.SECOND) * DateUtils.SECOND_IN_MILLIS
+    get() = (get(Calendar.HOUR_OF_DAY).toLong() * HOUR_IN_MILLIS
+            + get(Calendar.MINUTE) * MINUTE_IN_MILLIS
+            + get(Calendar.SECOND) * SECOND_IN_MILLIS
             + get(Calendar.MILLISECOND))
     set(value) {
         var time = value
-        set(Calendar.MILLISECOND, (value % DateUtils.SECOND_IN_MILLIS).toInt())
-        time /= DateUtils.SECOND_IN_MILLIS
-        set(Calendar.SECOND, (time % 60).toInt())
-        time /= 60
-        set(Calendar.MINUTE, (time % 60).toInt())
-        time /= 60
-        set(Calendar.HOUR_OF_DAY, (time % 24).toInt())
+        set(Calendar.MILLISECOND, (value % SECOND_IN_MILLIS).toInt())
+        time /= SECOND_IN_MILLIS
+        set(Calendar.SECOND, (time % MINUTE_IN_SECONDS).toInt())
+        time /= MINUTE_IN_SECONDS
+        set(Calendar.MINUTE, (time % HOUR_IN_MINUTES).toInt())
+        time /= HOUR_IN_MINUTES
+        set(Calendar.HOUR_OF_DAY, (time % DAY_IN_HOURS).toInt())
     }
 
 var Calendar.dayOfWeek: Int

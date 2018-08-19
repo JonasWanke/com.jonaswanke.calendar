@@ -62,7 +62,7 @@ class WeekView @JvmOverloads constructor(
             allDayEventsView.setEvents(sortedEvents.filter { showAsAllDay(it) })
 
             val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
-            for (day in 0 until 7)
+            for (day in WEEK_DAYS)
                 dayViews[day].setEvents(byDays[day])
         }
 
@@ -113,7 +113,7 @@ class WeekView @JvmOverloads constructor(
         }
         addView(dividerView, LayoutParams(LayoutParams.MATCH_PARENT, dividerView.background.intrinsicHeight))
 
-        dayViews = (0 until 7).map {
+        dayViews = WEEK_DAYS.map {
             DayView(context, _day = Day(week, mapBackDay(it))).also {
                 it.onEventClickListener = onEventClickListener
                 it.onEventLongClickListener = onEventLongClickListener
@@ -159,9 +159,9 @@ class WeekView @JvmOverloads constructor(
         val right = width - paddingRight
         val bottom = height - paddingBottom
 
-        val dayWidth = (right.toFloat() - left) / 7
+        val dayWidth = (right.toFloat() - left) / WEEK_IN_DAYS
         dividerDrawable?.also { divider ->
-            for (day in 0 until 7) {
+            for (day in WEEK_DAYS) {
                 divider.setBounds((left + dayWidth * day).toInt(), top,
                         (left + dayWidth * day + divider.intrinsicWidth).toInt(), bottom)
                 divider.draw(canvas)
@@ -183,7 +183,7 @@ class WeekView @JvmOverloads constructor(
         allDayEventsView.setRange(range.first, range.second, sortedEvents.filter { showAsAllDay(it) })
 
         val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
-        for (day in 0 until 7)
+        for (day in WEEK_DAYS)
             dayViews[day].setDay(Day(week, mapBackDay(day)), byDays[day])
         this.events = sortedEvents
     }
@@ -206,12 +206,12 @@ class WeekView @JvmOverloads constructor(
     /**
      * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
      */
-    private fun mapDay(day: Int): Int = (day + 7 - cal.firstDayOfWeek) % 7
+    private fun mapDay(day: Int): Int = (day + WEEK_IN_DAYS - cal.firstDayOfWeek) % WEEK_IN_DAYS
 
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
-    private fun mapBackDay(day: Int): Int = (day + cal.firstDayOfWeek) % 7
+    private fun mapBackDay(day: Int): Int = (day + cal.firstDayOfWeek) % WEEK_IN_DAYS
 
     private fun updateListeners(
         onEventClickListener: ((Event) -> Unit)?,
@@ -228,11 +228,11 @@ class WeekView @JvmOverloads constructor(
     }
 
     private fun distributeEvents(events: List<Event>): List<List<Event>> {
-        val days = (0 until 7).map { mutableListOf<Event>() }
+        val days = WEEK_DAYS.map { mutableListOf<Event>() }
 
         for (event in events) {
             val start = cal.daysUntil(event.start).coerceAtLeast(0)
-            val end = cal.daysUntil(event.end).coerceAtMost(6)
+            val end = cal.daysUntil(event.end).coerceIn(start until WEEK_IN_DAYS)
             for (day in start..end)
                 days[day] += event
         }

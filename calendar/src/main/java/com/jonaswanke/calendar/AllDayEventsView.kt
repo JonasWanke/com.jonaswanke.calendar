@@ -105,7 +105,7 @@ class AllDayEventsView @JvmOverloads constructor(
         eventData.clear()
         for (event in events) {
             val start = calStart.daysUntil(event.start).coerceAtLeast(0)
-            val end = calStart.daysUntil(event.end).coerceIn(start, 6)
+            val end = calStart.daysUntil(event.end).coerceIn(start until WEEK_IN_DAYS)
             eventData[event] = EventData(start, end)
         }
         val sortedEvents = events.sortedWith(compareBy({ eventData[it]?.start },

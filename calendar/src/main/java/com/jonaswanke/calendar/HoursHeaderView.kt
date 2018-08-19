@@ -4,10 +4,10 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
-import androidx.annotation.AttrRes
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
@@ -36,8 +36,8 @@ class HoursHeaderView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.HoursHeaderView, defStyleAttr, R.style.Calendar_HoursHeaderViewStyle) {
-            weekOffsetTop = getDimensionPixelSize(R.styleable.HoursHeaderView_weekOffsetTop, 48)
-            weekSize = getDimensionPixelSize(R.styleable.HoursHeaderView_weekSize, 16)
+            weekOffsetTop = getDimensionPixelSize(R.styleable.HoursHeaderView_weekOffsetTop, 0)
+            weekSize = getDimensionPixelSize(R.styleable.HoursHeaderView_weekSize, 0)
             weekColor = getColor(R.styleable.HoursHeaderView_weekColor, Color.BLACK)
             weekPaint = TextPaint().apply {
                 typeface = Typeface.DEFAULT_BOLD

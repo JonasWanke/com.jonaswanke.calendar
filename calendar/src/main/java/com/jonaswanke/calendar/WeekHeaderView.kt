@@ -3,12 +3,12 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import androidx.annotation.AttrRes
-import androidx.annotation.StyleRes
-import androidx.appcompat.view.ContextThemeWrapper
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.withStyledAttributes
 import java.util.*
 import kotlin.properties.Delegates
@@ -23,6 +23,11 @@ class WeekHeaderView @JvmOverloads constructor(
     @StyleRes defStyleRes: Int = R.style.Calendar_WeekHeaderViewStyle,
     _week: Week? = null
 ) : View(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
+    companion object {
+        private const val DATE_BOTTOM_FACTOR = 1.3f
+        private const val WEEK_DAY_BOTTOM_FACTOR = 1.4f
+        private const val TEXT_LEFT_FACTOR = .3f
+    }
 
 
     var week: Week by Delegates.observable(_week ?: Week()) { _, _, new ->
@@ -68,20 +73,25 @@ class WeekHeaderView @JvmOverloads constructor(
         cal.timeInMillis = week.start
 
 
-        val dateBottom = top + dateSize * 1.3f
-        val weekDayBottom = top + dateSize * 1.4f + weekDaySize
+        val dateBottom = top + dateSize * DATE_BOTTOM_FACTOR
+        val weekDayBottom = top + dateSize * WEEK_DAY_BOTTOM_FACTOR + weekDaySize
 
-        for (day in 0 until 7) {
+        for (day in WEEK_DAYS) {
             val (datePaint, weekDayPaint) = when {
                 cal.isToday -> dateCurrentPaint to weekDayCurrentPaint
                 cal.isFuture -> dateFuturePaint to weekDayFuturePaint
                 else -> datePaint to weekDayPaint
             }
-            val textLeft = left + width * day / 7 + .3f * dateSize
-            canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(),
-                    textLeft, dateBottom, datePaint)
-            canvas.drawText(weekDayStrings[cal.get(Calendar.DAY_OF_WEEK)],
-                    textLeft, weekDayBottom, weekDayPaint)
+            if (datePaint == null)
+                throw IllegalStateException("datePaint is null")
+            if (weekDayPaint == null)
+                throw IllegalStateException("datePaint is null")
+
+            val text = weekDayStrings[cal.get(Calendar.DAY_OF_WEEK)]
+                    ?: throw IllegalStateException("weekDayString for day ${cal.get(Calendar.DAY_OF_WEEK)} not found")
+            val textLeft = left + width * day / WEEK_IN_DAYS + TEXT_LEFT_FACTOR * dateSize
+            canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(), textLeft, dateBottom, datePaint)
+            canvas.drawText(text, textLeft, weekDayBottom, weekDayPaint)
 
             cal.add(Calendar.DAY_OF_WEEK, 1)
         }
@@ -90,10 +100,11 @@ class WeekHeaderView @JvmOverloads constructor(
     }
 
 
+    @Suppress("ComplexMethod")
     private fun onUpdateWeek(week: Week) {
         context.withStyledAttributes(attrs, R.styleable.WeekHeaderView, defStyleAttr, R.style.Calendar_WeekHeaderViewStyle) {
-            dateSize = getDimensionPixelSize(R.styleable.WeekHeaderView_dateSize, 16)
-            weekDaySize = getDimensionPixelSize(R.styleable.WeekHeaderView_weekDaySize, 16)
+            dateSize = getDimensionPixelSize(R.styleable.WeekHeaderView_dateSize, 0)
+            weekDaySize = getDimensionPixelSize(R.styleable.WeekHeaderView_weekDaySize, 0)
 
             if (!week.isFuture) {
                 if (datePaint == null)
