@@ -10,6 +10,7 @@ end
 warn('a large PR') if git.lines_of_code > 500
 
 # detekt
+checkstyle_format.base_path = Dir.pwd
 checkstyle_format.report 'build/reports/detekt/detekt-checkstyle.xml'
 
 # AndroidLint
