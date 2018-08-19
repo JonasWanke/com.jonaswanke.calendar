@@ -15,4 +15,7 @@ checkstyle_format.report 'build/reports/detekt/detekt-checkstyle.xml'
 
 # AndroidLint
 android_lint.severity = "Error"
+android_lint.report_file = "calendar/build/reports/lint-results.xml"
+android_lint.lint(inline_mode: true)
+android_lint.report_file = "example/build/reports/lint-results.xml"
 android_lint.lint(inline_mode: true)
