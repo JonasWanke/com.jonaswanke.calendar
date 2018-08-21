@@ -150,10 +150,6 @@ class DayView @JvmOverloads constructor(
             }
             return@setOnTouchListener motionEvent.action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)
         }
-        setOnLongClickListener {
-            requestPositionEventsAndLayout()
-            true
-        }
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -196,7 +192,7 @@ class DayView @JvmOverloads constructor(
             val event = eventView.event ?: continue
 
             val data = eventData[event] ?: continue
-            val eventTop = (min(top + getPosForTime(event.start), bottom - eventView.minHeight)).toFloat()
+            val eventTop = min(top + getPosForTime(event.start), bottom - eventView.minHeight).toFloat()
             // Fix if event ends on next day
             val eventBottom = if (event.end >= day.nextDay.start)
                 bottom + eventSpacing
@@ -302,7 +298,10 @@ class DayView @JvmOverloads constructor(
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
 
         eventData.clear()
-        for (event in events) {
+        for (event in events + addEventView?.event) {
+            if (event == null)
+                continue
+
             val start = (event.start - day.start).coerceIn(0, DateUtils.DAY_IN_MILLIS - minLength).toInt()
             eventData[event] = EventData(start,
                     (event.end - day.start).coerceIn(start + minLength, DateUtils.DAY_IN_MILLIS).toInt())
