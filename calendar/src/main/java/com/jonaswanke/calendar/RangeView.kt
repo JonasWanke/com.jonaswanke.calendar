@@ -6,6 +6,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
+import com.jonaswanke.calendar.utils.Day
+import com.jonaswanke.calendar.utils.DayRange
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -13,6 +15,7 @@ abstract class RangeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = 0,
+    val length: Int,
     _start: Day? = null
 ) : LinearLayout(context, attrs, defStyleAttr) {
     companion object {
@@ -45,24 +48,20 @@ abstract class RangeView @JvmOverloads constructor(
 
 
     // Range
-    abstract val range: Int
-    var start: Day = _start ?: Day()
-        private set
-    val end: Day
-        get() = start + range
+    var range: DayRange = (_start ?: Day()).range(length)
 
     fun setStart(start: Day, events: List<Event> = emptyList()) {
-        this.start = start
+        range = start.range(length)
         cal = start.toCalendar()
 
         removeAddEvent()
         checkEvents(events)
 
         _events = events
-        onStartUpdated(start, events)
+        onRangeUpdated(range, events)
     }
 
-    protected open fun onStartUpdated(start: Day, events: List<Event>) {
+    protected open fun onRangeUpdated(range: DayRange, events: List<Event>) {
         onEventsChanged(events)
     }
 
@@ -124,7 +123,7 @@ abstract class RangeView @JvmOverloads constructor(
 
 
     // Other
-    protected var cal: Calendar = start.toCalendar()
+    protected var cal: Calendar = range.start.toCalendar()
         private set
 
     internal abstract fun scrollTo(pos: Int)

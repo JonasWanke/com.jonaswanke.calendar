@@ -17,6 +17,7 @@ import androidx.core.view.doOnLayout
 import androidx.viewpager.widget.ViewPager
 import com.jonaswanke.calendar.pager.InfinitePagerAdapter
 import com.jonaswanke.calendar.pager.InfiniteViewPager
+import com.jonaswanke.calendar.utils.*
 import kotlinx.android.synthetic.main.view_calendar.view.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
@@ -66,8 +67,8 @@ class CalendarView @JvmOverloads constructor(
             return views
                     .map { it.value }
                     .flatMap {
-                        val start = it.start.weekObj
-                        val end = it.end.weekObj
+                        val start = it.range.start.weekObj
+                        val end = it.range.endExclusive.weekObj
                         return@flatMap generateSequence(start) { week ->
                             if (week < end) week.nextWeek
                             else null
@@ -91,7 +92,7 @@ class CalendarView @JvmOverloads constructor(
         views[visibleStart]?.hourHeight = new
         launch(UI) {
             for (view in views.values)
-                if (view.start != visibleStart)
+                if (view.range.start != visibleStart)
                     view.hourHeight = new
         }
         return@vetoable true
@@ -195,11 +196,11 @@ class CalendarView @JvmOverloads constructor(
             override var currentIndicatorString: String
                 get() = currentIndicator.toString()
                 set(value) {
-                    currentIndicator = value.toDay()!!
+                    currentIndicator = value.toDay()
                 }
 
             override fun instantiateItem(indicator: Day, oldView: RangeView?): RangeView {
-                val oldKey = oldView?.start
+                val oldKey = oldView?.range?.start
                 if (views[oldKey] == oldView)
                     views.remove(oldKey)
 
@@ -229,9 +230,9 @@ class CalendarView @JvmOverloads constructor(
 
                 // Set/update events
                 if (oldView == null)
-                    view.events = getEventsForRange(view.start, view.end)
+                    view.events = getEventsForRange(view.range)
                 else
-                    view.setStart(indicator, getEventsForRange(indicator, indicator + view.range))
+                    view.setStart(indicator, getEventsForRange(indicator.range(view.length)))
                 views[indicator] = view
 
                 // TODO: async
@@ -275,13 +276,13 @@ class CalendarView @JvmOverloads constructor(
         return super.dispatchTouchEvent(event)
     }
 
-    private fun getEventsForRange(start: Day, end: Day): List<Event> {
+    private fun getEventsForRange(range: DayRange): List<Event> {
         var currentWeek = events.keys.minBy { it.start } ?: return emptyList()
         val viewEvents = mutableListOf<Event>()
 
-        while (currentWeek.start < end.start) {
+        while (currentWeek.start < range.endExclusive.start) {
             val newEvents = events[currentWeek]
-                    ?.filter { it.start <= end.start && it.end > start.start }
+                    ?.filter { it.start < range.endExclusive.start && it.end > range.start.start }
             if (newEvents != null)
                 viewEvents.addAll(newEvents)
             currentWeek = currentWeek.nextWeek
@@ -303,7 +304,7 @@ class CalendarView @JvmOverloads constructor(
                 || events.any { it.end > start.start }) { // New event has to be added
             val view = views[start]
             if (view != null)
-                view.events = getEventsForRange(view.start, view.end)
+                view.events = getEventsForRange(view.range)
             start += range
         }
     }
@@ -324,11 +325,11 @@ class CalendarView @JvmOverloads constructor(
     }
 
     private fun onRangeUpdated() {
-        // Forces aligning to new range
+        // Forces aligning to new length
         visibleStart = visibleStart
 
         startIndicator = when (range) {
-            RANGE_DAY -> RangeHeaderView(context, _range = 1, _start = visibleStart)
+            RANGE_DAY -> RangeHeaderView(context, _range = visibleStart.range(1))
             RANGE_3_DAYS -> TODO()
             RANGE_WEEK -> WeekIndicatorView(context, _start = visibleStart)
             else -> throw UnsupportedOperationException()

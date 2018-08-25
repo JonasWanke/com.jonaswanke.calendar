@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
+import com.jonaswanke.calendar.utils.DAY_IN_HOURS
 import kotlin.properties.Delegates
 
 

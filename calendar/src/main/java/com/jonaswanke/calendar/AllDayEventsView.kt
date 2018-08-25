@@ -11,6 +11,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
 import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
+import com.jonaswanke.calendar.utils.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -25,8 +26,7 @@ class AllDayEventsView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.allDayEventsViewStyle,
     @StyleRes private val defStyleRes: Int = R.style.Calendar_AllDayEventsViewStyle,
-    _start: Day? = null,
-    _end: Day? = null
+    _range: DayRange? = null
 ) : ViewGroup(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
@@ -38,11 +38,8 @@ class AllDayEventsView @JvmOverloads constructor(
                 updateListeners(onEventClickListener, new)
             }
 
-    var start: Day = _start ?: Day()
+    var range: DayRange = _range ?: Day().range(1)
         private set
-    var end: Day = _end ?: start.nextDay
-        private set
-    private var days: Int = 0
 
     private var events: List<Event> = emptyList()
     private val eventData: MutableMap<Event, EventData> = mutableMapOf()
@@ -58,7 +55,7 @@ class AllDayEventsView @JvmOverloads constructor(
             spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 
-        onUpdateRange(start, end)
+        onUpdateRange(range)
     }
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
@@ -83,7 +80,7 @@ class AllDayEventsView @JvmOverloads constructor(
                 ?.coerceAtMost((bottom - top).toFloat() / rows)
                 ?: return
 
-        fun getX(index: Int) = left + width * index / days
+        fun getX(index: Int) = left + width * index / range.length
         fun getY(index: Int) = top + eventHeight * index
 
         for (view in children) {
@@ -96,10 +93,9 @@ class AllDayEventsView @JvmOverloads constructor(
         }
     }
 
-    fun setRange(start: Day = this.start, end: Day = this.end, events: List<Event> = emptyList()) {
-        this.start = start
-        this.end = end
-        onUpdateRange(start, end)
+    fun setRange(range: DayRange, events: List<Event> = emptyList()) {
+        this.range = range
+        onUpdateRange(range)
 
         setEvents(events)
     }
@@ -184,8 +180,8 @@ class AllDayEventsView @JvmOverloads constructor(
     private fun checkEvents(events: List<Event>) {
         if (events.any { !showAsAllDay(it) })
             throw IllegalArgumentException("only all-day events can be shown inside AllDayEventsView")
-        if (events.any { it.end < start.start || it.start >= end.start })
-            throw IllegalArgumentException("event must all partly be inside the set range")
+        if (events.any { it.end < range.start.start || it.start >= range.endExclusive.start })
+            throw IllegalArgumentException("event must all partly be inside the set length")
     }
 
     private fun updateListeners(
@@ -215,10 +211,9 @@ class AllDayEventsView @JvmOverloads constructor(
         }
     }
 
-    private fun onUpdateRange(start: Day, end: Day) {
-        calStart = start.start.toCalendar()
-        calEnd = end.start.toCalendar()
-        days = calStart.daysUntil(end.start)
+    private fun onUpdateRange(range: DayRange) {
+        calStart = range.start.toCalendar()
+        calEnd = range.endExclusive.toCalendar()
         requestLayout()
     }
 

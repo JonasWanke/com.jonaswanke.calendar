@@ -6,6 +6,8 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
+import com.jonaswanke.calendar.utils.Day
+import com.jonaswanke.calendar.utils.DayRange
 
 /**
  * TODO: document your custom view class.
@@ -15,15 +17,13 @@ class DayView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = 0,
     day: Day? = null
-) : RangeView(context, attrs, defStyleAttr, day) {
+) : RangeView(context, attrs, defStyleAttr, 1, day) {
 
     override var onScrollChangeListener: ((Int) -> Unit)?
         get() = scrollView.onScrollChangeListener
         set(value) {
             scrollView.onScrollChangeListener = value
         }
-
-    override val range = 1
 
     private val allDayEventsView: AllDayEventsView
     private val scrollView: ReportingScrollView
@@ -37,7 +37,7 @@ class DayView @JvmOverloads constructor(
         allDayEventsView = AllDayEventsView(context,
                 defStyleAttr = R.attr.allDayEventsViewForDayStyle,
                 defStyleRes = R.style.Calendar_AllDayEventsViewStyle_ForDay,
-                _start = start, _end = end)
+                _range = range)
         addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         val dividerView = View(context).apply {
@@ -48,7 +48,7 @@ class DayView @JvmOverloads constructor(
         eventView = DayEventsView(context,
                 defStyleAttr = R.attr.dayEventsViewForDayStyle,
                 defStyleRes = R.style.Calendar_DayEventsViewStyle_ForDay,
-                _day = start)
+                _day = range.start)
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
             addView(eventView, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
@@ -87,14 +87,14 @@ class DayView @JvmOverloads constructor(
         eventView.onAddEventListener = onAddEventListener
     }
 
-    override fun onStartUpdated(start: Day, events: List<Event>) {
-        allDayEventsView.setRange(start, end, events.filter { showAsAllDay(it) })
+    override fun onRangeUpdated(range: DayRange, events: List<Event>) {
+        allDayEventsView.setRange(range, events.filter { showAsAllDay(it) })
 
-        eventView.setDay(start, events.filter { !showAsAllDay(it) })
+        eventView.setDay(range.start, events.filter { !showAsAllDay(it) })
     }
 
     override fun checkEvents(events: List<Event>) {
-        if (events.any { it.end < start.start || it.start >= end.start })
+        if (events.any { it.end < range.start.start || it.start >= range.endExclusive.start })
             throw IllegalArgumentException("event starts must all be inside the set start")
     }
 

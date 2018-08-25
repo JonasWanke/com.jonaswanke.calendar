@@ -18,6 +18,10 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
 import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
+import com.jonaswanke.calendar.utils.DAY_IN_HOURS
+import com.jonaswanke.calendar.utils.Day
+import com.jonaswanke.calendar.utils.timeOfDay
+import com.jonaswanke.calendar.utils.toCalendar
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay

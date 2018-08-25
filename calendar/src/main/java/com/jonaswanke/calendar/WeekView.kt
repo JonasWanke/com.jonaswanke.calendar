@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
+import com.jonaswanke.calendar.utils.*
 import java.util.*
 
 /**
@@ -17,15 +18,13 @@ class WeekView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = 0,
     week: Week? = null
-) : RangeView(context, attrs, defStyleAttr, week?.firstDay) {
+) : RangeView(context, attrs, defStyleAttr, WEEK_IN_DAYS, week?.firstDay) {
 
     override var onScrollChangeListener: ((Int) -> Unit)?
         get() = scrollView.onScrollChangeListener
         set(value) {
             scrollView.onScrollChangeListener = value
         }
-
-    override val range = WEEK_IN_DAYS
 
     private val headerView: RangeHeaderView
     private val allDayEventsView: AllDayEventsView
@@ -37,10 +36,10 @@ class WeekView @JvmOverloads constructor(
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         setWillNotDraw(false)
 
-        headerView = RangeHeaderView(context, _start = start)
+        headerView = RangeHeaderView(context, _range = range)
         addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
-        allDayEventsView = AllDayEventsView(context, _start = start, _end = end)
+        allDayEventsView = AllDayEventsView(context, _range = range)
         addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         val dividerView = View(context).apply {
@@ -49,7 +48,7 @@ class WeekView @JvmOverloads constructor(
         addView(dividerView, LayoutParams(LayoutParams.MATCH_PARENT, dividerView.background.intrinsicHeight))
 
         dayViews = WEEK_DAYS.map {
-            DayEventsView(context, _day = Day(start.weekObj, mapBackDay(it)))
+            DayEventsView(context, _day = Day(range.start.weekObj, mapBackDay(it)))
         }
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
@@ -117,17 +116,17 @@ class WeekView @JvmOverloads constructor(
         }
     }
 
-    override fun onStartUpdated(start: Day, events: List<Event>) {
-        headerView.start = start
-        allDayEventsView.setRange(start, end, events.filter { showAsAllDay(it) })
+    override fun onRangeUpdated(range: DayRange, events: List<Event>) {
+        headerView.range = range
+        allDayEventsView.setRange(range, events.filter { showAsAllDay(it) })
 
         val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
         for (day in WEEK_DAYS)
-            dayViews[day].setDay(Day(start.weekObj, mapBackDay(day)), byDays[day])
+            dayViews[day].setDay(Day(range.start.weekObj, mapBackDay(day)), byDays[day])
     }
 
     override fun checkEvents(events: List<Event>) {
-        if (events.any { it.end < start.start || it.start >= end.start })
+        if (events.any { it.end < range.start.start || it.start >= range.endExclusive.start })
             throw IllegalArgumentException("event starts must all be inside the set start")
     }
 
@@ -158,11 +157,6 @@ class WeekView @JvmOverloads constructor(
 
 
     // Helpers
-    /**
-     * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
-     */
-    private fun mapDay(day: Int): Int = (day + WEEK_IN_DAYS - cal.firstDayOfWeek) % WEEK_IN_DAYS
-
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */

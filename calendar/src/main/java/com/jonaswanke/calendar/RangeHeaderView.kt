@@ -10,6 +10,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.withStyledAttributes
+import com.jonaswanke.calendar.utils.*
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -22,21 +23,23 @@ class RangeHeaderView @JvmOverloads constructor(
     private val attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.rangeHeaderViewStyle,
     @StyleRes defStyleRes: Int = R.style.Calendar_RangeHeaderViewStyle,
-    _range: Int? = null,
-    _start: Day? = null
+    _range: DayRange? = null
 ) : RangeViewStartIndicator(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
+
     companion object {
         private const val DATE_BOTTOM_FACTOR = 1.3f
         private const val WEEK_DAY_BOTTOM_FACTOR = 1.4f
         private const val TEXT_LEFT_FACTOR = .3f
     }
 
-    var range: Int by Delegates.observable(_range ?: WEEK_IN_DAYS) {_, _, new ->
-        onUpdateRange(start, new)
+    var range: DayRange by Delegates.observable(_range ?: Day().range(WEEK_IN_DAYS)) { _, _, new ->
+        onUpdateRange(new)
     }
-    override var start: Day by Delegates.observable(_start ?: Day()) { _, _, new ->
-        onUpdateRange(new, range)
-    }
+    override var start: Day
+        get() = range.start
+        set(value) {
+            range = value.range(range.length)
+        }
 
     private var dateSize: Int = 0
     private var datePaint: TextPaint? = null
@@ -57,7 +60,7 @@ class RangeHeaderView @JvmOverloads constructor(
         weekDayStrings = cal.getDisplayNames(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
                 .map { (key, value) -> value to key }
                 .toMap()
-        onUpdateRange(start, range)
+        onUpdateRange(range)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -79,9 +82,8 @@ class RangeHeaderView @JvmOverloads constructor(
         val dateBottom = top + dateSize * DATE_BOTTOM_FACTOR
         val weekDayBottom = top + dateSize * WEEK_DAY_BOTTOM_FACTOR + weekDaySize
 
-        var currentDay = start
-        var currentIndex = 0
-        while (currentIndex < range) {
+        var index = 0
+        for (day in range) {
             val (datePaint, weekDayPaint) = when {
                 cal.isToday -> dateCurrentPaint to weekDayCurrentPaint
                 cal.isFuture -> dateFuturePaint to weekDayFuturePaint
@@ -94,19 +96,18 @@ class RangeHeaderView @JvmOverloads constructor(
 
             val text = weekDayStrings[cal.get(Calendar.DAY_OF_WEEK)]
                     ?: throw IllegalStateException("weekDayString for day ${cal.get(Calendar.DAY_OF_WEEK)} not found")
-            val textLeft = left + width * currentIndex / range + TEXT_LEFT_FACTOR * dateSize
+            val textLeft = left + width * index / range.length + TEXT_LEFT_FACTOR * dateSize
             canvas.drawText(cal.get(Calendar.DAY_OF_MONTH).toString(), textLeft, dateBottom, datePaint)
             canvas.drawText(text, textLeft, weekDayBottom, weekDayPaint)
 
             cal.add(Calendar.DAY_OF_WEEK, 1)
-            currentDay = currentDay.nextDay
-            currentIndex++
+            index++
         }
     }
 
 
     @Suppress("ComplexMethod")
-    private fun onUpdateRange(start: Day, range: Int) {
+    private fun onUpdateRange(range: DayRange) {
         context.withStyledAttributes(attrs, R.styleable.RangeHeaderView, defStyleAttr, R.style.Calendar_RangeHeaderViewStyle) {
             dateSize = getDimensionPixelSize(R.styleable.RangeHeaderView_dateSize, 0)
             weekDaySize = getDimensionPixelSize(R.styleable.RangeHeaderView_weekDaySize, 0)
@@ -125,7 +126,7 @@ class RangeHeaderView @JvmOverloads constructor(
                         textSize = weekDaySize.toFloat()
                     }
             }
-            if (start.isToday || (!start.isFuture && (start + range).isFuture)) {
+            if (start.isToday || (!start.isFuture && range.endExclusive.isFuture)) {
                 if (dateCurrentPaint == null)
                     dateCurrentPaint = TextPaint().apply {
                         color = getColor(R.styleable.RangeHeaderView_dateCurrentColor, Color.BLACK)
@@ -139,7 +140,7 @@ class RangeHeaderView @JvmOverloads constructor(
                         textSize = weekDaySize.toFloat()
                     }
             }
-            if ((start + (range - 1)).isFuture) {
+            if (range.endInclusive.isFuture) {
                 if (dateFuturePaint == null)
                     dateFuturePaint = TextPaint().apply {
                         color = getColor(R.styleable.RangeHeaderView_dateFutureColor, Color.BLACK)
