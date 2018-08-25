@@ -32,24 +32,30 @@
     <style name="Calendar.AllDayEventsViewStyle.ForDay">
         <item name="eventSpacing">4dp</item>
         <item name="android:minHeight">56dp</item>
-        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingLeft">12dp</item>
         <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingRight">10dp</item>
+        <item name="android:paddingRight">16dp</item>
         <item name="android:paddingBottom">4dp</item>
     </style>
     <style name="Calendar.DayEventsViewStyle">
         <item name="dateCurrentBackground">#0A000000</item>
         <item name="timeCircleRadius">4dp</item>
-        <item name="timeLineSize">2dp</item>
-        <item name="timeColor">#5f89d5</item>
+        <item name="timeLineSize">1dp</item>
+        <item name="timeColor">#4285f4</item>
         <item name="hourHeight">32dp</item>
         <item name="hourHeightMin">24dp</item>
         <item name="hourHeightMax">100dp</item>
+        <item name="dividerPadding">0dp</item>
         <item name="eventSpacing">4dp</item>
         <item name="eventStackOverlap">20dp</item>
     </style>
     <style name="Calendar.DayEventsViewStyle.ForDay">
         <item name="dateCurrentBackground">@null</item>
+        <item name="timeCircleRadius">5dp</item>
+        <item name="dividerPadding">16dp</item>
+        <item name="eventSpacing">16dp</item>
+        <item name="eventStackOverlap">40dp</item>
+        <item name="android:paddingRight">16dp</item>
     </style>
 
     <style name="Calendar.EventViewStyle">

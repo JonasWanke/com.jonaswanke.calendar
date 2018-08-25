@@ -63,6 +63,7 @@
         <attr name="timeCircleRadius" format="dimension" />
         <attr name="timeLineSize" format="dimension" />
         <attr name="timeColor" format="color" />
+        <attr name="dividerPadding" format="dimension" />
         <attr name="eventSpacing" />
         <attr name="eventStackOverlap" format="dimension" />
     </declare-styleable>

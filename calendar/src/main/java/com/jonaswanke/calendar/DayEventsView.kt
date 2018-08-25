@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.view.ContextThemeWrapper
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -36,7 +37,7 @@ class DayEventsView @JvmOverloads constructor(
     @AttrRes private val defStyleAttr: Int = R.attr.dayEventsViewStyle,
     @StyleRes private val defStyleRes: Int = R.style.Calendar_DayEventsViewStyle,
     _day: Day? = null
-) : ViewGroup(context, attrs, defStyleAttr) {
+) : ViewGroup(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
     companion object {
         private const val EVENT_POSITIONING_DEBOUNCE = 500L
     }
@@ -91,6 +92,8 @@ class DayEventsView @JvmOverloads constructor(
     private var eventPositionRequired: Boolean = false
     private var eventPositionJob: Job? = null
 
+    private var dividerPadding: Int = 0
+
     private var eventSpacing: Float = 0f
     private var eventStackOverlap: Float = 0f
 
@@ -109,6 +112,8 @@ class DayEventsView @JvmOverloads constructor(
             _hourHeight = getDimension(R.styleable.DayEventsView_hourHeight, 0f)
             hourHeightMin = getDimension(R.styleable.DayEventsView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.DayEventsView_hourHeightMax, 0f)
+
+            dividerPadding = getDimensionPixelOffset(R.styleable.DayEventsView_dividerPadding, 0)
 
             eventSpacing = getDimension(R.styleable.DayEventsView_eventSpacing, 0f)
             eventStackOverlap = getDimension(R.styleable.DayEventsView_eventStackOverlap, 0f)
@@ -213,7 +218,7 @@ class DayEventsView @JvmOverloads constructor(
         if (canvas == null)
             return
 
-        val left = paddingLeft
+        val left = (dividerPadding - timeCircleRadius).coerceAtLeast(0)
         val top = paddingTop
         val right = width - paddingRight
         val bottom = height - paddingBottom
@@ -232,9 +237,9 @@ class DayEventsView @JvmOverloads constructor(
         if (canvas == null)
             return
 
-        val left = paddingLeft
+        val left = dividerPadding
         val top = paddingTop
-        val right = width - paddingRight
+        val right = width - dividerPadding
 
         for (hour in 1 until DAY_IN_HOURS) {
             divider?.setBounds(left, (top + _hourHeight * hour).toInt(),
