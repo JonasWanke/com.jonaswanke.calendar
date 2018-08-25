@@ -5,10 +5,12 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
 import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
+import kotlinx.coroutines.experimental.NonCancellable.children
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -51,7 +53,8 @@ class AllDayEventsView @JvmOverloads constructor(
     private lateinit var calEnd: Calendar
 
     init {
-        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView,
+                defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
             spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 

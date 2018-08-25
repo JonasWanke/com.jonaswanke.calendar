@@ -10,7 +10,8 @@
         <attr name="weekViewStyle" format="reference" />
         <attr name="weekHeaderViewStyle" format="reference" />
         <attr name="allDayEventsViewStyle" format="reference" />
-        <attr name="dayViewStyle" format="reference" />
+        <attr name="dayEventsViewStyle" format="reference" />
+        <attr name="dayEventsViewOnlyDayStyle" format="reference" />
         <attr name="eventViewStyle" format="reference" />
         <attr name="eventViewAddStyle" format="reference" />
         <attr name="eventViewAllDayStyle" format="reference" />

@@ -36,6 +36,9 @@
         <item name="eventSpacing">4dp</item>
         <item name="eventStackOverlap">20dp</item>
     </style>
+    <style name="Calendar.DayEventsViewStyle.OnlyDay">
+        <item name="dateCurrentBackground">@null</item>
+    </style>
 
     <style name="Calendar.EventViewStyle">
         <item name="android:paddingLeft">4dp</item>

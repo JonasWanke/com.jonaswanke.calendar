@@ -75,7 +75,7 @@ class CalendarView @JvmOverloads constructor(
                     }
                     .toSet()
         }
-
+    val cachedEvents: Set<Week> get() = events.keys
 
     var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
         @Suppress("ComplexCondition")
@@ -121,21 +121,26 @@ class CalendarView @JvmOverloads constructor(
     private val scaleDetector: ScaleGestureDetector
 
     @Range
-    var range: Int by Delegates.observable(RANGE_WEEK) { _, old, new ->
-        if (old == new)
-            return@observable
-        if (new !in RANGE_VALUES)
-            throw UnsupportedOperationException()
+    private var _range: Int = RANGE_WEEK
+    @Range
+    var range: Int
+        get() = _range
+        set(value) {
+            if (_range == value)
+                return
+            if (value !in RANGE_VALUES)
+                throw UnsupportedOperationException()
 
-        onRangeUpdated()
-    }
+            _range = value
+            onRangeUpdated()
+        }
 
     private var _visibleStart: Day = Day()
     var visibleStart: Day
         get() = _visibleStart
         set(value) {
             val start = when (range) {
-                RANGE_DAY -> TODO()
+                RANGE_DAY -> value
                 RANGE_3_DAYS -> TODO()
                 RANGE_WEEK -> value.weekObj.firstDay
                 else -> throw UnsupportedOperationException()
@@ -159,7 +164,7 @@ class CalendarView @JvmOverloads constructor(
         View.inflate(context, R.layout.view_calendar, this)
 
         context.withStyledAttributes(attrs, R.styleable.CalendarView, defStyleAttr, R.style.Calendar_CalendarViewStyle) {
-            range = getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
+            _range = getInteger(R.styleable.CalendarView_range, RANGE_WEEK)
             hourHeightMin = getDimension(R.styleable.CalendarView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.CalendarView_hourHeightMax, 0f)
             hourHeight = getDimension(R.styleable.CalendarView_hourHeight, 0f)
@@ -175,7 +180,7 @@ class CalendarView @JvmOverloads constructor(
 
                 val foc = (detector.focusY + scrollPosition) / hourHeight
                 hourHeight *= detector.currentSpanY / detector.previousSpanY
-                scrollPosition = (foc * hourHeight - detector.focusY).toInt() // (beginFocus * hourHeight - detector.focusY).toInt()
+                scrollPosition = (foc * hourHeight - detector.focusY).toInt()
 
                 return true
             }
@@ -192,22 +197,15 @@ class CalendarView @JvmOverloads constructor(
                 }
 
             override fun instantiateItem(indicator: Day, oldView: RangeView?): RangeView {
+                val oldKey = oldView?.start
+                if (views[oldKey] == oldView)
+                    views.remove(oldKey)
+
                 val week = indicator.weekObj
                 val view = when (range) {
-                    RANGE_DAY -> TODO()
+                    RANGE_DAY -> oldView ?: DayView(context, day = indicator)
                     RANGE_3_DAYS -> TODO()
-
-                    RANGE_WEEK -> {
-                        if (oldView == null)
-                            WeekView(context, week = week)
-                        else {
-                            val oldKey = oldView.start
-                            if (views[oldKey] == oldView)
-                                views.remove(oldKey)
-
-                            oldView
-                        }
-                    }
+                    RANGE_WEEK -> oldView ?: WeekView(context, week = week)
                     else -> throw UnsupportedOperationException()
                 }
 
@@ -280,7 +278,8 @@ class CalendarView @JvmOverloads constructor(
         val viewEvents = mutableListOf<Event>()
 
         while (currentWeek.start < end.start) {
-            val newEvents = events[currentWeek]?.filter { it.end > start.start }
+            val newEvents = events[currentWeek]
+                    ?.filter { it.start <= end.start && it.end > start.start }
             if (newEvents != null)
                 viewEvents.addAll(newEvents)
             currentWeek = currentWeek.nextWeek
@@ -323,14 +322,10 @@ class CalendarView @JvmOverloads constructor(
     }
 
     private fun onRangeUpdated() {
-        when (range) {
-            RANGE_DAY -> TODO()
-            RANGE_3_DAYS -> TODO()
-            RANGE_WEEK -> {
-                visibleStart = visibleStart.weekObj.firstDay
-            }
-            else -> throw UnsupportedOperationException()
-        }
+        // Forces aligning to new range
+        visibleStart = visibleStart
+
+        pagerAdapter.reset(visibleStart)
     }
 
     private fun updateListeners(

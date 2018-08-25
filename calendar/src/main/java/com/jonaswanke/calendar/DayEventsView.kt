@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
@@ -32,7 +33,8 @@ import kotlin.properties.Delegates
 class DayEventsView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
-    @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
+    @AttrRes private val defStyleAttr: Int = R.attr.dayEventsViewStyle,
+    @StyleRes private val defStyleRes: Int = R.style.Calendar_DayEventsViewStyle,
     _day: Day? = null
 ) : ViewGroup(context, attrs, defStyleAttr) {
     companion object {
@@ -103,7 +105,7 @@ class DayEventsView @JvmOverloads constructor(
     init {
         setWillNotDraw(false)
 
-        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, R.style.Calendar_DayEventsViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, defStyleRes) {
             _hourHeight = getDimension(R.styleable.DayEventsView_hourHeight, 0f)
             hourHeightMin = getDimension(R.styleable.DayEventsView_hourHeightMin, 0f)
             hourHeightMax = getDimension(R.styleable.DayEventsView_hourHeightMax, 0f)
@@ -152,6 +154,8 @@ class DayEventsView @JvmOverloads constructor(
         }
     }
 
+
+    // View
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of DayEventsView")
@@ -240,6 +244,7 @@ class DayEventsView @JvmOverloads constructor(
     }
 
 
+    // Custom
     fun setDay(day: Day, events: List<Event> = emptyList()) {
         this.day = day
         onUpdateDay(day)
@@ -291,6 +296,8 @@ class DayEventsView @JvmOverloads constructor(
         }
     }
 
+
+    // Helpers
     private fun regenerateBaseEventData(events: List<Event>) {
         val view = if (childCount > 0) (this[0] as EventView) else EventView(context)
         val minLength = (view.minHeight / hourHeight * DateUtils.HOUR_IN_MILLIS).toLong()
@@ -465,7 +472,7 @@ class DayEventsView @JvmOverloads constructor(
     }
 
     private fun onUpdateDay(day: Day) {
-        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, R.style.Calendar_DayEventsViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, defStyleRes) {
             background = if (day.isToday)
                 getDrawable(R.styleable.DayEventsView_dateCurrentBackground)
             else
