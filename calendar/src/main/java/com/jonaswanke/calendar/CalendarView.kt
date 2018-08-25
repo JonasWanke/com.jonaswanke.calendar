@@ -276,7 +276,7 @@ class CalendarView @JvmOverloads constructor(
     }
 
     private fun getEventsForRange(start: Day, end: Day): List<Event> {
-        var currentWeek = views.keys.minBy { it.start }?.weekObj ?: return emptyList()
+        var currentWeek = events.keys.minBy { it.start } ?: return emptyList()
         val viewEvents = mutableListOf<Event>()
 
         while (currentWeek.start < end.start) {
