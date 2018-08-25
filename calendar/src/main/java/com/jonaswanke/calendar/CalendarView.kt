@@ -206,9 +206,9 @@ class CalendarView @JvmOverloads constructor(
 
                 val week = indicator.weekObj
                 val view = when (range) {
-                    RANGE_DAY -> oldView ?: DayView(context, day = indicator)
+                    RANGE_DAY -> (oldView as? DayView) ?: DayView(context, day = indicator)
                     RANGE_3_DAYS -> TODO()
-                    RANGE_WEEK -> oldView ?: WeekView(context, week = week)
+                    RANGE_WEEK -> (oldView as? WeekView) ?: WeekView(context, week = week)
                     else -> throw UnsupportedOperationException()
                 }
 

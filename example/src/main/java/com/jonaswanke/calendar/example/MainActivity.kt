@@ -12,10 +12,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import com.jonaswanke.calendar.BaseEvent
-import com.jonaswanke.calendar.utils.Day
 import com.jonaswanke.calendar.Event
-import com.jonaswanke.calendar.utils.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
+import com.jonaswanke.calendar.utils.Day
+import com.jonaswanke.calendar.utils.Week
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import kotlin.math.abs
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
     @Suppress("MagicNumber")
     private fun populate(week: Week, force: Boolean = false) {
-        if (calendar.cachedEvents.contains(week))
+        if (!force && calendar.cachedEvents.contains(week))
             return
 
         val events = mutableListOf<Event>()

@@ -4,6 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
     <data>
+        <import type="com.jonaswanke.calendar.CalendarView" />
+
         <variable
             name="activity"
             type="com.jonaswanke.calendar.example.MainActivity" />
@@ -24,14 +26,14 @@
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:theme="@style/AppTheme.AppBarOverlay">
+                android:theme="@style/ThemeOverlay.App.AppBar">
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     android:background="?attr/colorPrimary"
-                    app:popupTheme="@style/AppTheme.PopupOverlay" />
+                    app:popupTheme="@style/ThemeOverlay.App.Popup" />
 
             </com.google.android.material.appbar.AppBarLayout>
 
@@ -51,7 +53,30 @@
             android:fitsSystemWindows="true"
             android:orientation="vertical">
 
-            <View
+            <TextView
+                style="@style/Widget.App.Config.Header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/config_range" />
+            <RadioGroup
+                android:layout_width="match_parent"
+                style="@style/Widget.App.RadioGroup"
+                android:layout_height="wrap_content">
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@{calendar.getRange() == CalendarView.RANGE_DAY}"
+                    android:onClick="@{() -> calendar.setRange(CalendarView.RANGE_DAY)}"
+                    android:text="@string/config_range_day" />
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@{calendar.getRange() == CalendarView.RANGE_WEEK}"
+                    android:onClick="@{() -> calendar.setRange(CalendarView.RANGE_WEEK)}"
+                    android:text="@string/config_range_week" />
+            </RadioGroup>
+
+            <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
