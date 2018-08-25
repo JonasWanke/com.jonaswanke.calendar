@@ -63,6 +63,8 @@ class RangeHeaderView @JvmOverloads constructor(
         onUpdateRange(range)
     }
 
+
+    // View
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val height = paddingTop + paddingBottom + minimumHeight
         setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
@@ -106,6 +108,7 @@ class RangeHeaderView @JvmOverloads constructor(
     }
 
 
+    // Custom
     @Suppress("ComplexMethod")
     private fun onUpdateRange(range: DayRange) {
         context.withStyledAttributes(attrs, R.styleable.RangeHeaderView, defStyleAttr, R.style.Calendar_RangeHeaderViewStyle) {

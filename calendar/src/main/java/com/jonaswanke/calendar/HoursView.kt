@@ -65,6 +65,8 @@ class HoursView @JvmOverloads constructor(
         }
     }
 
+
+    // View
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * DAY_IN_HOURS).toInt())
         setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),

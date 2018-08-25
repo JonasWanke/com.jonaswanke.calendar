@@ -58,6 +58,8 @@ class AllDayEventsView @JvmOverloads constructor(
         onUpdateRange(range)
     }
 
+
+    // View
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of AllDayEventsView")
@@ -93,6 +95,8 @@ class AllDayEventsView @JvmOverloads constructor(
         }
     }
 
+
+    // Custom
     fun setRange(range: DayRange, events: List<Event> = emptyList()) {
         this.range = range
         onUpdateRange(range)

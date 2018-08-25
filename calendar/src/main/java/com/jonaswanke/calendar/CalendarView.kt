@@ -271,11 +271,15 @@ class CalendarView @JvmOverloads constructor(
         onRangeUpdated()
     }
 
+
+    // View
     override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
         scaleDetector.onTouchEvent(event)
         return super.dispatchTouchEvent(event)
     }
 
+
+    // Custom
     private fun getEventsForRange(range: DayRange): List<Event> {
         var currentWeek = events.keys.minBy { it.start } ?: return emptyList()
         val viewEvents = mutableListOf<Event>()
@@ -353,6 +357,7 @@ class CalendarView @JvmOverloads constructor(
     }
 
 
+    // State
     override fun dispatchSaveInstanceState(container: SparseArray<Parcelable>?) {
         dispatchFreezeSelfOnly(container)
     }
