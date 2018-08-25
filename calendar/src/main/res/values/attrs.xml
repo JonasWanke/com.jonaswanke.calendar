@@ -7,15 +7,21 @@
 
     <declare-styleable name="AppTheme">
         <attr name="calendarViewStyle" format="reference" />
-        <attr name="weekViewStyle" format="reference" />
-        <attr name="weekHeaderViewStyle" format="reference" />
+
+        <attr name="dayViewStyle" format="reference" />
+
+        <attr name="rangeHeaderViewStyle" format="reference" />
+
         <attr name="allDayEventsViewStyle" format="reference" />
+        <attr name="allDayEventsViewForDayStyle" format="reference" />
         <attr name="dayEventsViewStyle" format="reference" />
-        <attr name="dayEventsViewOnlyDayStyle" format="reference" />
+        <attr name="dayEventsViewForDayStyle" format="reference" />
+
         <attr name="eventViewStyle" format="reference" />
         <attr name="eventViewAddStyle" format="reference" />
         <attr name="eventViewAllDayStyle" format="reference" />
-        <attr name="hoursHeaderViewStyle" format="reference" />
+
+        <attr name="weekIndicatorViewStyle" format="reference" />
         <attr name="hoursViewStyle" format="reference" />
     </declare-styleable>
 
@@ -30,8 +36,11 @@
         <attr name="hourHeightMax" />
     </declare-styleable>
 
-    <declare-styleable name="WeekView" />
-    <declare-styleable name="WeekHeaderView">
+    <declare-styleable name="DayView">
+        <attr name="headerHeightMin" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="RangeHeaderView">
         <attr name="dateSize" format="dimension" />
         <attr name="dateColor" format="color" />
         <attr name="dateCurrentColor" format="color" />
@@ -66,7 +75,7 @@
         <attr name="titleDefault" format="string" />
     </declare-styleable>
 
-    <declare-styleable name="HoursHeaderView">
+    <declare-styleable name="WeekIndicatorView">
         <attr name="weekOffsetTop" format="dimension" />
         <attr name="weekSize" format="dimension" />
         <attr name="weekColor" format="color" />

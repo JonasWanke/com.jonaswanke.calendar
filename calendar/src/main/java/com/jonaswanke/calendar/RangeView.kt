@@ -3,6 +3,7 @@ package com.jonaswanke.calendar
 import android.content.Context
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
 import java.util.*
@@ -134,4 +135,12 @@ abstract class RangeView @JvmOverloads constructor(
     fun onInitialized() {
         updateListeners(onEventClickListener, onEventLongClickListener, onAddEventListener)
     }
+}
+
+abstract class RangeViewStartIndicator @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    @AttrRes defStyleAttr: Int = 0
+) : View(context, attrs, defStyleAttr) {
+    abstract var start: Day
 }

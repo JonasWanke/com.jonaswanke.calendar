@@ -14,14 +14,14 @@
         android:showDividers="middle">
 
         <LinearLayout
+            android:id="@+id/hoursCol"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:divider="@android:drawable/divider_horizontal_bright"
             android:orientation="vertical"
             android:showDividers="middle">
 
-            <com.jonaswanke.calendar.HoursHeaderView
-                android:id="@+id/hoursHeader"
+            <Space
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

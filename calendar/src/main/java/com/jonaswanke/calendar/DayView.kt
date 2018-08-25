@@ -34,7 +34,10 @@ class DayView @JvmOverloads constructor(
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         setWillNotDraw(false)
 
-        allDayEventsView = AllDayEventsView(context, _start = start, _end = end)
+        allDayEventsView = AllDayEventsView(context,
+                defStyleAttr = R.attr.allDayEventsViewForDayStyle,
+                defStyleRes = R.style.Calendar_AllDayEventsViewStyle_ForDay,
+                _start = start, _end = end)
         addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         val dividerView = View(context).apply {
@@ -42,8 +45,9 @@ class DayView @JvmOverloads constructor(
         }
         addView(dividerView, LayoutParams(LayoutParams.MATCH_PARENT, dividerView.background.intrinsicHeight))
 
-        eventView = DayEventsView(context, defStyleAttr = R.attr.dayEventsViewOnlyDayStyle,
-                defStyleRes = R.style.Calendar_DayEventsViewStyle_OnlyDay,
+        eventView = DayEventsView(context,
+                defStyleAttr = R.attr.dayEventsViewForDayStyle,
+                defStyleRes = R.style.Calendar_DayEventsViewStyle_ForDay,
                 _day = start)
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
@@ -91,7 +95,7 @@ class DayView @JvmOverloads constructor(
 
     override fun checkEvents(events: List<Event>) {
         if (events.any { it.end < start.start || it.start >= end.start })
-            throw IllegalArgumentException("event starts must all be inside the set week")
+            throw IllegalArgumentException("event starts must all be inside the set start")
     }
 
     override fun onEventsChanged(events: List<Event>) {

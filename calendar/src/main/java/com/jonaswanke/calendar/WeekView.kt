@@ -27,7 +27,7 @@ class WeekView @JvmOverloads constructor(
 
     override val range = WEEK_IN_DAYS
 
-    private val headerView: WeekHeaderView
+    private val headerView: RangeHeaderView
     private val allDayEventsView: AllDayEventsView
     private val scrollView: ReportingScrollView
     private val dayViews: List<DayEventsView>
@@ -37,7 +37,7 @@ class WeekView @JvmOverloads constructor(
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         setWillNotDraw(false)
 
-        headerView = WeekHeaderView(context, _week = start.weekObj)
+        headerView = RangeHeaderView(context, _start = start)
         addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         allDayEventsView = AllDayEventsView(context, _start = start, _end = end)
@@ -118,7 +118,7 @@ class WeekView @JvmOverloads constructor(
     }
 
     override fun onStartUpdated(start: Day, events: List<Event>) {
-        headerView.week = start.weekObj
+        headerView.start = start
         allDayEventsView.setRange(start, end, events.filter { showAsAllDay(it) })
 
         val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
@@ -128,7 +128,7 @@ class WeekView @JvmOverloads constructor(
 
     override fun checkEvents(events: List<Event>) {
         if (events.any { it.end < start.start || it.start >= end.start })
-            throw IllegalArgumentException("event starts must all be inside the set week")
+            throw IllegalArgumentException("event starts must all be inside the set start")
     }
 
     override fun onEventsChanged(events: List<Event>) {

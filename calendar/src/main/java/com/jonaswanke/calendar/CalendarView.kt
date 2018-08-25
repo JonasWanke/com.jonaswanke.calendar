@@ -77,6 +77,8 @@ class CalendarView @JvmOverloads constructor(
         }
     val cachedEvents: Set<Week> get() = events.keys
 
+    var startIndicator: RangeViewStartIndicator? = null
+
     var hourHeight: Float by Delegates.vetoable(0f) { _, old, new ->
         @Suppress("ComplexCondition")
         if ((hourHeightMin > 0 && new < hourHeightMin)
@@ -149,7 +151,7 @@ class CalendarView @JvmOverloads constructor(
                 return
 
             _visibleStart = start
-            hoursHeader.week = start.weekObj
+            startIndicator?.start = start
             pager.setCurrentIndicator<Day, RangeView>(start)
         }
     var visibleEnd: Day
@@ -245,7 +247,7 @@ class CalendarView @JvmOverloads constructor(
         }
 
         hoursScroll.onScrollChangeListener = { scrollPosition = it }
-        hoursHeader.week = pagerAdapter.currentIndicator.weekObj
+        startIndicator?.start = pagerAdapter.currentIndicator
 
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
@@ -260,7 +262,7 @@ class CalendarView @JvmOverloads constructor(
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == ViewPager.SCROLL_STATE_IDLE) {
                     _visibleStart = pagerAdapter.currentIndicator
-                    hoursHeader.week = _visibleStart.weekObj
+                    startIndicator?.start = _visibleStart
                 }
             }
         }
@@ -317,13 +319,22 @@ class CalendarView @JvmOverloads constructor(
             0 -> views[visibleStart + range]
             else -> views[visibleStart]
         }?.headerHeight ?: 0
-        hoursHeader.minimumHeight = (firstPosition * (1 - pager.positionOffset)
+        startIndicator?.minimumHeight = (firstPosition * (1 - pager.positionOffset)
                 + secondPosition * pager.positionOffset).toInt()
     }
 
     private fun onRangeUpdated() {
         // Forces aligning to new range
         visibleStart = visibleStart
+
+        startIndicator = when (range) {
+            RANGE_DAY -> RangeHeaderView(context, _range = 1, _start = visibleStart)
+            RANGE_3_DAYS -> TODO()
+            RANGE_WEEK -> WeekIndicatorView(context, _start = visibleStart)
+            else -> throw UnsupportedOperationException()
+        }
+        hoursCol.removeViewAt(0)
+        hoursCol.addView(startIndicator, 0, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         pagerAdapter.reset(visibleStart)
     }

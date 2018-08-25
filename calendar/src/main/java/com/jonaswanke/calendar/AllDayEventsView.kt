@@ -2,6 +2,7 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
@@ -10,7 +11,6 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
 import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
-import kotlinx.coroutines.experimental.NonCancellable.children
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -24,9 +24,10 @@ class AllDayEventsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.allDayEventsViewStyle,
+    @StyleRes private val defStyleRes: Int = R.style.Calendar_AllDayEventsViewStyle,
     _start: Day? = null,
     _end: Day? = null
-) : ViewGroup(context, attrs, defStyleAttr) {
+) : ViewGroup(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
     var onEventClickListener: ((Event) -> Unit)?
             by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
@@ -53,8 +54,7 @@ class AllDayEventsView @JvmOverloads constructor(
     private lateinit var calEnd: Calendar
 
     init {
-        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView,
-                defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, defStyleRes) {
             spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 
@@ -70,8 +70,7 @@ class AllDayEventsView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val rowsHeight = (rows * (((getChildAt(0) as? EventView)?.minHeight ?: 0) + spacing)).toInt()
         val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, rowsHeight)
-        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
-                height)
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -79,18 +78,20 @@ class AllDayEventsView @JvmOverloads constructor(
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
-        val height = bottom - top
         val width = right - left
+        val eventHeight = (getChildAt(0) as? EventView)?.minHeight?.plus(spacing)
+                ?.coerceAtMost((bottom - top).toFloat() / rows)
+                ?: return
 
         fun getX(index: Int) = left + width * index / days
-        fun getY(index: Int) = top + height * index / rows
+        fun getY(index: Int) = top + eventHeight * index
 
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event ?: continue
             val data = eventData[event] ?: continue
 
-            eventView.layout((getX(data.start) + spacing).toInt(), getY(data.index),
+            eventView.layout((getX(data.start) + spacing).toInt(), getY(data.index).toInt(),
                     getX(data.end + 1), (getY(data.index + 1) - spacing).toInt())
         }
     }
