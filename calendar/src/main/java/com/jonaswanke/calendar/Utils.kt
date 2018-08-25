@@ -17,8 +17,10 @@ val DAY_HOURS = 0 until DAY_IN_HOURS
 const val HOUR_IN_MINUTES = 60
 const val MINUTE_IN_SECONDS = 60
 
-fun Long.asCalendar(): Calendar {
-    return Calendar.getInstance().apply { timeInMillis = this@asCalendar }
+private const val HASHCODE_FACTOR = 31
+
+fun Long.toCalendar(): Calendar {
+    return Calendar.getInstance().apply { timeInMillis = this@toCalendar }
 }
 
 val Calendar.isToday: Boolean
@@ -28,10 +30,18 @@ val Calendar.isFuture: Boolean
 
 
 data class Week(
-    val year: Int = TODAY.get(Calendar.YEAR),
-    val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
+    val _year: Int = TODAY.get(Calendar.YEAR),
+    val _week: Int = TODAY.get(Calendar.WEEK_OF_YEAR)
 ) {
-    private val cal: Calendar = toCalendar()
+    private val cal: Calendar = Calendar.getInstance().apply {
+        set(Calendar.YEAR, _year)
+        set(Calendar.WEEK_OF_YEAR, _week)
+        set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+        timeOfDay = 0
+    }
+    val year = cal.get(Calendar.YEAR)
+    val week = cal.get(Calendar.WEEK_OF_YEAR)
+
     val start = cal.timeInMillis
     val end: Long by lazy {
         val end = cal.apply { add(Calendar.WEEK_OF_YEAR, 1) }.timeInMillis
@@ -58,8 +68,18 @@ data class Week(
         else
             Week(year, week.week)
     }
+    val firstDay: Day by lazy { Day(this, cal.firstDayOfWeek) }
 
     operator fun contains(time: Long) = time in start until end
+    override operator fun equals(other: Any?): Boolean {
+        if (other !is Week)
+            return false
+
+        return year == other.year && week == other.week
+    }
+
+    override fun hashCode() = HASHCODE_FACTOR * year + week
+    operator fun compareTo(other: Week) = start.compareTo(other.start)
 
     override fun toString(): String {
         return "$year-$week"
@@ -86,14 +106,22 @@ fun Week.toCalendar(): Calendar =
         }
 
 
-data class Day(
-    val year: Int = TODAY.get(Calendar.YEAR),
-    val week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
-    val day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
+class Day(
+    _year: Int = TODAY.get(Calendar.YEAR),
+    _week: Int = TODAY.get(Calendar.WEEK_OF_YEAR),
+    _day: Int = TODAY.get(Calendar.DAY_OF_WEEK)
 ) {
     constructor(week: Week, day: Int) : this(week.year, week.week, day)
 
-    private val cal: Calendar = toCalendar()
+    private val cal: Calendar = Calendar.getInstance().apply {
+        set(Calendar.YEAR, _year)
+        set(Calendar.WEEK_OF_YEAR, _week)
+        set(Calendar.DAY_OF_WEEK, _day)
+        timeOfDay = 0
+    }
+    val year = cal.get(Calendar.YEAR)
+    val week = cal.get(Calendar.WEEK_OF_YEAR)
+    val day = cal.get(Calendar.DAY_OF_WEEK)
 
     val start = cal.timeInMillis
     val end: Long by lazy {
@@ -105,6 +133,7 @@ data class Day(
     val isToday = TODAY.timeInMillis <= start && start < TOMORROW.timeInMillis
     val isFuture = TODAY.timeInMillis < start
 
+    val weekObj: Week by lazy { Week(year, week) }
     val nextDay: Day by lazy {
         val day = cal.apply { add(Calendar.DAY_OF_WEEK, 1) }.toDay()
         cal.apply { add(Calendar.DAY_OF_WEEK, -1) }
@@ -115,6 +144,34 @@ data class Day(
         cal.apply { add(Calendar.DAY_OF_WEEK, 1) }
         day
     }
+
+    operator fun plus(days: Int): Day {
+        // Only intended for small differences
+        var currentDay = this
+        var delta = days
+        while (delta > 0) {
+            currentDay = currentDay.nextDay
+            delta--
+        }
+        while (delta < 0) {
+            currentDay = currentDay.prevDay
+            delta++
+        }
+        return currentDay
+    }
+
+    operator fun minus(days: Int) = plus(-days)
+
+    override operator fun equals(other: Any?): Boolean {
+        if (other !is Day)
+            return false
+
+        return year == other.year && week == other.week && day == other.day
+    }
+
+    override fun hashCode() = (HASHCODE_FACTOR * year + week) * HASHCODE_FACTOR + day
+    operator fun compareTo(other: Day) = start.compareTo(other.start)
+    override fun toString() = "$year-$week-$day"
 }
 
 fun Calendar.toDay(): Day {
@@ -122,6 +179,11 @@ fun Calendar.toDay(): Day {
             get(Calendar.YEAR),
             get(Calendar.WEEK_OF_YEAR),
             get(Calendar.DAY_OF_WEEK))
+}
+
+fun String.toDay(): Day? {
+    val parts = split("-")
+    return Day(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
 }
 
 fun Day.toCalendar(): Calendar = Calendar.getInstance().apply {

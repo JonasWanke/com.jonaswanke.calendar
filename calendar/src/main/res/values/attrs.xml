@@ -45,7 +45,7 @@
         <attr name="eventSpacing" />
     </declare-styleable>
 
-    <declare-styleable name="DayView">
+    <declare-styleable name="DayEventsView">
         <attr name="dateCurrentBackground" format="color|reference" />
         <attr name="hourHeight" />
         <attr name="hourHeightMin" />

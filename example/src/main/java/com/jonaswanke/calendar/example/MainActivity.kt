@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import com.jonaswanke.calendar.BaseEvent
+import com.jonaswanke.calendar.Day
 import com.jonaswanke.calendar.Event
 import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.main_action_today -> calendar.currentWeek = Week()
+            R.id.main_action_today -> calendar.visibleStart = Day()
             R.id.main_action_regenerate -> calendar.cachedWeeks.forEach(this::populate)
             else ->
                 return super.onOptionsItemSelected(item)

@@ -25,8 +25,7 @@
     <style name="Calendar.AllDayEventsViewStyle">
         <item name="eventSpacing">4dp</item>
     </style>
-
-    <style name="Calendar.DayViewStyle">
+    <style name="Calendar.DayEventsViewStyle">
         <item name="dateCurrentBackground">#0A000000</item>
         <item name="timeCircleRadius">4dp</item>
         <item name="timeLineSize">2dp</item>

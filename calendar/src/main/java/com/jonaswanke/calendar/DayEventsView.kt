@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
-import com.jonaswanke.calendar.WeekView.Companion.showAsAllDay
+import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
@@ -29,7 +29,7 @@ import kotlin.properties.Delegates
  * TODO: document your custom view class.
  */
 @Suppress("LargeClass")
-class DayView @JvmOverloads constructor(
+class DayEventsView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.dayViewStyle,
@@ -103,17 +103,17 @@ class DayView @JvmOverloads constructor(
     init {
         setWillNotDraw(false)
 
-        context.withStyledAttributes(attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle) {
-            _hourHeight = getDimension(R.styleable.DayView_hourHeight, 0f)
-            hourHeightMin = getDimension(R.styleable.DayView_hourHeightMin, 0f)
-            hourHeightMax = getDimension(R.styleable.DayView_hourHeightMax, 0f)
+        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, R.style.Calendar_DayEventsViewStyle) {
+            _hourHeight = getDimension(R.styleable.DayEventsView_hourHeight, 0f)
+            hourHeightMin = getDimension(R.styleable.DayEventsView_hourHeightMin, 0f)
+            hourHeightMax = getDimension(R.styleable.DayEventsView_hourHeightMax, 0f)
 
-            eventSpacing = getDimension(R.styleable.DayView_eventSpacing, 0f)
-            eventStackOverlap = getDimension(R.styleable.DayView_eventStackOverlap, 0f)
+            eventSpacing = getDimension(R.styleable.DayEventsView_eventSpacing, 0f)
+            eventStackOverlap = getDimension(R.styleable.DayEventsView_eventStackOverlap, 0f)
         }
 
         onUpdateDay(day)
-        cal = day.start.asCalendar()
+        cal = day.start.toCalendar()
         launch(UI) {
             divider = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
             invalidate()
@@ -136,8 +136,8 @@ class DayView @JvmOverloads constructor(
                     addView(EventView(context,
                             defStyleAttr = R.attr.eventViewAddStyle,
                             defStyleRes = R.style.Calendar_EventViewStyle_Add,
-                            _event = event).also {
-                        it.setOnClickListener {
+                            _event = event).apply {
+                        setOnClickListener {
                             if (onAddEventListener?.invoke(event) == true)
                                 removeAddEvent()
                         }
@@ -154,10 +154,10 @@ class DayView @JvmOverloads constructor(
 
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
         if (child !is EventView)
-            throw IllegalArgumentException("Only EventViews may be children of DayView")
+            throw IllegalArgumentException("Only EventViews may be children of DayEventsView")
         if (child.event is AddEvent)
             if (addEventView != null && addEventView != child)
-                throw  IllegalStateException("DayView may only contain one add-EventView")
+                throw  IllegalStateException("DayEventsView may only contain one add-EventView")
             else {
                 addEventView = child
                 onAddEventViewListener?.invoke(child.event as AddEvent)
@@ -194,10 +194,8 @@ class DayView @JvmOverloads constructor(
             val data = eventData[event] ?: continue
             val eventTop = min(top + getPosForTime(event.start), bottom - eventView.minHeight).toFloat()
             // Fix if event ends on next day
-            val eventBottom = if (event.end >= day.nextDay.start)
-                bottom + eventSpacing
-            else
-                max(top + getPosForTime(event.end) - eventSpacing, eventTop + eventView.minHeight)
+            val eventBottom = if (event.end >= day.nextDay.start) bottom.toFloat()
+            else max(top + getPosForTime(event.end) - eventSpacing, eventTop + eventView.minHeight)
             val subGroupWidth = width / data.parallel
             val subGroupLeft = left + subGroupWidth * data.index + eventSpacing
 
@@ -259,7 +257,7 @@ class DayView @JvmOverloads constructor(
 
         launch(UI) {
             @Suppress("NAME_SHADOWING")
-            val events = this@DayView.events
+            val events = this@DayEventsView.events
             positionEvents()
 
             if (addEventView != null)
@@ -270,9 +268,9 @@ class DayView @JvmOverloads constructor(
                 val event = events[i]
 
                 if (existing > i)
-                    (this@DayView[i] as EventView).event = event
+                    (this@DayEventsView[i] as EventView).event = event
                 else
-                    addView(EventView(this@DayView.context).also {
+                    addView(EventView(this@DayEventsView.context).also {
                         it.event = event
                     })
             }
@@ -318,7 +316,7 @@ class DayView @JvmOverloads constructor(
         regenerateBaseEventData(events)
 
         fun endOfNoSpacing(event: Event) = (event.end - day.start)
-                .coerceIn((eventData[event]?.start ?: 0) + minLength + spacing.toLong(), DateUtils.DAY_IN_MILLIS)
+                .coerceIn((eventData[event]?.start ?: 0) + minLength - spacing.toLong(), DateUtils.DAY_IN_MILLIS)
 
         var currentGroup = mutableListOf<Event>()
         fun endGroup() {
@@ -432,7 +430,7 @@ class DayView @JvmOverloads constructor(
     @Suppress("ThrowsCount")
     private fun checkEvents(events: List<Event>) {
         if (events.any { showAsAllDay(it) })
-            throw IllegalArgumentException("all-day events cannot be shown inside DayView")
+            throw IllegalArgumentException("all-day events cannot be shown inside DayEventsView")
         if (events.any { it is AddEvent })
             throw IllegalArgumentException("add events currently cannot be set from the outside")
         if (events.any { it.end < day.start || it.start >= day.end })
@@ -467,16 +465,16 @@ class DayView @JvmOverloads constructor(
     }
 
     private fun onUpdateDay(day: Day) {
-        context.withStyledAttributes(attrs, R.styleable.DayView, defStyleAttr, R.style.Calendar_DayViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.DayEventsView, defStyleAttr, R.style.Calendar_DayEventsViewStyle) {
             background = if (day.isToday)
-                getDrawable(R.styleable.DayView_dateCurrentBackground)
+                getDrawable(R.styleable.DayEventsView_dateCurrentBackground)
             else
                 null
 
-            if (day.isToday && !this@DayView::timePaint.isInitialized) {
-                timeCircleRadius = getDimensionPixelSize(R.styleable.DayView_timeCircleRadius, 0)
-                timeLineSize = getDimensionPixelSize(R.styleable.DayView_timeLineSize, 0)
-                val timeColor = getColor(R.styleable.DayView_timeColor, Color.BLACK)
+            if (day.isToday && !this@DayEventsView::timePaint.isInitialized) {
+                timeCircleRadius = getDimensionPixelSize(R.styleable.DayEventsView_timeCircleRadius, 0)
+                timeLineSize = getDimensionPixelSize(R.styleable.DayEventsView_timeLineSize, 0)
+                val timeColor = getColor(R.styleable.DayEventsView_timeColor, Color.BLACK)
                 timePaint = Paint().apply {
                     color = timeColor
                 }

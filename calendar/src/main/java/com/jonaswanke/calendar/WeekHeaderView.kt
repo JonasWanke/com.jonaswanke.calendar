@@ -49,7 +49,7 @@ class WeekHeaderView @JvmOverloads constructor(
     init {
         setWillNotDraw(false)
 
-        cal = week.start.asCalendar()
+        cal = week.start.toCalendar()
         weekDayStrings = cal.getDisplayNames(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
                 .map { (key, value) -> value to key }
                 .toMap()

@@ -8,7 +8,7 @@ import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
-import com.jonaswanke.calendar.WeekView.Companion.showAsAllDay
+import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -212,8 +212,8 @@ class AllDayEventsView @JvmOverloads constructor(
     }
 
     private fun onUpdateRange(start: Day, end: Day) {
-        calStart = start.start.asCalendar()
-        calEnd = end.start.asCalendar()
+        calStart = start.start.toCalendar()
+        calEnd = end.start.toCalendar()
         days = calStart.daysUntil(end.start)
         requestLayout()
     }
