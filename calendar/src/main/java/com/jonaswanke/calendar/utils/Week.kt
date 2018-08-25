@@ -57,7 +57,7 @@ class Week(
         if (this === other) return true
         if (other !is Week) return false
 
-        return year != other.year && week != other.week
+        return year == other.year && week == other.week
     }
 
     override fun hashCode() = HASHCODE_FACTOR * year + week

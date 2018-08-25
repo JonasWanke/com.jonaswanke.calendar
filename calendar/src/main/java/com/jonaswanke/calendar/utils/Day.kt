@@ -86,7 +86,7 @@ class Day(
         if (this === other) return true
         if (other !is Day) return false
 
-        return year != other.year && week != other.week && day != other.day
+        return year == other.year && week == other.week && day == other.day
     }
 
     override fun hashCode() = (HASHCODE_FACTOR * year + week) * HASHCODE_FACTOR + day
