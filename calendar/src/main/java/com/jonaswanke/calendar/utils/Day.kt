@@ -3,13 +3,6 @@ package com.jonaswanke.calendar.utils
 import android.text.format.DateUtils.*
 import java.util.*
 
-private val TODAY: Calendar = Calendar.getInstance().apply {
-    timeOfDay = 0
-}
-private val TOMORROW: Calendar = (TODAY.clone() as Calendar).apply {
-    add(Calendar.DAY_OF_WEEK, 1)
-}
-
 
 class Day(
     _year: Int = TODAY.get(Calendar.YEAR),
@@ -114,7 +107,6 @@ class Day(
 }
 
 fun Calendar.toDay() = Day(this)
-
 fun String.toDay(): Day {
     val parts = split("-")
     return Day(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
