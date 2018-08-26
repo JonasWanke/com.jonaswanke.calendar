@@ -199,11 +199,14 @@ class CalendarView @JvmOverloads constructor(
                     currentIndicator = value.toDay()
                 }
 
+            @Suppress("LongMethod")
             override fun instantiateItem(indicator: Day, oldView: RangeView?): RangeView {
+                // Remove from cache
                 val oldKey = oldView?.range?.start
                 if (views[oldKey] == oldView)
                     views.remove(oldKey)
 
+                // Generate/reuse view
                 val week = indicator.weekObj
                 val view = when (range) {
                     RANGE_DAY -> (oldView as? DayView) ?: DayView(context, day = indicator)
@@ -235,14 +238,17 @@ class CalendarView @JvmOverloads constructor(
                     view.setStart(indicator, getEventsForRange(indicator.range(view.length)))
                 views[indicator] = view
 
-                // TODO: async
-                var currentWeek = week
-                var weeksLeft = ceil(range.toFloat() / WEEK_IN_DAYS).toInt()
-                while (weeksLeft > 0) {
-                    eventRequestCallback(week)
-                    currentWeek = currentWeek.nextWeek
-                    weeksLeft--
+                // Request events
+                launch(UI) {
+                    var currentWeek = week
+                    var weeksLeft = ceil(range.toFloat() / WEEK_IN_DAYS).toInt()
+                    while (weeksLeft > 0) {
+                        eventRequestCallback(week)
+                        currentWeek = currentWeek.nextWeek
+                        weeksLeft--
+                    }
                 }
+
                 return view
             }
         }
