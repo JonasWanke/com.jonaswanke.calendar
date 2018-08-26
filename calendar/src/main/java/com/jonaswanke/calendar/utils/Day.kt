@@ -68,7 +68,7 @@ class Day(
         if (other == this)
             return 0
         if (other > this)
-            return other - this
+            return -(other - this)
 
         var current = other
         var diff = 0
@@ -91,13 +91,9 @@ class Day(
 
     override fun hashCode() = (HASHCODE_FACTOR * year + week) * HASHCODE_FACTOR + day
     override operator fun compareTo(other: Day): Int {
-        var result = year.compareTo(other.year)
-        if (result != 0)
-            return result
-        result = week.compareTo(other.week)
-        if (result != 0)
-            return result
-        return day.compareTo(other.day)
+        if (this == other)
+            return 0
+        return start.compareTo(other.start)
     }
 
     fun range(length: Int) = this..this + (length - 1)
@@ -115,7 +111,7 @@ fun String.toDay(): Day {
 
 class DayRange(override val start: Day, override val endInclusive: Day) : ClosedRange<Day>, Iterable<Day> {
     val endExclusive = endInclusive.nextDay
-    val length = endInclusive - start + 1
+    val length = endExclusive - start
 
     override fun iterator() = DayIterator(start, endInclusive)
 }

@@ -62,10 +62,9 @@ class Week(
 
     override fun hashCode() = HASHCODE_FACTOR * year + week
     override operator fun compareTo(other: Week): Int {
-        val result = year.compareTo(other.year)
-        if (result != 0)
-            return result
-        return week.compareTo(other.week)
+        if (this == other)
+            return 0
+        return start.compareTo(other.start)
     }
 
     override fun toString() = "$year-$week"
