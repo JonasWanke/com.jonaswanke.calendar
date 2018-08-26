@@ -34,7 +34,7 @@ import kotlin.properties.Delegates
 /**
  * TODO: document your custom view class.
  */
-@Suppress("LargeClass")
+@Suppress("LargeClass", "TooManyFunctions")
 class DayEventsView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
