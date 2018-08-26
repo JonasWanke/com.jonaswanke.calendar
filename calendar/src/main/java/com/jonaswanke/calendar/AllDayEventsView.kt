@@ -2,13 +2,16 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
+import androidx.annotation.StyleRes
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.get
-import com.jonaswanke.calendar.WeekView.Companion.showAsAllDay
+import com.jonaswanke.calendar.RangeView.Companion.showAsAllDay
+import com.jonaswanke.calendar.utils.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -22,24 +25,33 @@ class AllDayEventsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.allDayEventsViewStyle,
-    _start: Day? = null,
-    _end: Day? = null
-) : ViewGroup(context, attrs, defStyleAttr) {
+    @StyleRes private val defStyleRes: Int = R.style.Calendar_AllDayEventsViewStyle,
+    _range: DayRange? = null
+) : ViewGroup(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
+    private var _onEventClickListener: ((Event) -> Unit)? = null
     var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
-            }
-    var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
-            }
+        get() = _onEventClickListener
+        set(value) {
+            if (_onEventClickListener == value)
+                return
 
-    var start: Day = _start ?: Day()
+            _onEventClickListener = value
+            updateListeners()
+        }
+    private var _onEventLongClickListener: ((Event) -> Unit)? = null
+    var onEventLongClickListener: ((Event) -> Unit)?
+        get() = _onEventLongClickListener
+        set(value) {
+            if (_onEventLongClickListener == value)
+                return
+
+            _onEventLongClickListener = value
+            updateListeners()
+        }
+
+    var range: DayRange = _range ?: Day().range(1)
         private set
-    var end: Day = _end ?: start.nextDay
-        private set
-    private var days: Int = 0
 
     private var events: List<Event> = emptyList()
     private val eventData: MutableMap<Event, EventData> = mutableMapOf()
@@ -51,13 +63,15 @@ class AllDayEventsView @JvmOverloads constructor(
     private lateinit var calEnd: Calendar
 
     init {
-        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, R.style.Calendar_AllDayEventsViewStyle) {
+        context.withStyledAttributes(attrs, R.styleable.AllDayEventsView, defStyleAttr, defStyleRes) {
             spacing = getDimension(R.styleable.AllDayEventsView_eventSpacing, 0f)
         }
 
-        onUpdateRange(start, end)
+        onUpdateRange(range)
     }
 
+
+    // View
     override fun addView(child: View?, index: Int, params: LayoutParams?) {
         if (child !is EventView)
             throw IllegalArgumentException("Only EventViews may be children of AllDayEventsView")
@@ -67,8 +81,7 @@ class AllDayEventsView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val rowsHeight = (rows * (((getChildAt(0) as? EventView)?.minHeight ?: 0) + spacing)).toInt()
         val height = paddingTop + paddingBottom + max(suggestedMinimumHeight, rowsHeight)
-        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
-                height)
+        setMeasuredDimension(View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec), height)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -76,26 +89,29 @@ class AllDayEventsView @JvmOverloads constructor(
         val top = paddingTop
         val right = r - l - paddingRight
         val bottom = b - t - paddingBottom
-        val height = bottom - top
         val width = right - left
+        val eventHeight = (getChildAt(0) as? EventView)?.minHeight?.plus(spacing)
+                ?.coerceAtMost((bottom - top).toFloat() / rows)
+                ?: return
 
-        fun getX(index: Int) = left + width * index / days
-        fun getY(index: Int) = top + height * index / rows
+        fun getX(index: Int) = left + width * index / range.length
+        fun getY(index: Int) = top + eventHeight * index
 
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event ?: continue
             val data = eventData[event] ?: continue
 
-            eventView.layout((getX(data.start) + spacing).toInt(), getY(data.index),
+            eventView.layout((getX(data.start) + spacing).toInt(), getY(data.index).toInt(),
                     getX(data.end + 1), (getY(data.index + 1) - spacing).toInt())
         }
     }
 
-    fun setRange(start: Day = this.start, end: Day = this.end, events: List<Event> = emptyList()) {
-        this.start = start
-        this.end = end
-        onUpdateRange(start, end)
+
+    // Custom
+    fun setRange(range: DayRange, events: List<Event> = emptyList()) {
+        this.range = range
+        onUpdateRange(range)
 
         setEvents(events)
     }
@@ -132,11 +148,22 @@ class AllDayEventsView @JvmOverloads constructor(
             }
             if (sortedEvents.size < existing)
                 removeViews(sortedEvents.size, existing - sortedEvents.size)
-            updateListeners(onEventClickListener, onEventLongClickListener)
+            updateListeners()
             requestLayout()
         }
     }
 
+    fun setListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        updateListeners()
+    }
+
+
+    // Helpers
     private fun positionEvents() {
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0
@@ -180,14 +207,11 @@ class AllDayEventsView @JvmOverloads constructor(
     private fun checkEvents(events: List<Event>) {
         if (events.any { !showAsAllDay(it) })
             throw IllegalArgumentException("only all-day events can be shown inside AllDayEventsView")
-        if (events.any { it.end < start.start || it.start >= end.start })
-            throw IllegalArgumentException("event must all partly be inside the set range")
+        if (events.any { it.end < range.start.start || it.start >= range.endExclusive.start })
+            throw IllegalArgumentException("event must all partly be inside the set length")
     }
 
-    private fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
-    ) {
+    private fun updateListeners() {
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event
@@ -211,10 +235,9 @@ class AllDayEventsView @JvmOverloads constructor(
         }
     }
 
-    private fun onUpdateRange(start: Day, end: Day) {
-        calStart = start.start.asCalendar()
-        calEnd = end.start.asCalendar()
-        days = calStart.daysUntil(end.start)
+    private fun onUpdateRange(range: DayRange) {
+        calStart = range.start.toCalendar()
+        calEnd = range.endExclusive.toCalendar()
         requestLayout()
     }
 

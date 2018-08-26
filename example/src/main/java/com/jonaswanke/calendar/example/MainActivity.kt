@@ -13,8 +13,9 @@ import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import com.jonaswanke.calendar.BaseEvent
 import com.jonaswanke.calendar.Event
-import com.jonaswanke.calendar.Week
 import com.jonaswanke.calendar.example.databinding.ActivityMainBinding
+import com.jonaswanke.calendar.utils.Day
+import com.jonaswanke.calendar.utils.Week
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import kotlin.math.abs
@@ -34,7 +35,9 @@ class MainActivity : AppCompatActivity() {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        calendar.eventRequestCallback = this::populate
+        calendar.eventRequestCallback = {
+            populate(it)
+        }
         calendar.onEventClickListener = {
             Toast.makeText(this, it.title + " clicked", Toast.LENGTH_SHORT).show()
         }
@@ -62,8 +65,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.main_action_today -> calendar.currentWeek = Week()
-            R.id.main_action_regenerate -> calendar.cachedWeeks.forEach(this::populate)
+            R.id.main_action_today -> calendar.visibleStart = Day()
+            R.id.main_action_regenerate -> calendar.cachedWeeks.forEach { populate(it, true) }
             else ->
                 return super.onOptionsItemSelected(item)
         }
@@ -71,7 +74,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Suppress("MagicNumber")
-    private fun populate(week: Week) {
+    private fun populate(week: Week, force: Boolean = false) {
+        if (!force && calendar.cachedEvents.contains(week))
+            return
+
         val events = mutableListOf<Event>()
         for (i in 0..15) {
             val id = nextId++.toString()

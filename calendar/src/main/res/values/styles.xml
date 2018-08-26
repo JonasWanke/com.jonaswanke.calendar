@@ -10,7 +10,11 @@
         <item name="hourHeightMax">100dp</item>
     </style>
 
-    <style name="Calendar.WeekHeaderViewStyle">
+    <style name="Calendar.DayViewStyle">
+        <item name="headerHeightMin">36dp</item>
+    </style>
+
+    <style name="Calendar.RangeHeaderViewStyle">
         <item name="android:minHeight">65dp</item>
         <item name="dateSize">32sp</item>
         <item name="dateColor">?android:attr/textColorHint</item>
@@ -25,17 +29,33 @@
     <style name="Calendar.AllDayEventsViewStyle">
         <item name="eventSpacing">4dp</item>
     </style>
-
-    <style name="Calendar.DayViewStyle">
+    <style name="Calendar.AllDayEventsViewStyle.ForDay">
+        <item name="eventSpacing">4dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+    <style name="Calendar.DayEventsViewStyle">
         <item name="dateCurrentBackground">#0A000000</item>
         <item name="timeCircleRadius">4dp</item>
-        <item name="timeLineSize">2dp</item>
-        <item name="timeColor">#5f89d5</item>
+        <item name="timeLineSize">1dp</item>
+        <item name="timeColor">#4285f4</item>
         <item name="hourHeight">32dp</item>
         <item name="hourHeightMin">24dp</item>
         <item name="hourHeightMax">100dp</item>
+        <item name="dividerPadding">0dp</item>
         <item name="eventSpacing">4dp</item>
         <item name="eventStackOverlap">20dp</item>
+    </style>
+    <style name="Calendar.DayEventsViewStyle.ForDay">
+        <item name="dateCurrentBackground">@null</item>
+        <item name="timeCircleRadius">5dp</item>
+        <item name="dividerPadding">16dp</item>
+        <item name="eventSpacing">16dp</item>
+        <item name="eventStackOverlap">40dp</item>
+        <item name="android:paddingRight">16dp</item>
     </style>
 
     <style name="Calendar.EventViewStyle">
@@ -55,17 +75,18 @@
     </style>
     <style name="Calendar.EventViewStyle.AllDay">
         <item name="android:minHeight">24dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
         <item name="android:textSize">14sp</item>
         <item name="android:maxLines">1</item>
         <item name="android:gravity">center_vertical</item>
     </style>
 
-    <style name="Calendar.HoursHeaderViewStyle">
+    <style name="Calendar.WeekIndicatorViewStyle">
         <item name="weekOffsetTop">50dp</item>
         <item name="weekSize">12sp</item>
         <item name="weekColor">?android:attr/textColorHint</item>
     </style>
-
     <style name="Calendar.HoursViewStyle">
         <item name="hourHeight">32dp</item>
         <item name="hourHeightMin">24dp</item>

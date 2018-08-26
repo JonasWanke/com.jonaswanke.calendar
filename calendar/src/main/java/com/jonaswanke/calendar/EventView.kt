@@ -69,6 +69,8 @@ class EventView @JvmOverloads constructor(
         onEventChanged(event)
     }
 
+
+    // Helpers
     private fun onEventChanged(event: Event?) {
         if (event == null) {
             text = null
