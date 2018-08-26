@@ -130,7 +130,7 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, offscreenPages: I
             Log.d(TAG, "setup Page $position")
         val oldModel = pageModels[position]
         if (oldModel == null) {
-            Log.w(TAG, "fillPage no model found $oldModel")
+            Log.w(TAG, "fillPage: no model found")
             return
         }
 

@@ -8,7 +8,7 @@
 [![Awesome Badges](https://img.shields.io/badge/badges-awesome-green.svg?colorB=4c1)](https://github.com/Naereen/badges)
 
 
-This library provides a Material Design CalendarView for Android (week view; more coming soon!). The default style is copied from the Google Calendar app, but almost everything is customizable.
+This library provides a Material Design CalendarView for Android (week and day view; more coming soon!). The default style is copied from the Google Calendar app, but almost everything is customizable.
 
 | Screenshot of the [example app][example] | Zoomed in                                 |
 | :--------------------------------------: | :---------------------------------------: |
@@ -27,7 +27,7 @@ This library provides a Material Design CalendarView for Android (week view; mor
 1. Import the library
 
   ```groovy
-  implementation 'com.jonaswanke.calendar:calendar:0.0.5'
+  implementation 'com.jonaswanke.calendar:calendar:0.1.0'
   ```
 
 2. Add CalendarView in you layout

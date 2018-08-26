@@ -5,6 +5,10 @@
     <string name="main_drawer_close">Close navigation drawer</string>
     <string name="main_action_today">Jump to Today</string>
     <string name="main_action_regenerate">Regenerate events</string>
+    
+    <string name="config_range">Range</string>
+    <string name="config_range_day">Day</string>
+    <string name="config_range_week">Week</string>
 
     <string name="drawer_info_creator">Created by Jonas Wanke</string>
     <string name="drawer_info_contact">contact@jonas-wanke.com</string>

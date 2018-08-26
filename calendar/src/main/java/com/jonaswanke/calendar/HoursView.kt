@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.core.content.withStyledAttributes
+import com.jonaswanke.calendar.utils.DAY_IN_HOURS
 import kotlin.properties.Delegates
 
 
@@ -64,6 +65,8 @@ class HoursView @JvmOverloads constructor(
         }
     }
 
+
+    // View
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val height = paddingTop + paddingBottom + Math.max(suggestedMinimumHeight, (_hourHeight * DAY_IN_HOURS).toInt())
         setMeasuredDimension(getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),

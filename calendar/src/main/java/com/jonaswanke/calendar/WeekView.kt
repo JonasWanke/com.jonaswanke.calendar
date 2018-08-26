@@ -2,15 +2,13 @@ package com.jonaswanke.calendar
 
 import android.content.Context
 import android.graphics.Canvas
-import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
+import com.jonaswanke.calendar.utils.*
 import java.util.*
-import kotlin.properties.Delegates
 
 /**
  * TODO: document your custom view class.
@@ -19,93 +17,29 @@ class WeekView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = 0,
-    _week: Week? = null
-) : LinearLayout(context, attrs, defStyleAttr) {
-    companion object {
-        internal fun showAsAllDay(event: Event) = event.allDay || event.end - event.start >= DateUtils.DAY_IN_MILLIS
-    }
+    week: Week? = null
+) : RangeView(context, attrs, defStyleAttr, WEEK_IN_DAYS, week?.firstDay) {
 
-    var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener, onAddEventListener)
-            }
-    var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new, onAddEventListener)
-            }
-    internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
-    var onAddEventListener: ((AddEvent) -> Boolean)?
-            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, onEventLongClickListener, new)
-            }
-    var onHeaderHeightChangeListener: ((Int) -> Unit)? = null
-    var onScrollChangeListener: ((Int) -> Unit)?
+    override var onScrollChangeListener: ((Int) -> Unit)?
         get() = scrollView.onScrollChangeListener
         set(value) {
             scrollView.onScrollChangeListener = value
         }
 
-    var week: Week = _week ?: Week()
-        private set
-    private val range: Pair<Day, Day>
-        get() {
-            return Day(week.year, week.week, cal.firstDayOfWeek) to
-                    Day(week.nextWeek.year, week.nextWeek.week, cal.firstDayOfWeek)
-        }
-    private var _events: List<Event> = emptyList()
-    var events: List<Event>
-        get() = _events
-        set(value) {
-            checkEvents(value)
-            val sortedEvents = value.sorted()
-
-            allDayEventsView.setEvents(sortedEvents.filter { showAsAllDay(it) })
-
-            val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
-            for (day in WEEK_DAYS)
-                dayViews[day].setEvents(byDays[day])
-        }
-
-    private var cal: Calendar
-
-    var headerHeight: Int = 0
-        private set
-    var hourHeight: Float
-        get() = dayViews[0].hourHeight
-        set(value) {
-            for (day in dayViews)
-                day.hourHeight = value
-        }
-    var hourHeightMin: Float
-        get() = dayViews[0].hourHeightMin
-        set(value) {
-            for (day in dayViews)
-                day.hourHeightMin = value
-        }
-    var hourHeightMax: Float
-        get() = dayViews[0].hourHeightMax
-        set(value) {
-            for (day in dayViews)
-                day.hourHeightMax = value
-        }
-
-    private val headerView: WeekHeaderView
+    private val headerView: RangeHeaderView
     private val allDayEventsView: AllDayEventsView
     private val scrollView: ReportingScrollView
-    private val dayViews: List<DayView>
+    private val dayViews: List<DayEventsView>
 
     init {
         orientation = VERTICAL
         dividerDrawable = ContextCompat.getDrawable(context, android.R.drawable.divider_horizontal_bright)
         setWillNotDraw(false)
 
-        cal = week.toCalendar()
-
-        headerView = WeekHeaderView(context, _week = week)
+        headerView = RangeHeaderView(context, _range = range)
         addView(headerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
-        val range = range
-        allDayEventsView = AllDayEventsView(context, _start = range.first, _end = range.second)
+        allDayEventsView = AllDayEventsView(context, _range = range)
         addView(allDayEventsView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         val dividerView = View(context).apply {
@@ -114,39 +48,28 @@ class WeekView @JvmOverloads constructor(
         addView(dividerView, LayoutParams(LayoutParams.MATCH_PARENT, dividerView.background.intrinsicHeight))
 
         dayViews = WEEK_DAYS.map {
-            DayView(context, _day = Day(week, mapBackDay(it))).also {
-                it.onEventClickListener = onEventClickListener
-                it.onEventLongClickListener = onEventLongClickListener
-            }
-        }
-        dayViews.forEach {
-            it.onAddEventViewListener = { event ->
-                for (view in dayViews)
-                    if (view != it)
-                        view.removeAddEvent()
-                onAddEventViewListener?.invoke(event)
-            }
+            DayEventsView(context, _day = Day(range.start.weekObj, mapBackDay(it)))
         }
         val daysWrapper = LinearLayout(context).apply {
             clipChildren = false
             for (day in dayViews)
-                addView(day, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+                addView(day, LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
         }
         scrollView = ReportingScrollView(context).apply {
             isVerticalScrollBarEnabled = false
             addView(daysWrapper, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         }
         addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+
+        onInitialized()
     }
 
+
+    // View
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
 
-        val headerHeightNew = headerView.measuredHeight + allDayEventsView.measuredHeight
-        if (headerHeight != headerHeightNew) {
-            headerHeight = headerHeightNew
-            onHeaderHeightChangeListener?.invoke(headerHeight)
-        }
+        headerHeight = headerView.measuredHeight + allDayEventsView.measuredHeight
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -170,62 +93,70 @@ class WeekView @JvmOverloads constructor(
     }
 
 
-    fun setWeek(week: Week, events: List<Event> = emptyList()) {
-        this.week = week
-        cal = week.toCalendar()
+    // RangeView
+    override fun updateListeners() {
+        allDayEventsView.onEventClickListener = onEventClickListener
+        allDayEventsView.onEventLongClickListener = onEventLongClickListener
 
-        removeAddEvent()
-        checkEvents(events)
-        val sortedEvents = events.sorted()
-        headerView.week = week
+        for (view in dayViews) {
+            view.onEventClickListener = onEventClickListener
+            view.onEventLongClickListener = onEventLongClickListener
 
-        val range = range
-        allDayEventsView.setRange(range.first, range.second, sortedEvents.filter { showAsAllDay(it) })
-
-        val byDays = distributeEvents(sortedEvents.filter { !showAsAllDay(it) })
-        for (day in WEEK_DAYS)
-            dayViews[day].setDay(Day(week, mapBackDay(day)), byDays[day])
-        this.events = sortedEvents
+            view.onAddEventViewListener = { event ->
+                for (otherView in dayViews)
+                    if (otherView != view)
+                        otherView.removeAddEvent()
+                onAddEventViewListener?.invoke(event)
+            }
+            view.onAddEventListener = onAddEventListener
+        }
     }
 
-    fun scrollTo(pos: Int) {
+    override fun onRangeUpdated(range: DayRange, events: List<Event>) {
+        headerView.range = range
+        allDayEventsView.setRange(range, events.filter { showAsAllDay(it) })
+
+        val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
+        for (day in WEEK_DAYS)
+            dayViews[day].setDay(Day(range.start.weekObj, mapBackDay(day)), byDays[day])
+    }
+
+    override fun checkEvents(events: List<Event>) {
+        if (events.any { it.end < range.start.start || it.start >= range.endExclusive.start })
+            throw IllegalArgumentException("event starts must all be inside the set start")
+    }
+
+    override fun onEventsChanged(events: List<Event>) {
+        allDayEventsView.setEvents(events.filter { showAsAllDay(it) })
+
+        val byDays = distributeEvents(events.filter { !showAsAllDay(it) })
+        for (day in WEEK_DAYS)
+            dayViews[day].setEvents(byDays[day])
+    }
+
+    override fun onHourHeightChanged(height: Float?, heightMin: Float?, heightMax: Float?) {
+        for (day in dayViews) {
+            if (height != null) day.hourHeight = height
+            if (heightMin != null) day.hourHeightMin = heightMin
+            if (heightMax != null) day.hourHeightMax = heightMax
+        }
+    }
+
+    override fun scrollTo(pos: Int) {
         scrollView.scrollY = pos
     }
 
-    fun removeAddEvent() {
+    override fun removeAddEvent() {
         for (view in dayViews)
             view.removeAddEvent()
     }
 
 
-    private fun checkEvents(events: List<Event>) {
-        if (events.any { event -> event.end < week.start || event.start >= week.end })
-            throw IllegalArgumentException("event starts must all be inside the set week")
-    }
-
-    /**
-     * Maps a [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]) to the index of that day.
-     */
-    private fun mapDay(day: Int): Int = (day + WEEK_IN_DAYS - cal.firstDayOfWeek) % WEEK_IN_DAYS
-
+    // Helpers
     /**
      * Maps the index of a day back to the [Calendar] weekday ([Calendar.SUNDAY] through [Calendar.SATURDAY]).
      */
     private fun mapBackDay(day: Int): Int = (day + cal.firstDayOfWeek) % WEEK_IN_DAYS
-
-    private fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?,
-        onAddEventListener: ((AddEvent) -> Boolean)?
-    ) {
-        allDayEventsView.onEventClickListener = onEventClickListener
-        allDayEventsView.onEventLongClickListener = onEventLongClickListener
-        for (view in dayViews) {
-            view.onEventClickListener = onEventClickListener
-            view.onEventLongClickListener = onEventLongClickListener
-            view.onAddEventListener = onAddEventListener
-        }
-    }
 
     private fun distributeEvents(events: List<Event>): List<List<Event>> {
         val days = WEEK_DAYS.map { mutableListOf<Event>() }

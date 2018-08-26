@@ -20,9 +20,15 @@ Optional intro comment.
 
  -->
 
-## [Unreleased] - estimated 2018-08-26
+## [Unreleased] - estimated 2018-09-02
 
 
+
+
+## [0.1.0] - 2018-08-26
+
+- Added: Support single day range ([#53](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/53)), fixes [#8](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/8)
+- Fixed: Add-event changes position when zooming ([#52](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/52)), fixes [#51](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/51)
 
 
 ## [0.0.5] - 2018-08-19
@@ -67,7 +73,8 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.5...dev
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.1.0...dev
+[0.1.0]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.2...v0.0.3
