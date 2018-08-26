@@ -23,25 +23,63 @@ abstract class RangeView @JvmOverloads constructor(
     }
 
     // Listeners
+    private var _onEventClickListener: ((Event) -> Unit)? = null
     var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener, onAddEventListener)
-            }
-    var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new, onAddEventListener)
-            }
-    var onAddEventViewListener: ((AddEvent) -> Unit)? = null
-    var onAddEventListener: ((AddEvent) -> Boolean)?
-            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, onEventLongClickListener, new)
-            }
+        get() = _onEventClickListener
+        set(value) {
+            if (_onEventClickListener == value)
+                return
 
-    protected abstract fun updateListeners(
+            _onEventClickListener = value
+            updateListeners()
+        }
+    private var _onEventLongClickListener: ((Event) -> Unit)? = null
+    var onEventLongClickListener: ((Event) -> Unit)?
+        get() = _onEventLongClickListener
+        set(value) {
+            if (_onEventLongClickListener == value)
+                return
+
+            _onEventLongClickListener = value
+            updateListeners()
+        }
+    internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
+    private var _onAddEventListener: ((AddEvent) -> Boolean)? = null
+    var onAddEventListener: ((AddEvent) -> Boolean)?
+        get() = _onAddEventListener
+        set(value) {
+            if (_onAddEventListener == value)
+                return
+
+            _onAddEventListener = value
+            updateListeners()
+        }
+
+    fun setListeners(
         onEventClickListener: ((Event) -> Unit)?,
         onEventLongClickListener: ((Event) -> Unit)?,
         onAddEventListener: ((AddEvent) -> Boolean)?
-    )
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        _onAddEventListener = onAddEventListener
+        updateListeners()
+    }
+
+    internal fun setListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventViewListener: ((AddEvent) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Boolean)?
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        this.onAddEventViewListener = onAddEventViewListener
+        _onAddEventListener = onAddEventListener
+        updateListeners()
+    }
+
+    protected abstract fun updateListeners()
 
     var onHeaderHeightChangeListener: ((Int) -> Unit)? = null
     abstract var onScrollChangeListener: ((Int) -> Unit)?
@@ -132,7 +170,7 @@ abstract class RangeView @JvmOverloads constructor(
 
 
     fun onInitialized() {
-        updateListeners(onEventClickListener, onEventLongClickListener, onAddEventListener)
+        updateListeners()
     }
 }
 

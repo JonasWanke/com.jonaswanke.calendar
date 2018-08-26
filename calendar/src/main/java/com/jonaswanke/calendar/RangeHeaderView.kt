@@ -22,7 +22,7 @@ class RangeHeaderView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
     @AttrRes private val defStyleAttr: Int = R.attr.rangeHeaderViewStyle,
-    @StyleRes defStyleRes: Int = R.style.Calendar_RangeHeaderViewStyle,
+    @StyleRes private val defStyleRes: Int = R.style.Calendar_RangeHeaderViewStyle,
     _range: DayRange? = null
 ) : RangeViewStartIndicator(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
@@ -55,6 +55,11 @@ class RangeHeaderView @JvmOverloads constructor(
 
     init {
         setWillNotDraw(false)
+
+        context.withStyledAttributes(attrs, R.styleable.RangeHeaderView, defStyleAttr, defStyleRes) {
+            dateSize = getDimensionPixelSize(R.styleable.RangeHeaderView_dateSize, 0)
+            weekDaySize = getDimensionPixelSize(R.styleable.RangeHeaderView_weekDaySize, 0)
+        }
 
         cal = start.start.toCalendar()
         weekDayStrings = cal.getDisplayNames(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
@@ -111,10 +116,7 @@ class RangeHeaderView @JvmOverloads constructor(
     // Custom
     @Suppress("ComplexMethod")
     private fun onUpdateRange(range: DayRange) {
-        context.withStyledAttributes(attrs, R.styleable.RangeHeaderView, defStyleAttr, R.style.Calendar_RangeHeaderViewStyle) {
-            dateSize = getDimensionPixelSize(R.styleable.RangeHeaderView_dateSize, 0)
-            weekDaySize = getDimensionPixelSize(R.styleable.RangeHeaderView_weekDaySize, 0)
-
+        context.withStyledAttributes(attrs, R.styleable.RangeHeaderView, defStyleAttr, defStyleRes) {
             if (!start.isFuture) {
                 if (datePaint == null)
                     datePaint = TextPaint().apply {

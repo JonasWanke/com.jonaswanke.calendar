@@ -72,19 +72,11 @@ class DayView @JvmOverloads constructor(
 
 
     // RangeView
-    override fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?,
-        onAddEventListener: ((AddEvent) -> Boolean)?
-    ) {
-        allDayEventsView.onEventClickListener = onEventClickListener
-        allDayEventsView.onEventLongClickListener = onEventLongClickListener
+    override fun updateListeners() {
+        allDayEventsView.setListeners(onEventClickListener, onEventLongClickListener)
 
-        eventView.onEventClickListener = onEventClickListener
-        eventView.onEventLongClickListener = onEventLongClickListener
-
-        eventView.onAddEventViewListener = onAddEventViewListener
-        eventView.onAddEventListener = onAddEventListener
+        eventView.setListeners(onEventClickListener, onEventLongClickListener,
+                onAddEventViewListener, onAddEventListener)
     }
 
     override fun onRangeUpdated(range: DayRange, events: List<Event>) {

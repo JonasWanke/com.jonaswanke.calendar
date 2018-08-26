@@ -94,11 +94,7 @@ class WeekView @JvmOverloads constructor(
 
 
     // RangeView
-    override fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?,
-        onAddEventListener: ((AddEvent) -> Boolean)?
-    ) {
+    override fun updateListeners() {
         allDayEventsView.onEventClickListener = onEventClickListener
         allDayEventsView.onEventLongClickListener = onEventLongClickListener
 

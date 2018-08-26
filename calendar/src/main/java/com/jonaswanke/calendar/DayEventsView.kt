@@ -46,20 +46,39 @@ class DayEventsView @JvmOverloads constructor(
         private const val EVENT_POSITIONING_DEBOUNCE = 500L
     }
 
+    private var _onEventClickListener: ((Event) -> Unit)? = null
     var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
-            }
+        get() = _onEventClickListener
+        set(value) {
+            if (_onEventClickListener == value)
+                return
+
+            _onEventClickListener = value
+            updateListeners()
+        }
+    private var _onEventLongClickListener: ((Event) -> Unit)? = null
     var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
-            }
+        get() = _onEventLongClickListener
+        set(value) {
+            if (_onEventLongClickListener == value)
+                return
+
+            _onEventLongClickListener = value
+            updateListeners()
+        }
     internal var onAddEventViewListener: ((AddEvent) -> Unit)? = null
+    private var _onAddEventListener: ((AddEvent) -> Boolean)? = null
     var onAddEventListener: ((AddEvent) -> Boolean)?
-            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
-                if (new == null)
-                    removeAddEvent()
-            }
+        get() = _onAddEventListener
+        set(value) {
+            if (value == null)
+                removeAddEvent()
+            if (_onAddEventListener == value)
+                return
+
+            _onAddEventListener = value
+            updateListeners()
+        }
 
     var day: Day = _day ?: Day()
         private set
@@ -293,7 +312,7 @@ class DayEventsView @JvmOverloads constructor(
             if (addEventView != null)
                 addView(addEventView)
 
-            updateListeners(onEventClickListener, onEventLongClickListener)
+            updateListeners()
             requestLayout()
         }
     }
@@ -303,6 +322,30 @@ class DayEventsView @JvmOverloads constructor(
             removeView(it)
             addEventView = null
         }
+    }
+
+    fun setListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Boolean)?
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        _onAddEventListener = onAddEventListener
+        updateListeners()
+    }
+
+    internal fun setListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?,
+        onAddEventViewListener: ((AddEvent) -> Unit)?,
+        onAddEventListener: ((AddEvent) -> Boolean)?
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        this.onAddEventViewListener = onAddEventViewListener
+        _onAddEventListener = onAddEventListener
+        updateListeners()
     }
 
 
@@ -453,10 +496,7 @@ class DayEventsView @JvmOverloads constructor(
             throw IllegalArgumentException("event starts must all be inside the set day")
     }
 
-    private fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
-    ) {
+    private fun updateListeners() {
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event

@@ -48,17 +48,11 @@ class CalendarView @JvmOverloads constructor(
 
 
     var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener, onAddEventListener)
-            }
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, _ -> updateListeners() }
     var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new, onAddEventListener)
-            }
+            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, _ -> updateListeners() }
     var onAddEventListener: ((AddEvent) -> Boolean)?
-            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, onEventLongClickListener, new)
-            }
+            by Delegates.observable<((AddEvent) -> Boolean)?>(null) { _, _, _ -> updateListeners() }
 
     var eventRequestCallback: (Week) -> Unit = {}
 
@@ -216,14 +210,11 @@ class CalendarView @JvmOverloads constructor(
                 }
 
                 // Configure view
-                view.onEventClickListener = onEventClickListener
-                view.onEventLongClickListener = onEventLongClickListener
-                view.onAddEventViewListener = { _ ->
+                view.setListeners(onEventClickListener, onEventLongClickListener, { _ ->
                     for (otherView in views.values)
                         if (otherView != view)
                             otherView.removeAddEvent()
-                }
-                view.onAddEventListener = onAddEventListener
+                }, onAddEventListener)
                 view.onHeaderHeightChangeListener = { onHeaderHeightUpdated() }
                 view.onScrollChangeListener = { scrollPosition = it }
                 view.hourHeightMin = hourHeightMin
@@ -350,16 +341,9 @@ class CalendarView @JvmOverloads constructor(
         pagerAdapter.reset(visibleStart)
     }
 
-    private fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?,
-        onAddEventListener: ((AddEvent) -> Boolean)?
-    ) {
-        for (view in views.values) {
-            view.onEventClickListener = onEventClickListener
-            view.onEventLongClickListener = onEventLongClickListener
-            view.onAddEventListener = onAddEventListener
-        }
+    private fun updateListeners() {
+        for (view in views.values)
+            view.setListeners(onEventClickListener, onEventLongClickListener, onAddEventListener)
     }
 
 

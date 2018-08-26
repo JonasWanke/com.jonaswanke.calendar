@@ -29,14 +29,26 @@ class AllDayEventsView @JvmOverloads constructor(
     _range: DayRange? = null
 ) : ViewGroup(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
+    private var _onEventClickListener: ((Event) -> Unit)? = null
     var onEventClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(new, onEventLongClickListener)
-            }
+        get() = _onEventClickListener
+        set(value) {
+            if (_onEventClickListener == value)
+                return
+
+            _onEventClickListener = value
+            updateListeners()
+        }
+    private var _onEventLongClickListener: ((Event) -> Unit)? = null
     var onEventLongClickListener: ((Event) -> Unit)?
-            by Delegates.observable<((Event) -> Unit)?>(null) { _, _, new ->
-                updateListeners(onEventClickListener, new)
-            }
+        get() = _onEventLongClickListener
+        set(value) {
+            if (_onEventLongClickListener == value)
+                return
+
+            _onEventLongClickListener = value
+            updateListeners()
+        }
 
     var range: DayRange = _range ?: Day().range(1)
         private set
@@ -136,11 +148,22 @@ class AllDayEventsView @JvmOverloads constructor(
             }
             if (sortedEvents.size < existing)
                 removeViews(sortedEvents.size, existing - sortedEvents.size)
-            updateListeners(onEventClickListener, onEventLongClickListener)
+            updateListeners()
             requestLayout()
         }
     }
 
+    fun setListeners(
+        onEventClickListener: ((Event) -> Unit)?,
+        onEventLongClickListener: ((Event) -> Unit)?
+    ) {
+        _onEventClickListener = onEventClickListener
+        _onEventLongClickListener = onEventLongClickListener
+        updateListeners()
+    }
+
+
+    // Helpers
     private fun positionEvents() {
         var currentGroup = mutableListOf<Event>()
         var currentEnd = 0
@@ -188,10 +211,7 @@ class AllDayEventsView @JvmOverloads constructor(
             throw IllegalArgumentException("event must all partly be inside the set length")
     }
 
-    private fun updateListeners(
-        onEventClickListener: ((Event) -> Unit)?,
-        onEventLongClickListener: ((Event) -> Unit)?
-    ) {
+    private fun updateListeners() {
         for (view in children) {
             val eventView = view as EventView
             val event = eventView.event
