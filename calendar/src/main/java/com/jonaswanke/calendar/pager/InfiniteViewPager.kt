@@ -29,6 +29,9 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     var positionOffsetPixels: Int = 0
         private set
 
+    private var positionCurrent = -1
+    var listener: OnInfinitePageChangeListener? = null
+
     init {
         addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -65,9 +68,6 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
             }
         })
     }
-
-    private var positionCurrent = -1
-    var listener: OnInfinitePageChangeListener? = null
 
 
     override fun setCurrentItem(item: Int) {

@@ -131,7 +131,7 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, private val offsc
             Log.d(TAG, "Moving page $from to $to, indicator from ${fromModel.indicator} to ${toModel.indicator}")
 
         fromModel.view?.also {
-            fromModel.wrapper.removeView(it)
+            (it.parent as? ViewGroup)?.removeView(it)
             toModel.wrapper.addView(it)
         }
         toModel.indicator = fromModel.indicator
@@ -163,10 +163,8 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, private val offsc
 
         // moving the new created views to the page of the viewpager
         val oldView = model.view
-        if (oldView != null) {
+        if (oldView != null)
             (oldView.parent as? ViewGroup)?.removeView(oldView)
-            model.wrapper.removeView(oldView)
-        }
 
         val indicator = indicatorFromPosition(position)
         val view = instantiateItem(indicator, oldView)
