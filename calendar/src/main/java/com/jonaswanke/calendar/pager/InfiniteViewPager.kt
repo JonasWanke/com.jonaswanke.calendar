@@ -22,7 +22,6 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         const val STATE_ADAPTER = "STATE_ADAPTER"
     }
 
-    private var isCycling: Boolean = false
     var position: Int = 0
         private set
     var positionOffset: Float = 0f
@@ -34,9 +33,6 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 val adapter = adapter as InfinitePagerAdapter<*, *>? ?: return
-                //                if (isCycling || i > adapter.currentPosition)
-                //                    return
-
                 this@InfiniteViewPager.position = i - adapter.currentPosition
                 this@InfiniteViewPager.positionOffset = positionOffset
                 this@InfiniteViewPager.positionOffsetPixels = positionOffsetPixels
@@ -56,13 +52,10 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
             override fun onPageScrollStateChanged(state: Int) {
                 @Suppress("UNCHECKED_CAST")
                 val adapter = adapter as InfinitePagerAdapter<Any, View>? ?: return
-
                 if (state != ViewPager.SCROLL_STATE_IDLE)
                     return
 
-                isCycling = true
                 setCurrentItem(adapter.setPosition(positionCurrent), false)
-                isCycling = false
 
                 listener?.onPageScrollStateChanged(state)
                 this@InfiniteViewPager.position = 0

@@ -71,66 +71,32 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, private val offsc
     // Custom
     abstract fun instantiateItem(indicator: T, oldView: V?): V
 
-    fun setPosition(position: Int): Int {
-        return if (position in offscreenPages..(pageCount - offscreenPages)) {
-            var delta = position - currentPosition
-            while (delta > 0) {
-                move(currentPosition - offscreenPages, currentPosition + offscreenPages + 1)
-                fillPage(currentPosition + offscreenPages + 1)
-                _currentPosition++
-                currentIndicator = nextIndicator(currentIndicator)
-                delta--
+    internal fun setPosition(position: Int): Int {
+        return when (position) {
+            currentPosition -> position
+            in offscreenPages..(pageCount - offscreenPages) -> {
+                var delta = position - currentPosition
+                while (delta > 0) {
+                    move(currentPosition - offscreenPages, currentPosition + offscreenPages + 1)
+                    fillPage(currentPosition + offscreenPages + 1)
+                    _currentPosition++
+                    currentIndicator = nextIndicator(currentIndicator)
+                    delta--
+                }
+                while (delta < 0) {
+                    move(currentPosition + offscreenPages, currentPosition - offscreenPages - 1)
+                    fillPage(currentPosition - offscreenPages - 1)
+                    _currentPosition--
+                    currentIndicator = previousIndicator(currentIndicator)
+                    delta++
+                }
+                position
             }
-            while (delta < 0) {
-                move(currentPosition + offscreenPages, currentPosition - offscreenPages - 1)
-                fillPage(currentPosition - offscreenPages - 1)
-                _currentPosition--
-                currentIndicator = previousIndicator(currentIndicator)
-                delta++
+            else -> {
+                cycleBack()
+                defaultCenter
             }
-            position
-        } else {
-            cycleBack()
-            defaultCenter
         }
-    }
-
-    @Suppress("ComplexMethod")
-    private fun cycleBack() {
-        val delta = defaultCenter - currentPosition
-        for (position in pagesToLoad)
-            move(position, position + delta)
-        _currentPosition = defaultCenter
-        //        while (currentPosition < defaultCenter) {
-        //            val oldView = pageModels[pageCount - 1]?.run {
-        //                wrapper.removeViewAt(0)
-        //                view
-        //            }
-        //            for (i in (pageCount - 2) downTo 0)
-        //                move(i, i + 1)
-        //            // Recycle old view
-        //            if (oldView != null)
-        //                pageModels[0]?.view = oldView
-        //
-        //            currentIndicator = previousIndicator(currentIndicator)
-        //            fillPage(0)
-        //            _currentPosition++
-        //        }
-        //        while (currentPosition > pageCount) {
-        //            val oldView = pageModels[0]?.run {
-        //                wrapper.removeViewAt(0)
-        //                view
-        //            }
-        //            for (i in 1 until pageCount)
-        //                move(i, i - 1)
-        //            // Recycle old view
-        //            if (oldView != null)
-        //                pageModels[pageCount - 1]?.view = oldView
-        //
-        //            currentIndicator = nextIndicator(currentIndicator)
-        //            fillPage(pageCount - 1)
-        //            _currentPosition--
-        //        }
     }
 
     internal fun reset(newIndicator: T) {
@@ -147,6 +113,13 @@ abstract class InfinitePagerAdapter<T, V : View>(initValue: T, private val offsc
 
 
     // Helpers
+    private fun cycleBack() {
+        val delta = defaultCenter - currentPosition
+        for (position in pagesToLoad)
+            move(position, position + delta)
+        _currentPosition = defaultCenter
+    }
+
     private fun move(from: Int, to: Int) {
         val fromModel = pageModels[from]
         val toModel = pageModels[to]
