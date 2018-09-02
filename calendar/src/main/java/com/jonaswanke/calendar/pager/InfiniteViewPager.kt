@@ -22,7 +22,6 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         const val STATE_ADAPTER = "STATE_ADAPTER"
     }
 
-    private var isCycling: Boolean = false
     var position: Int = 0
         private set
     var positionOffset: Float = 0f
@@ -30,14 +29,14 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
     var positionOffsetPixels: Int = 0
         private set
 
+    private var positionCurrent = -1
+    var listener: OnInfinitePageChangeListener? = null
+
     init {
         addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 val adapter = adapter as InfinitePagerAdapter<*, *>? ?: return
-                if (isCycling || i > adapter.center)
-                    return
-
-                this@InfiniteViewPager.position = i - adapter.center
+                this@InfiniteViewPager.position = i - adapter.currentPosition
                 this@InfiniteViewPager.positionOffset = positionOffset
                 this@InfiniteViewPager.positionOffsetPixels = positionOffsetPixels
 
@@ -56,14 +55,10 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
             override fun onPageScrollStateChanged(state: Int) {
                 @Suppress("UNCHECKED_CAST")
                 val adapter = adapter as InfinitePagerAdapter<Any, View>? ?: return
-
                 if (state != ViewPager.SCROLL_STATE_IDLE)
                     return
 
-                isCycling = true
-                adapter.cycleBack(positionCurrent)
-                setCurrentItem(adapter.center, false)
-                isCycling = false
+                setCurrentItem(adapter.setPosition(positionCurrent), false)
 
                 listener?.onPageScrollStateChanged(state)
                 this@InfiniteViewPager.position = 0
@@ -74,14 +69,10 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         })
     }
 
-    private var positionCurrent = -1
-    var listener: OnInfinitePageChangeListener? = null
-
 
     override fun setCurrentItem(item: Int) {
-        if (item != (adapter as? InfinitePagerAdapter<*, *>)?.center ?: -1) {
+        if (item != (adapter as InfinitePagerAdapter<*, *>).currentPosition)
             throw UnsupportedOperationException("Cannot change page index unless its 1.")
-        }
         super.setCurrentItem(item)
     }
 
@@ -95,21 +86,23 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
         if (adapter is InfinitePagerAdapter<*, *>) {
             super.setAdapter(adapter)
             super.setOffscreenPageLimit(adapter.pageCount)
-            positionCurrent = adapter.center
-            currentItem = adapter.center
+            positionCurrent = adapter.currentPosition
+            currentItem = adapter.currentPosition
         } else
             throw IllegalArgumentException("Adapter should be an instance of InfinitePagerAdapter.")
     }
 
     fun <T : Any, V : View> setCurrentIndicator(indicator: T) {
-        val adapter = adapter as? InfinitePagerAdapter<*, *> ?: return
+        val adapter = adapter as InfinitePagerAdapter<*, *>
         val currentIndicator = adapter.currentIndicator
         if (currentIndicator!!.javaClass != indicator.javaClass)
             return
 
         launch(UI) {
             @Suppress("UNCHECKED_CAST")
-            (adapter as InfinitePagerAdapter<T, V>).reset(indicator)
+            val pagerAdapter = adapter as InfinitePagerAdapter<T, V>
+            pagerAdapter.reset(indicator)
+            setCurrentItem(pagerAdapter.currentPosition, false)
             listener?.onPageScrollStateChanged(SCROLL_STATE_IDLE)
         }
     }
@@ -130,21 +123,18 @@ class InfiniteViewPager @JvmOverloads constructor(context: Context, attrs: Attri
 
     override fun onRestoreInstanceState(state: Parcelable) {
         val adapter = adapter as InfinitePagerAdapter<*, *>?
-        if (adapter == null) {
-            if (BuildConfig.DEBUG)
-                Log.w(TAG, "onRestoreInstanceState adapter == null")
-            super.onRestoreInstanceState(state)
-            return
+        when {
+            adapter == null -> {
+                if (BuildConfig.DEBUG)
+                    Log.w(TAG, "onRestoreInstanceState adapter == null")
+                super.onRestoreInstanceState(state)
+            }
+            state is Bundle -> {
+                adapter.currentIndicatorString = state.getString(STATE_ADAPTER)!!
+                super.onRestoreInstanceState(state.getParcelable(STATE_SUPER))
+            }
+            else -> super.onRestoreInstanceState(state)
         }
-
-        if (state is Bundle) {
-            val representation = state.getString(STATE_ADAPTER)
-            adapter.currentIndicatorString = representation!!
-            super.onRestoreInstanceState(state.getParcelable(STATE_SUPER))
-            return
-        }
-
-        super.onRestoreInstanceState(state)
     }
 
 

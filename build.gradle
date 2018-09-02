@@ -6,8 +6,8 @@ buildscript {
         targetSdkVersion = 28
         compileSdkVersion = 28
 
-        versionName = '0.1.0'
-        versionCode = 6
+        versionName = '0.1.1'
+        versionCode = 7
 
         detektVersion = "1.0.0.RC8"
     }

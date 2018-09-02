@@ -20,9 +20,13 @@ Optional intro comment.
 
  -->
 
-## [Unreleased] - estimated 2018-09-02
+## [Unreleased] - estimated 2018-09-09
 
 
+## [0.1.1] - 2018-09-02
+
+- Performance: Improve pager performance ([#57](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/57)), fixes [#54](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/54)
+- Docs: Update readme with new features ([#58](https://github.com/JonasWanke/com.jonaswanke.calendar/pull/58)), fixes [#56](https://github.com/JonasWanke/com.jonaswanke.calendar/issues/56)
 
 
 ## [0.1.0] - 2018-08-26
@@ -73,7 +77,8 @@ Optional intro comment.
 Initial release supporting week view.
 
 
-[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.1.0...dev
+[Unreleased]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.1.1...dev
+[0.1.1]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/JonasWanke/com.jonaswanke.calendar/compare/v0.0.3...v0.0.4
