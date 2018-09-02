@@ -5,7 +5,6 @@ import android.gesture.GestureOverlayView
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
-import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -250,7 +249,7 @@ class CalendarView @JvmOverloads constructor(
         pager.adapter = pagerAdapter
         pager.listener = object : InfiniteViewPager.OnInfinitePageChangeListener {
             override fun onPageScrolled(indicator: Any?, positionOffset: Float, positionOffsetPixels: Int) {
-                Log.d("Pager", "$indicator, $positionOffset")
+                // TODO: update startIndicator early
                 onHeaderHeightUpdated()
             }
 
