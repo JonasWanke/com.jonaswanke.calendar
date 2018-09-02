@@ -35,7 +35,7 @@ This library provides a Material Design CalendarView for Android (week and day v
 1. Add the library to your gradle script
 
   ```groovy
-  implementation 'com.jonaswanke.calendar:calendar:0.1.0'
+  implementation 'com.jonaswanke.calendar:calendar:0.1.1'
   ```
 
 2. Add CalendarView in you layout
