@@ -1,3 +1,7 @@
+❌❌❌ No longer supported ❌❌❌
+
+Unfortunately, I no longer have the time to continue developing this library and my focus has shifted. If you are switching to Flutter, you might be interested in my [<kbd>timetable</kbd>](https://pub.dev/packages/timetable) package as a replacement.
+
 # CalendarView
 
 [![Build Status](https://travis-ci.com/JonasWanke/com.jonaswanke.calendar.svg?branch=dev)](https://travis-ci.com/JonasWanke/com.jonaswanke.calendar)
@@ -10,7 +14,7 @@
 
 This library provides a Material Design CalendarView for Android (week and day view; more coming soon!). The default style is copied from the Google Calendar app, but almost everything is customizable.
 
-| Screenshot of the [example app][example]  | Day view                                 | Add event by tapping empty space             |
+| Screenshot of the [example app][example]  |                 Day view                 |       Add event by tapping empty space       |
 | :---------------------------------------: | :--------------------------------------: | :------------------------------------------: |
 | ![image](docs/assets/screenshot-week.jpg) | ![image](docs/assets/screenshot-day.jpg) | ![image](docs/assets/screenshot-day-add.jpg) |
 
